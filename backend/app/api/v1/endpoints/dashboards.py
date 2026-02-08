@@ -123,7 +123,7 @@ def _get_widgets_collection(db: AsyncIOMotorDatabase):  # type: ignore[type-arg]
 
 
 @router.get(
-    "/",
+    "",
     response_model=DashboardListResponse,
     summary="List dashboards",
     description="Retrieve all dashboards, optionally filtered by project.",
@@ -193,7 +193,7 @@ async def get_dashboard(
 
 
 @router.post(
-    "/",
+    "",
     response_model=DashboardDetail,
     status_code=201,
     summary="Create dashboard",

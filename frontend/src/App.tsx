@@ -35,6 +35,9 @@ const PeopleDirectory = lazy(() =>
 const PersonDetail = lazy(() =>
   import("@/pages/PersonDetail").then((m) => ({ default: m.PersonDetail })),
 );
+const ProjectsPage = lazy(() =>
+  import("@/pages/ProjectsPage").then((m) => ({ default: m.ProjectsPage })),
+);
 const ProjectDetail = lazy(() =>
   import("@/pages/ProjectDetail").then((m) => ({ default: m.ProjectDetail })),
 );
@@ -349,6 +352,7 @@ export function App() {
                 <Route path="/upload" element={<DataUpload />} />
                 <Route path="/people" element={<PeopleDirectory />} />
                 <Route path="/people/:personId" element={<PersonDetail />} />
+                <Route path="/projects" element={<ProjectsPage />} />
                 <Route
                   path="/projects/:projectId"
                   element={<ProjectDetail />}

@@ -13,9 +13,6 @@ services:
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/index.html:/app/index.html
-    environment:
-      - VITE_API_URL=http://localhost:23101
-      - VITE_WS_URL=ws://localhost:23101
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

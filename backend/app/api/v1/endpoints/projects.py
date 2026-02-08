@@ -163,13 +163,27 @@ def _get_analysis_collection(db: AsyncIOMotorDatabase):  # type: ignore[type-arg
     return db["project_analyses"]
 
 
+_VALID_STATUSES = {e.value for e in ProjectStatus}
+_VALID_HEALTH_SCORES = {e.value for e in ProjectHealthScore}
+
+
+def _safe_status(value: object) -> str:
+    """Return a valid ProjectStatus string, defaulting to 'active'."""
+    return value if isinstance(value, str) and value in _VALID_STATUSES else ProjectStatus.ACTIVE.value
+
+
+def _safe_health(value: object) -> str:
+    """Return a valid ProjectHealthScore string, defaulting to 'unknown'."""
+    return value if isinstance(value, str) and value in _VALID_HEALTH_SCORES else ProjectHealthScore.UNKNOWN.value
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
 
 @router.get(
-    "/",
+    "",
     response_model=ProjectListResponse,
     summary="List projects",
     description="Retrieve a paginated list of all projects with summary health scores.",
@@ -200,8 +214,8 @@ async def list_projects(
                 project_id=doc["project_id"],
                 name=doc["name"],
                 description=doc.get("description", ""),
-                status=doc.get("status", ProjectStatus.ACTIVE.value),
-                health_score=doc.get("health_score", ProjectHealthScore.UNKNOWN.value),
+                status=_safe_status(doc.get("status")),
+                health_score=_safe_health(doc.get("health_score")),
                 deadline=doc.get("deadline"),
                 team_size=len(doc.get("team_members", [])),
                 open_tasks=doc.get("open_tasks", 0),
@@ -234,8 +248,8 @@ async def get_project(
         project_id=doc["project_id"],
         name=doc["name"],
         description=doc.get("description", ""),
-        status=doc.get("status", ProjectStatus.ACTIVE.value),
-        health_score=doc.get("health_score", ProjectHealthScore.UNKNOWN.value),
+        status=_safe_status(doc.get("status")),
+        health_score=_safe_health(doc.get("health_score")),
         deadline=doc.get("deadline"),
         team_members=doc.get("team_members", []),
         open_tasks=doc.get("open_tasks", 0),
@@ -251,7 +265,7 @@ async def get_project(
 
 
 @router.post(
-    "/",
+    "",
     response_model=ProjectDetail,
     status_code=201,
     summary="Create project",
@@ -343,8 +357,8 @@ async def update_project(
         project_id=updated_doc["project_id"],
         name=updated_doc["name"],
         description=updated_doc.get("description", ""),
-        status=updated_doc.get("status", ProjectStatus.ACTIVE.value),
-        health_score=updated_doc.get("health_score", ProjectHealthScore.UNKNOWN.value),
+        status=_safe_status(updated_doc.get("status")),
+        health_score=_safe_health(updated_doc.get("health_score")),
         deadline=updated_doc.get("deadline"),
         team_members=updated_doc.get("team_members", []),
         open_tasks=updated_doc.get("open_tasks", 0),

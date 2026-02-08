@@ -61,12 +61,14 @@ export const useProjectStore = create<ProjectStore>()(
       fetchProjects: async () => {
         set({ isLoading: true, error: null }, false, "fetchProjects/start");
         try {
-          const { data } = await api.get<Project[] | { items: Project[] }>(
-            "/v1/projects",
-          );
+          const { data } = await api.get<
+            Project[] | { projects: Project[] } | { items: Project[] }
+          >("/v1/projects");
           const projects = Array.isArray(data)
             ? data
-            : (data as { items: Project[] }).items ?? [];
+            : (data as { projects?: Project[]; items?: Project[] }).projects ??
+              (data as { items?: Project[] }).items ??
+              [];
 
           set(
             { projects, isLoading: false },

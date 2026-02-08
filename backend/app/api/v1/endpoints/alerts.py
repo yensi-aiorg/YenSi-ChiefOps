@@ -134,7 +134,7 @@ def _get_collection(db: AsyncIOMotorDatabase):  # type: ignore[type-arg]
 
 
 @router.post(
-    "/",
+    "",
     response_model=AlertResponse,
     status_code=201,
     summary="Create alert from natural language",
@@ -203,7 +203,7 @@ async def create_alert(
 
 
 @router.get(
-    "/",
+    "",
     response_model=AlertListResponse,
     summary="List all alerts",
     description="Retrieve all alerts with optional filtering by status and severity.",

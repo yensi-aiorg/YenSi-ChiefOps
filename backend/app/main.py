@@ -61,6 +61,7 @@ def create_application() -> FastAPI:
         description="AI-powered project management backend",
         version="0.1.0",
         lifespan=lifespan,
+        redirect_slashes=False,
         default_response_class=ORJSONResponse,
         docs_url="/api/docs" if not settings.is_production else None,
         redoc_url="/api/redoc" if not settings.is_production else None,

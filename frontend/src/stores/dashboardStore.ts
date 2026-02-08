@@ -76,12 +76,16 @@ export const useDashboardStore = create<DashboardStore>()(
           const params: Record<string, string> = {};
           if (projectId) params.project_id = projectId;
 
-          const { data } = await api.get<Dashboard[]>("/v1/dashboards", {
-            params,
-          });
+          const { data } = await api.get<
+            Dashboard[] | { dashboards: Dashboard[] }
+          >("/v1/dashboards", { params });
+
+          const dashboards = Array.isArray(data)
+            ? data
+            : (data as { dashboards?: Dashboard[] }).dashboards ?? [];
 
           set(
-            { dashboards: data, isLoading: false },
+            { dashboards, isLoading: false },
             false,
             "fetchDashboards/success",
           );

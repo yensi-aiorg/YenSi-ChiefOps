@@ -240,7 +240,7 @@ async def generate_report(
 
 
 @router.get(
-    "/",
+    "",
     response_model=ReportListResponse,
     summary="List reports",
     description="Retrieve a paginated list of all generated reports.",

@@ -164,7 +164,7 @@ DATA_COLLECTIONS = [
 
 
 @router.get(
-    "/",
+    "",
     response_model=SettingsResponse,
     summary="Get current settings",
     description="Retrieve the current application configuration.",
@@ -199,7 +199,7 @@ async def get_settings(
 
 
 @router.patch(
-    "/",
+    "",
     response_model=SettingsResponse,
     summary="Update settings",
     description="Update one or more application settings. Only provided fields are changed.",

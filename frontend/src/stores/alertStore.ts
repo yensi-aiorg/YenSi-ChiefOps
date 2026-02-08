@@ -82,10 +82,16 @@ export const useAlertStore = create<AlertStore>()(
       fetchAlerts: async () => {
         set({ isLoading: true, error: null }, false, "fetchAlerts/start");
         try {
-          const { data } = await api.get<Alert[]>("/v1/alerts");
+          const { data } = await api.get<Alert[] | { alerts: Alert[] }>(
+            "/v1/alerts",
+          );
+
+          const alerts = Array.isArray(data)
+            ? data
+            : (data as { alerts?: Alert[] }).alerts ?? [];
 
           set(
-            { alerts: data, isLoading: false },
+            { alerts, isLoading: false },
             false,
             "fetchAlerts/success",
           );
@@ -104,12 +110,16 @@ export const useAlertStore = create<AlertStore>()(
       fetchTriggeredAlerts: async () => {
         set({ isLoading: true, error: null }, false, "fetchTriggeredAlerts/start");
         try {
-          const { data } = await api.get<AlertTriggered[]>(
-            "/v1/alerts/triggered",
-          );
+          const { data } = await api.get<
+            AlertTriggered[] | { alerts: AlertTriggered[] }
+          >("/v1/alerts/triggered");
+
+          const alerts = Array.isArray(data)
+            ? data
+            : (data as { alerts?: AlertTriggered[] }).alerts ?? [];
 
           set(
-            { triggeredAlerts: data, isLoading: false },
+            { triggeredAlerts: alerts, isLoading: false },
             false,
             "fetchTriggeredAlerts/success",
           );

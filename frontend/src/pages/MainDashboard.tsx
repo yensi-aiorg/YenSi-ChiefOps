@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Sparkles,
   ArrowRight,
-  Activity,
   XCircle,
 } from "lucide-react";
 import { useProjectStore } from "@/stores/projectStore";
@@ -23,6 +22,77 @@ import {
   getHealthScoreColor,
 } from "@/lib/utils";
 import type { Project, AlertTriggered } from "@/types";
+
+/* ================================================================== */
+/*  API → Dashboard adapters                                           */
+/* ================================================================== */
+
+/** Map backend health_score string enum to a 0-100 number for the ring. */
+function healthToNumber(h: unknown): number | null {
+  if (typeof h === "number") return h;
+  const map: Record<string, number | null> = {
+    healthy: 80,
+    at_risk: 45,
+    critical: 20,
+    unknown: null,
+  };
+  return typeof h === "string" ? (map[h] ?? null) : null;
+}
+
+/** Safely get team_size from a project (API may return team_size or people_involved). */
+function getTeamSize(p: Project): number {
+  if (typeof (p as Record<string, unknown>).team_size === "number")
+    return (p as Record<string, unknown>).team_size as number;
+  if (Array.isArray(p.people_involved)) return p.people_involved.length;
+  return 0;
+}
+
+/** Safely get open tasks count. */
+function getOpenTasks(p: Project): number {
+  if (typeof (p as Record<string, unknown>).open_tasks === "number")
+    return (p as Record<string, unknown>).open_tasks as number;
+  if (p.task_summary)
+    return p.task_summary.to_do + p.task_summary.in_progress + p.task_summary.blocked;
+  return 0;
+}
+
+/** Safely get completed tasks count. */
+function getCompletedTasks(p: Project): number {
+  if (typeof (p as Record<string, unknown>).completed_tasks === "number")
+    return (p as Record<string, unknown>).completed_tasks as number;
+  if (p.task_summary) return p.task_summary.completed;
+  return 0;
+}
+
+/** Compute completion percentage from task counts. */
+function getCompletionPct(p: Project): number {
+  if (typeof p.completion_percentage === "number") return p.completion_percentage;
+  const done = getCompletedTasks(p);
+  const open = getOpenTasks(p);
+  const total = done + open;
+  return total > 0 ? (done / total) * 100 : 0;
+}
+
+/** Map backend status strings to display labels/colors. */
+const STATUS_LABELS: Record<string, string> = {
+  active: "Active",
+  on_track: "On Track",
+  at_risk: "At Risk",
+  on_hold: "On Hold",
+  behind: "Behind",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  active: "badge-teal",
+  on_track: "badge-teal",
+  at_risk: "badge-warm",
+  on_hold: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  behind: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+  completed: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  cancelled: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
+};
 
 /* ================================================================== */
 /*  Skeleton helpers                                                   */
@@ -63,7 +133,7 @@ function HealthScoreRing({ score }: { score: number | null }) {
   const safeScore = score ?? 0;
   const circumference = 2 * Math.PI * 54;
   const offset = circumference - (safeScore / 100) * circumference;
-  const badge = getHealthScoreBadge(safeScore);
+  const badge = getHealthScoreBadge(score);
 
   return (
     <div className="card flex items-center gap-6 p-6">
@@ -228,17 +298,13 @@ function AlertBanner({
 
 function AiBriefingPanel({ projects }: { projects: Project[] }) {
   const activeCount = projects.filter(
-    (p) => p.status !== "completed",
+    (p) => p.status !== "completed" && p.status !== "cancelled",
   ).length;
   const atRiskCount = projects.filter(
     (p) => p.status === "at_risk" || p.status === "behind",
   ).length;
   const totalPeople = useMemo(() => {
-    const ids = new Set<string>();
-    projects.forEach((p) =>
-      p.people_involved.forEach((m) => ids.add(m.person_id)),
-    );
-    return ids.size;
+    return projects.reduce((sum, p) => sum + getTeamSize(p), 0);
   }, [projects]);
 
   return (
@@ -283,19 +349,9 @@ function AiBriefingPanel({ projects }: { projects: Project[] }) {
 /* ================================================================== */
 
 function ProjectOverviewCard({ project }: { project: Project }) {
-  const statusColors: Record<string, string> = {
-    on_track: "badge-teal",
-    at_risk: "badge-warm",
-    behind: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
-    completed:
-      "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
-  };
-  const statusLabels: Record<string, string> = {
-    on_track: "On Track",
-    at_risk: "At Risk",
-    behind: "Behind",
-    completed: "Completed",
-  };
+  const healthNum = healthToNumber(project.health_score);
+  const completionPct = getCompletionPct(project);
+  const teamSize = getTeamSize(project);
 
   const daysUntilDeadline = project.deadline
     ? Math.ceil(
@@ -319,16 +375,16 @@ function ProjectOverviewCard({ project }: { project: Project }) {
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
-          <span className={cn("badge", statusColors[project.status])}>
-            {statusLabels[project.status] ?? project.status}
+          <span className={cn("badge", STATUS_COLORS[project.status] ?? "badge-teal")}>
+            {STATUS_LABELS[project.status] ?? project.status}
           </span>
           <span
             className={cn(
               "text-lg font-bold tabular-nums",
-              getHealthScoreColor(project.health_score),
+              getHealthScoreColor(healthNum),
             )}
           >
-            {project.health_score}
+            {healthNum !== null ? healthNum : "--"}
           </span>
         </div>
       </div>
@@ -338,21 +394,21 @@ function ProjectOverviewCard({ project }: { project: Project }) {
         <div className="mb-1 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
           <span>Completion</span>
           <span className="font-medium">
-            {project.completion_percentage.toFixed(0)}%
+            {completionPct.toFixed(0)}%
           </span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
           <div
             className={cn(
               "h-full rounded-full transition-all duration-500",
-              project.completion_percentage >= 80
+              completionPct >= 80
                 ? "bg-teal-500"
-                : project.completion_percentage >= 50
+                : completionPct >= 50
                   ? "bg-chief-500"
                   : "bg-warm-500",
             )}
             style={{
-              width: `${Math.min(project.completion_percentage, 100)}%`,
+              width: `${Math.min(completionPct, 100)}%`,
             }}
           />
         </div>
@@ -362,8 +418,7 @@ function ProjectOverviewCard({ project }: { project: Project }) {
       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
         <span className="flex items-center gap-1">
           <Users className="h-3.5 w-3.5" />
-          {project.people_involved.length} member
-          {project.people_involved.length !== 1 ? "s" : ""}
+          {teamSize} member{teamSize !== 1 ? "s" : ""}
         </span>
         {daysUntilDeadline !== null && (
           <span
@@ -393,111 +448,26 @@ function ProjectOverviewCard({ project }: { project: Project }) {
 }
 
 /* ================================================================== */
-/*  Team Activity Summary                                              */
+/*  Team Quick Link                                                    */
 /* ================================================================== */
 
-function TeamActivitySummary({ projects }: { projects: Project[] }) {
-  const allMembers = useMemo(() => {
-    const map = new Map<
-      string,
-      { name: string; role: string; activity_level: string; projectCount: number }
-    >();
-    projects.forEach((p) =>
-      p.people_involved.forEach((m) => {
-        const existing = map.get(m.person_id);
-        if (existing) {
-          existing.projectCount += 1;
-        } else {
-          map.set(m.person_id, {
-            name: m.name,
-            role: m.role,
-            activity_level: m.activity_level,
-            projectCount: 1,
-          });
-        }
-      }),
-    );
-    return Array.from(map.values())
-      .sort((a, b) => b.projectCount - a.projectCount)
-      .slice(0, 8);
-  }, [projects]);
-
-  if (allMembers.length === 0) return null;
-
-  const activityBadge = (level: string) => {
-    const styles: Record<string, string> = {
-      very_active:
-        "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400",
-      active:
-        "bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400",
-      moderate:
-        "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400",
-      quiet:
-        "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
-      inactive:
-        "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400",
-    };
-    const labels: Record<string, string> = {
-      very_active: "Very Active",
-      active: "Active",
-      moderate: "Moderate",
-      quiet: "Quiet",
-      inactive: "Inactive",
-    };
-    return (
-      <span
-        className={cn(
-          "badge text-2xs",
-          styles[level] ?? styles.moderate,
-        )}
-      >
-        {labels[level] ?? level}
-      </span>
-    );
-  };
+function TeamQuickLink({ totalPeople }: { totalPeople: number }) {
+  if (totalPeople === 0) return null;
 
   return (
     <div className="card">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
-          <Activity className="h-4 w-4 text-teal-500" />
-          Team Activity Summary
+          <Users className="h-4 w-4 text-teal-500" />
+          Team ({totalPeople} member{totalPeople !== 1 ? "s" : ""})
         </h3>
         <Link
           to="/people"
           className="flex items-center gap-1 text-xs font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
         >
-          View all
+          View people directory
           <ArrowRight className="h-3 w-3" />
         </Link>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              <th className="pb-2 pr-4">Name</th>
-              <th className="pb-2 pr-4">Role</th>
-              <th className="pb-2 pr-4">Activity</th>
-              <th className="pb-2 text-right">Projects</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {allMembers.map((m, i) => (
-              <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <td className="py-2.5 pr-4 font-medium text-slate-900 dark:text-white">
-                  {m.name}
-                </td>
-                <td className="py-2.5 pr-4 text-slate-600 dark:text-slate-400">
-                  {m.role}
-                </td>
-                <td className="py-2.5 pr-4">{activityBadge(m.activity_level)}</td>
-                <td className="py-2.5 text-right tabular-nums text-slate-600 dark:text-slate-400">
-                  {m.projectCount}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </div>
   );
@@ -553,27 +523,24 @@ export function MainDashboard() {
   }, [fetchProjects, fetchTriggeredAlerts, fetchDashboards]);
 
   // Computed stats
-  const activeProjects = projects.filter((p) => p.status !== "completed");
-  const totalPeople = useMemo(() => {
-    const ids = new Set<string>();
-    projects.forEach((p) =>
-      p.people_involved.forEach((m) => ids.add(m.person_id)),
-    );
-    return ids.size;
-  }, [projects]);
+  const activeProjects = projects.filter(
+    (p) => p.status !== "completed" && p.status !== "cancelled",
+  );
+  const totalPeople = useMemo(
+    () => projects.reduce((sum, p) => sum + getTeamSize(p), 0),
+    [projects],
+  );
   const openTasks = useMemo(
-    () =>
-      projects.reduce(
-        (sum, p) =>
-          sum + p.task_summary.to_do + p.task_summary.in_progress + p.task_summary.blocked,
-        0,
-      ),
+    () => projects.reduce((sum, p) => sum + getOpenTasks(p), 0),
     [projects],
   );
   const avgHealth = useMemo(() => {
     if (activeProjects.length === 0) return null;
-    const sum = activeProjects.reduce((s, p) => s + p.health_score, 0);
-    return Math.round(sum / activeProjects.length);
+    const scores = activeProjects
+      .map((p) => healthToNumber(p.health_score))
+      .filter((s): s is number => s !== null);
+    if (scores.length === 0) return null;
+    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
   }, [activeProjects]);
 
   const activeAlerts = triggeredAlerts.filter((a) => !a.acknowledged);
@@ -674,8 +641,8 @@ export function MainDashboard() {
             </div>
           </div>
 
-          {/* Team activity summary */}
-          <TeamActivitySummary projects={projects} />
+          {/* Team quick link */}
+          <TeamQuickLink totalPeople={totalPeople} />
         </>
       )}
     </div>

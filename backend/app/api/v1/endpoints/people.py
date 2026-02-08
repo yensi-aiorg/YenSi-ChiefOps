@@ -121,7 +121,7 @@ def _get_collection(db: AsyncIOMotorDatabase):  # type: ignore[type-arg]
 
 
 @router.get(
-    "/",
+    "",
     response_model=PersonListResponse,
     summary="List people",
     description="Retrieve a paginated list of all people in the directory, "
