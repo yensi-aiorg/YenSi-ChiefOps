@@ -45,7 +45,7 @@ type AlertStore = AlertState & AlertActions;
 
 export const useAlertStore = create<AlertStore>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       // -- state --
       alerts: [],
       triggeredAlerts: [],
@@ -191,11 +191,7 @@ export const useAlertStore = create<AlertStore>()(
             (s) => ({
               triggeredAlerts: s.triggeredAlerts.map((t) =>
                 t.trigger_id === triggerId
-                  ? {
-                      ...t,
-                      dismissed: true,
-                      dismissed_at: new Date().toISOString(),
-                    }
+                  ? { ...t, acknowledged: true }
                   : t,
               ),
             }),

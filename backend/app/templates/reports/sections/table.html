@@ -1,0 +1,80 @@
+{#
+  Table section template.
+
+  Renders a data table with headers and rows. Supports optional
+  column alignment, row highlighting, and status badge rendering.
+
+  Expected section.content keys:
+    - headers (list[str]): Column header labels.
+    - rows (list[list[str]]): Row data as lists of cell values.
+    - alignments (list[str], optional): Column alignments
+      ("left", "center", "right"). Defaults to "left".
+    - highlight_column (int, optional): Column index to apply
+      status badge styling to.
+    - footer_row (list[str], optional): Summary/totals footer row.
+    - caption (str, optional): Table caption text.
+#}
+
+{% set headers = section.content.get("headers", []) %}
+{% set rows = section.content.get("rows", []) %}
+{% set alignments = section.content.get("alignments", []) %}
+{% set highlight_column = section.content.get("highlight_column", -1) %}
+{% set footer_row = section.content.get("footer_row", []) %}
+{% set caption = section.content.get("caption", "") %}
+
+{% if headers and rows %}
+<table>
+    {% if caption %}
+    <caption style="font-size: 8pt; color: #6b7280; margin-bottom: 6px; text-align: left; font-style: italic;">
+        {{ caption }}
+    </caption>
+    {% endif %}
+    <thead>
+        <tr>
+            {% for header in headers %}
+            <th {% if alignments and loop.index0 < alignments|length %}style="text-align: {{ alignments[loop.index0] }};"{% endif %}>
+                {{ header }}
+            </th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            {% for cell in row %}
+            <td {% if alignments and loop.index0 < alignments|length %}style="text-align: {{ alignments[loop.index0] }};"{% endif %}>
+                {% if loop.index0 == highlight_column %}
+                    {% if cell|lower in ["on_track", "healthy", "completed", "done", "active"] %}
+                    <span class="badge badge-green">{{ cell }}</span>
+                    {% elif cell|lower in ["at_risk", "warning", "moderate"] %}
+                    <span class="badge badge-yellow">{{ cell }}</span>
+                    {% elif cell|lower in ["behind", "critical", "blocked", "failed"] %}
+                    <span class="badge badge-red">{{ cell }}</span>
+                    {% elif cell|lower in ["in_progress", "in progress", "pending"] %}
+                    <span class="badge badge-blue">{{ cell }}</span>
+                    {% else %}
+                    <span class="badge badge-gray">{{ cell }}</span>
+                    {% endif %}
+                {% else %}
+                    {{ cell }}
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+    {% if footer_row %}
+    <tfoot>
+        <tr style="font-weight: 600; border-top: 2px solid #1e40af;">
+            {% for cell in footer_row %}
+            <td {% if alignments and loop.index0 < alignments|length %}style="text-align: {{ alignments[loop.index0] }};"{% endif %}>
+                {{ cell }}
+            </td>
+            {% endfor %}
+        </tr>
+    </tfoot>
+    {% endif %}
+</table>
+{% else %}
+<p class="text-muted">No table data available.</p>
+{% endif %}

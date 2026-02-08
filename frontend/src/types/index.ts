@@ -61,6 +61,7 @@ export type {
   ReportSection,
   ReportSpec,
   AppSettings,
+  PeopleFilters,
 } from "./models";
 
 // Widget and dashboard types and enums

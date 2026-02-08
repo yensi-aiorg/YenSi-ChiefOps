@@ -26,10 +26,7 @@ interface DashboardActions {
   /** Add a widget to a dashboard. */
   addWidget: (
     dashboardId: string,
-    widgetSpec: Omit<
-      WidgetSpec,
-      "widget_id" | "dashboard_id" | "created_at" | "updated_at"
-    >,
+    widgetSpec: Omit<WidgetSpec, "widget_id" | "dashboard_id" | "created_at" | "updated_at">,
   ) => Promise<void>;
 
   /** Update an existing widget. */
@@ -107,18 +104,8 @@ export const useDashboardStore = create<DashboardStore>()(
             `/v1/dashboards/${dashboardId}`,
           );
 
-          // Index widgets from the dashboard into the widgets map.
-          const widgetsMap = new Map(get().widgets);
-          for (const w of data.widgets) {
-            widgetsMap.set(w.widget_id, w);
-          }
-
           set(
-            {
-              activeDashboard: data,
-              widgets: widgetsMap,
-              isLoading: false,
-            },
+            { activeDashboard: data, isLoading: false },
             false,
             "fetchDashboard/success",
           );
@@ -147,11 +134,14 @@ export const useDashboardStore = create<DashboardStore>()(
           const widgetsMap = new Map(get().widgets);
           widgetsMap.set(data.widget_id, data);
 
-          // Update the active dashboard's widget list if it matches.
+          // Append the new widget ID to the active dashboard if it matches.
           const active = get().activeDashboard;
           const updatedActive =
             active && active.dashboard_id === dashboardId
-              ? { ...active, widgets: [...active.widgets, data] }
+              ? {
+                  ...active,
+                  widget_ids: [...active.widget_ids, data.widget_id],
+                }
               : active;
 
           set(
@@ -186,23 +176,8 @@ export const useDashboardStore = create<DashboardStore>()(
           const widgetsMap = new Map(get().widgets);
           widgetsMap.set(widgetId, data);
 
-          // Reflect the update in the active dashboard widget list.
-          const active = get().activeDashboard;
-          const updatedActive = active
-            ? {
-                ...active,
-                widgets: active.widgets.map((w) =>
-                  w.widget_id === widgetId ? data : w,
-                ),
-              }
-            : null;
-
           set(
-            {
-              widgets: widgetsMap,
-              activeDashboard: updatedActive,
-              isLoading: false,
-            },
+            { widgets: widgetsMap, isLoading: false },
             false,
             "updateWidget/success",
           );
@@ -229,12 +204,13 @@ export const useDashboardStore = create<DashboardStore>()(
           const widgetDataMap = new Map(get().widgetData);
           widgetDataMap.delete(widgetId);
 
+          // Remove the widget ID from the active dashboard.
           const active = get().activeDashboard;
           const updatedActive = active
             ? {
                 ...active,
-                widgets: active.widgets.filter(
-                  (w) => w.widget_id !== widgetId,
+                widget_ids: active.widget_ids.filter(
+                  (wid) => wid !== widgetId,
                 ),
               }
             : null;
@@ -296,7 +272,10 @@ export const useDashboardStore = create<DashboardStore>()(
           const active = get().activeDashboard;
           const updatedActive =
             active && active.dashboard_id === dashboardId
-              ? { ...active, widgets: [...active.widgets, data] }
+              ? {
+                  ...active,
+                  widget_ids: [...active.widget_ids, data.widget_id],
+                }
               : active;
 
           set(
@@ -331,22 +310,8 @@ export const useDashboardStore = create<DashboardStore>()(
           const widgetsMap = new Map(get().widgets);
           widgetsMap.set(widgetId, data);
 
-          const active = get().activeDashboard;
-          const updatedActive = active
-            ? {
-                ...active,
-                widgets: active.widgets.map((w) =>
-                  w.widget_id === widgetId ? data : w,
-                ),
-              }
-            : null;
-
           set(
-            {
-              widgets: widgetsMap,
-              activeDashboard: updatedActive,
-              isLoading: false,
-            },
+            { widgets: widgetsMap, isLoading: false },
             false,
             "nlEditWidget/success",
           );

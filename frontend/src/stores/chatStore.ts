@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import api from "@/lib/api";
+import { TurnRole } from "@/types";
 import type { ConversationTurn } from "@/types";
 
 // ---------------------------------------------------------------------------
@@ -81,11 +82,14 @@ export const useChatStore = create<ChatStore>()(
 
         // 1. Append the user turn immediately for optimistic UI.
         const userTurn: ConversationTurn = {
-          id: generateTurnId(),
-          role: "user",
+          turn_id: generateTurnId(),
+          role: TurnRole.USER,
           content,
           project_id: resolvedProjectId,
+          stream_type: "coo_chat",
           timestamp: new Date().toISOString(),
+          turn_number: get().messages.length + 1,
+          sources_used: [],
         };
 
         set(
@@ -101,11 +105,14 @@ export const useChatStore = create<ChatStore>()(
         // 2. Create a placeholder assistant turn that will be filled by SSE.
         const assistantTurnId = generateTurnId();
         const assistantTurn: ConversationTurn = {
-          id: assistantTurnId,
-          role: "assistant",
+          turn_id: assistantTurnId,
+          role: TurnRole.ASSISTANT,
           content: "",
           project_id: resolvedProjectId,
+          stream_type: "coo_chat",
           timestamp: new Date().toISOString(),
+          turn_number: get().messages.length + 1,
+          sources_used: [],
         };
 
         set(
@@ -135,6 +142,7 @@ export const useChatStore = create<ChatStore>()(
                 done?: boolean;
                 error?: string;
                 turn_id?: string;
+                sources_used?: ConversationTurn["sources_used"];
                 metadata?: Record<string, unknown>;
               };
 
@@ -154,11 +162,12 @@ export const useChatStore = create<ChatStore>()(
                   (s) => ({
                     isStreaming: false,
                     messages: s.messages.map((m) =>
-                      m.id === assistantTurnId
+                      m.turn_id === assistantTurnId
                         ? {
                             ...m,
-                            id: data.turn_id ?? m.id,
-                            metadata: data.metadata,
+                            turn_id: data.turn_id ?? m.turn_id,
+                            sources_used:
+                              data.sources_used ?? m.sources_used,
                           }
                         : m,
                     ),
@@ -175,7 +184,7 @@ export const useChatStore = create<ChatStore>()(
                 set(
                   (s) => ({
                     messages: s.messages.map((m) =>
-                      m.id === assistantTurnId
+                      m.turn_id === assistantTurnId
                         ? { ...m, content: m.content + data.content }
                         : m,
                     ),
@@ -189,7 +198,7 @@ export const useChatStore = create<ChatStore>()(
               set(
                 (s) => ({
                   messages: s.messages.map((m) =>
-                    m.id === assistantTurnId
+                    m.turn_id === assistantTurnId
                       ? { ...m, content: m.content + (event.data as string) }
                       : m,
                   ),

@@ -1,0 +1,43 @@
+{#
+  Chart section template with inline SVG embedding.
+
+  Renders a chart as an embedded SVG image within the report.
+  Charts are pre-rendered server-side (e.g., using matplotlib or
+  a charting library) and passed as an SVG string.
+
+  Expected section.content keys:
+    - svg (str): The complete SVG markup for the chart.
+    - caption (str, optional): Caption text displayed below the chart.
+    - chart_type (str, optional): Type identifier (e.g., "line", "bar",
+      "pie") -- used for accessibility labeling.
+    - width (str, optional): CSS width for the chart container
+      (default: "100%").
+    - height (str, optional): CSS height for the chart container
+      (default: "auto").
+#}
+
+{% set svg_content = section.content.get("svg", "") %}
+{% set caption = section.content.get("caption", "") %}
+{% set chart_type = section.content.get("chart_type", "chart") %}
+{% set width = section.content.get("width", "100%") %}
+{% set height = section.content.get("height", "auto") %}
+
+<div class="chart-container" role="img" aria-label="{{ section.title | default(chart_type) }}">
+    {% if svg_content %}
+    <div style="width: {{ width }}; height: {{ height }}; margin: 0 auto;">
+        {{ svg_content | safe }}
+    </div>
+    {% else %}
+    <div style="background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 8px; padding: 40px 20px; text-align: center;">
+        <p style="color: #9ca3af; font-size: 9pt;">
+            Chart data not available. The {{ chart_type }} chart will be generated when data is provided.
+        </p>
+    </div>
+    {% endif %}
+
+    {% if caption %}
+    <p style="font-size: 8pt; color: #6b7280; margin-top: 8px; font-style: italic; text-align: center;">
+        {{ caption }}
+    </p>
+    {% endif %}
+</div>
