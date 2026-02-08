@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING
 
 from redis.asyncio import ConnectionPool, Redis
 
 from app.config import get_settings
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +21,7 @@ async def connect_redis() -> None:
 
     Called once during application startup.
     """
-    global _pool, _redis  # noqa: PLW0603
+    global _pool, _redis
     settings = get_settings()
 
     logger.info(
@@ -47,7 +50,7 @@ async def close_redis() -> None:
 
     Called once during application shutdown.
     """
-    global _pool, _redis  # noqa: PLW0603
+    global _pool, _redis
     if _redis is not None:
         await _redis.aclose()
         logger.info("Redis connection closed")

@@ -30,9 +30,7 @@ _REDACTED_PASSPORT = "[PASSPORT REDACTED]"
 _PATTERNS: list[tuple[re.Pattern[str], str, str]] = [
     # Email addresses
     (
-        re.compile(
-            r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b"
-        ),
+        re.compile(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b"),
         _REDACTED_EMAIL,
         "email",
     ),
@@ -53,17 +51,13 @@ _PATTERNS: list[tuple[re.Pattern[str], str, str]] = [
     ),
     # International phone numbers
     (
-        re.compile(
-            r"\+\d{1,3}[\s.-]?\d{1,4}[\s.-]?\d{1,4}[\s.-]?\d{1,4}(?:[\s.-]?\d{1,4})?"
-        ),
+        re.compile(r"\+\d{1,3}[\s.-]?\d{1,4}[\s.-]?\d{1,4}[\s.-]?\d{1,4}(?:[\s.-]?\d{1,4})?"),
         _REDACTED_PHONE,
         "phone_international",
     ),
     # US Social Security Numbers (XXX-XX-XXXX)
     (
-        re.compile(
-            r"\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b"
-        ),
+        re.compile(r"\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b"),
         _REDACTED_SSN,
         "ssn",
     ),
@@ -92,9 +86,7 @@ _PATTERNS: list[tuple[re.Pattern[str], str, str]] = [
     ),
     # Passport numbers (common formats)
     (
-        re.compile(
-            r"\b[A-Z]{1,2}\d{6,9}\b"
-        ),
+        re.compile(r"\b[A-Z]{1,2}\d{6,9}\b"),
         _REDACTED_PASSPORT,
         "passport",
     ),
@@ -105,8 +97,7 @@ _AGGRESSIVE_PATTERNS: list[tuple[re.Pattern[str], str, str]] = [
     # Date of birth patterns
     (
         re.compile(
-            r"\b(?:DOB|date of birth|born on|birthday)[:\s]*"
-            r"\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4}\b",
+            r"\b(?:DOB|date of birth|born on|birthday)[:\s]*" r"\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4}\b",
             re.IGNORECASE,
         ),
         "[DOB REDACTED]",
@@ -189,12 +180,14 @@ def scan_for_pii(text: str) -> list[dict[str, Any]]:
 
     for pattern, _, pii_type in _PATTERNS:
         for match in pattern.finditer(text):
-            findings.append({
-                "type": pii_type,
-                "start": match.start(),
-                "end": match.end(),
-                "snippet": _mask_snippet(match.group()),
-            })
+            findings.append(
+                {
+                    "type": pii_type,
+                    "start": match.start(),
+                    "end": match.end(),
+                    "snippet": _mask_snippet(match.group()),
+                }
+            )
 
     return findings
 
@@ -229,8 +222,11 @@ def redact_dict(data: dict[str, Any], fields: list[str] | None = None) -> dict[s
             result[key] = redact_dict(value, fields)
         elif isinstance(value, list):
             result[key] = [
-                redact_pii(item) if isinstance(item, str) else
-                redact_dict(item, fields) if isinstance(item, dict) else item
+                redact_pii(item)
+                if isinstance(item, str)
+                else redact_dict(item, fields)
+                if isinstance(item, dict)
+                else item
                 for item in value
             ]
         else:

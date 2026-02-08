@@ -17,6 +17,7 @@ from app.models.base import generate_uuid, utc_now
 from app.models.dashboard import DataQuery, QueryType, WidgetSpec, WidgetType
 
 
+@pytest.mark.integration
 class TestCountQueryExecution:
     """Test simple count queries against MongoDB collections."""
 
@@ -58,6 +59,7 @@ class TestCountQueryExecution:
         assert count == 2
 
 
+@pytest.mark.integration
 class TestGroupCountQuery:
     """Test group-by count aggregation queries."""
 
@@ -111,6 +113,7 @@ class TestGroupCountQuery:
         assert result_map["Beta"] == 1
 
 
+@pytest.mark.integration
 class TestTimeSeriesQuery:
     """Test time-series aggregation queries."""
 
@@ -161,6 +164,7 @@ class TestTimeSeriesQuery:
         assert results[2]["count"] == 1
 
 
+@pytest.mark.integration
 class TestTopNQuery:
     """Test Top-N aggregation queries."""
 

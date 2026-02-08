@@ -47,9 +47,7 @@ class PromptTemplate:
 
     def required_variables(self) -> list[str]:
         """Return a sorted list of placeholder names found in the template."""
-        return sorted(
-            {m.group(1) for m in re.finditer(r"\{(\w+)\}", self.template)}
-        )
+        return sorted({m.group(1) for m in re.finditer(r"\{(\w+)\}", self.template)})
 
     def _derive_name(self) -> str:
         """Derive a short name from the first line of the template."""

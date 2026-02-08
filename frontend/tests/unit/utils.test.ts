@@ -28,11 +28,11 @@ describe("formatPercentage", () => {
   });
 
   it("handles zero", () => {
-    expect(formatPercentage(0)).toBe("0%");
+    expect(formatPercentage(0)).toBe("0.0%");
   });
 
   it("handles 100%", () => {
-    expect(formatPercentage(100)).toBe("100%");
+    expect(formatPercentage(100)).toBe("100.0%");
   });
 });
 
@@ -55,20 +55,20 @@ describe("getHealthScoreColor", () => {
     expect(color).toContain("red");
   });
 
-  it("returns amber/yellow for medium scores", () => {
+  it("returns yellow for medium scores", () => {
     const color = getHealthScoreColor(55);
-    expect(color).toContain("amber");
+    expect(color).toContain("yellow");
   });
 
-  it("returns green for high scores", () => {
+  it("returns teal for good scores", () => {
     const color = getHealthScoreColor(85);
-    expect(color).toContain("green");
+    expect(color).toContain("teal");
   });
 });
 
 describe("getActivityLevelColor", () => {
-  it("returns green for very_active", () => {
-    const color = getActivityLevelColor("very_active");
+  it("returns green for high activity", () => {
+    const color = getActivityLevelColor("high");
     expect(color).toContain("green");
   });
 

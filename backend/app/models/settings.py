@@ -6,12 +6,9 @@ system configuration so they survive restarts and are editable through
 the ChiefOps conversation interface.
 """
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 from app.models.base import MongoBaseModel, generate_uuid
-
 
 # ---------------------------------------------------------------------------
 # Embedded sub-documents
@@ -29,11 +26,11 @@ class SlackIntegration(BaseModel):
         default="",
         description="Slack workspace display name.",
     )
-    bot_token: Optional[str] = Field(
+    bot_token: str | None = Field(
         default=None,
         description="Slack bot OAuth token (encrypted at rest).",
     )
-    default_channel: Optional[str] = Field(
+    default_channel: str | None = Field(
         default=None,
         description="Default channel for notifications.",
     )
@@ -46,15 +43,15 @@ class JiraIntegration(BaseModel):
         default=False,
         description="Whether Jira integration is active.",
     )
-    base_url: Optional[str] = Field(
+    base_url: str | None = Field(
         default=None,
         description="Jira instance base URL.",
     )
-    api_token: Optional[str] = Field(
+    api_token: str | None = Field(
         default=None,
         description="Jira API token (encrypted at rest).",
     )
-    username: Optional[str] = Field(
+    username: str | None = Field(
         default=None,
         description="Jira username for API authentication.",
     )
@@ -67,11 +64,11 @@ class DriveIntegration(BaseModel):
         default=False,
         description="Whether Google Drive integration is active.",
     )
-    service_account_key: Optional[str] = Field(
+    service_account_key: str | None = Field(
         default=None,
         description="Path to Google service account JSON key file.",
     )
-    root_folder_id: Optional[str] = Field(
+    root_folder_id: str | None = Field(
         default=None,
         description="Google Drive root folder ID to scan.",
     )
@@ -84,7 +81,7 @@ class CitexConfig(BaseModel):
         default="http://citex:8000",
         description="Citex service base URL.",
     )
-    api_key: Optional[str] = Field(
+    api_key: str | None = Field(
         default=None,
         description="Citex API key (if required).",
     )
@@ -101,7 +98,7 @@ class AIProviderConfig(BaseModel):
         default="openrouter",
         description="Active AI provider ('openrouter', 'cli_claude', 'cli_codex', 'cli_gemini').",
     )
-    openrouter_api_key: Optional[str] = Field(
+    openrouter_api_key: str | None = Field(
         default=None,
         description="OpenRouter API key (encrypted at rest).",
     )
@@ -130,7 +127,7 @@ class BrandingConfig(BaseModel):
         default="",
         description="Company name for report headers.",
     )
-    logo_url: Optional[str] = Field(
+    logo_url: str | None = Field(
         default=None,
         description="URL to company logo image.",
     )
@@ -189,7 +186,7 @@ class NotificationConfig(BaseModel):
         default=False,
         description="Whether to send alert notifications to Slack.",
     )
-    slack_notification_channel: Optional[str] = Field(
+    slack_notification_channel: str | None = Field(
         default=None,
         description="Slack channel for alert notifications.",
     )

@@ -9,12 +9,13 @@ section", "make the summary shorter").
 from __future__ import annotations
 
 import logging
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.core.exceptions import NotFoundException
 from app.models.base import utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +97,7 @@ async def _ai_edit_report(
     }
 
     import json
+
     current_json = json.dumps(current_spec, indent=2, default=str)
 
     prompt = (

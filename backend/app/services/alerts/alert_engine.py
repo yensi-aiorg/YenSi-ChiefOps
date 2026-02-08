@@ -10,12 +10,13 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import datetime, timezone
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -161,11 +162,13 @@ async def acknowledge_alert(
     """
     await db.alerts.update_one(
         {"alert_id": alert_id},
-        {"$set": {
-            "acknowledged": True,
-            "acknowledged_at": utc_now(),
-            "updated_at": utc_now(),
-        }},
+        {
+            "$set": {
+                "acknowledged": True,
+                "acknowledged_at": utc_now(),
+                "updated_at": utc_now(),
+            }
+        },
     )
 
     alert = await db.alerts.find_one({"alert_id": alert_id})
@@ -222,7 +225,7 @@ async def _get_metric_value(
     collection: str,
     filters: dict[str, Any],
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
-) -> Optional[float]:
+) -> float | None:
     """Get the current value of a metric from the database."""
 
     if metric == "count":
@@ -236,10 +239,12 @@ async def _get_metric_value(
         total = await db.jira_tasks.count_documents(filters)
         if total == 0:
             return 0.0
-        done = await db.jira_tasks.count_documents({
-            **filters,
-            "status": {"$in": ["done", "closed", "resolved"]},
-        })
+        done = await db.jira_tasks.count_documents(
+            {
+                **filters,
+                "status": {"$in": ["done", "closed", "resolved"]},
+            }
+        )
         return (done / total) * 100
 
     if metric == "health_score":
@@ -253,7 +258,7 @@ async def _get_metric_value(
         return float(await db.jira_tasks.count_documents(query))
 
     if metric == "overdue_count":
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         query = {
             **filters,
             "due_date": {"$lt": now},
@@ -367,7 +372,9 @@ def _heuristic_parse_alert(description: str) -> dict[str, Any]:
         spec["threshold"] = float(numbers[0])
 
     # Detect comparison direction
-    if any(kw in desc_lower for kw in ("below", "under", "less than", "drops below", "falls below")):
+    if any(
+        kw in desc_lower for kw in ("below", "under", "less than", "drops below", "falls below")
+    ):
         spec["operator"] = "less_than"
     elif any(kw in desc_lower for kw in ("above", "over", "more than", "exceeds", "greater than")):
         spec["operator"] = "greater_than"

@@ -37,7 +37,6 @@ export function OnboardingWizard({
 }: OnboardingWizardProps) {
   const [currentStep, setCurrentStep] = useState<Step>("welcome");
   const [loadingSample, setLoadingSample] = useState(false);
-  const [uploadComplete, setUploadComplete] = useState(false);
   const { updateSettings } = useSettingsStore();
   const { uploadFiles, isUploading } = useIngestionStore();
 
@@ -55,7 +54,6 @@ export function OnboardingWizard({
     try {
       // Simulate loading sample data
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      setUploadComplete(true);
       goToNext();
     } catch {
       // Error handled by store
@@ -65,11 +63,8 @@ export function OnboardingWizard({
   };
 
   const handleUpload = async (files: File[]) => {
-    const job = await uploadFiles(files);
-    if (job) {
-      setUploadComplete(true);
-      goToNext();
-    }
+    await uploadFiles(files);
+    goToNext();
   };
 
   const handleFinish = async () => {

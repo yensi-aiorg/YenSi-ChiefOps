@@ -110,13 +110,13 @@ export function PieChart({ data, config = {} }: PieChartProps) {
 
     const legendRight = legend_position === "right";
 
-    const centerGraphic: EChartsOption["graphic"] =
+    const centerGraphic =
       isDonut && (center_label ?? center_value)
         ? [
             {
-              type: "group",
-              left: "center",
-              top: "center",
+              type: "group" as const,
+              left: "center" as const,
+              top: "center" as const,
               children: [
                 ...(center_value
                   ? [
@@ -127,9 +127,9 @@ export function PieChart({ data, config = {} }: PieChartProps) {
                           fill: "#0f172a",
                           fontSize: 22,
                           fontWeight: 700,
-                          textAlign: "center" as const,
+                          textAlign: "center",
                         },
-                        left: "center",
+                        left: "center" as const,
                         top: -14,
                       },
                     ]
@@ -143,9 +143,9 @@ export function PieChart({ data, config = {} }: PieChartProps) {
                           fill: "#64748b",
                           fontSize: 11,
                           fontWeight: 400,
-                          textAlign: "center" as const,
+                          textAlign: "center",
                         },
-                        left: "center",
+                        left: "center" as const,
                         top: center_value ? 12 : 0,
                       },
                     ]
@@ -200,7 +200,7 @@ export function PieChart({ data, config = {} }: PieChartProps) {
           return `${name}  ${pct}%`;
         },
       },
-      graphic: centerGraphic,
+      graphic: centerGraphic as EChartsOption["graphic"],
       series: [
         {
           type: "pie",

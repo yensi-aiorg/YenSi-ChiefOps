@@ -18,6 +18,7 @@ from app.models.base import generate_uuid, utc_now
 from app.models.person import ActivityLevel, Person, RoleSource
 
 
+@pytest.mark.integration
 class TestEntityResolutionExactEmailMatch:
     """Test entity resolution via exact email matching."""
 
@@ -66,6 +67,7 @@ class TestEntityResolutionExactEmailMatch:
         assert doc is None
 
 
+@pytest.mark.integration
 class TestEntityResolutionFuzzyNameMatch:
     """Test entity resolution via fuzzy name matching."""
 
@@ -138,16 +140,16 @@ class TestActivityLevelCalculation:
                 return ActivityLevel.MODERATE
             return ActivityLevel.QUIET
 
-        # Very active: high messages + many tasks
-        assert compute_activity(100, 20, 1) == ActivityLevel.VERY_ACTIVE
+        # Very active: score = 150*0.3 + 50*0.5 = 45+25 = 70 >= 50
+        assert compute_activity(150, 50, 1) == ActivityLevel.VERY_ACTIVE
 
-        # Active: moderate activity
-        assert compute_activity(30, 15, 3) == ActivityLevel.ACTIVE
+        # Active: score = 50*0.3 + 20*0.5 = 15+10 = 25, in [20, 50)
+        assert compute_activity(50, 20, 3) == ActivityLevel.ACTIVE
 
-        # Moderate: some activity
-        assert compute_activity(10, 3, 5) == ActivityLevel.MODERATE
+        # Moderate: score = 15*0.3 + 5*0.5 = 4.5+2.5 = 7, in [5, 20)
+        assert compute_activity(15, 5, 5) == ActivityLevel.MODERATE
 
-        # Quiet: low activity
+        # Quiet: score = 2*0.3 + 1*0.5 = 0.6+0.5 = 1.1, < 5
         assert compute_activity(2, 1, 10) == ActivityLevel.QUIET
 
         # Inactive: stale
@@ -208,6 +210,7 @@ class TestRoleDetectionWithMockAI:
         assert len(data["evidence"]) > 0
 
 
+@pytest.mark.integration
 class TestCorrectionApplication:
     """Test applying COO corrections to person records."""
 

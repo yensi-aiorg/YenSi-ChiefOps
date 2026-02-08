@@ -10,12 +10,12 @@ deletion of reports.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.core.exceptions import NotFoundException
-from app.models.base import utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ class ReportService:
     async def generate(
         self,
         message: str,
-        project_id: Optional[str] = None,
+        project_id: str | None = None,
     ) -> dict[str, Any]:
         """Generate a report from a natural language request.
 
@@ -91,12 +91,14 @@ class ReportService:
         # the endpoint schema expects ``title`` + ``content`` + ``order``.
         normalised_sections: list[dict[str, Any]] = []
         for idx, section in enumerate(result.get("sections", [])):
-            normalised_sections.append({
-                "title": section.get("heading", section.get("title", "Section")),
-                "content": section.get("content", ""),
-                "order": idx,
-                "charts": section.get("charts", []),
-            })
+            normalised_sections.append(
+                {
+                    "title": section.get("heading", section.get("title", "Section")),
+                    "content": section.get("content", ""),
+                    "order": idx,
+                    "charts": section.get("charts", []),
+                }
+            )
 
         return {
             "title": result.get("title", "Generated Report"),
@@ -113,7 +115,7 @@ class ReportService:
         self,
         skip: int = 0,
         limit: int = 20,
-        filters: Optional[dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Return a paginated list of reports.
 
@@ -128,10 +130,7 @@ class ReportService:
         query = filters or {}
         total = await self._collection.count_documents(query)
         cursor = (
-            self._collection.find(query, {"_id": 0})
-            .sort("created_at", -1)
-            .skip(skip)
-            .limit(limit)
+            self._collection.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
         )
         docs = await cursor.to_list(length=limit)
 
@@ -154,9 +153,7 @@ class ReportService:
         Raises:
             NotFoundException: If *report_id* does not exist.
         """
-        doc = await self._collection.find_one(
-            {"report_id": report_id}, {"_id": 0}
-        )
+        doc = await self._collection.find_one({"report_id": report_id}, {"_id": 0})
         if doc is None:
             raise NotFoundException(resource="Report", identifier=report_id)
         return doc
@@ -201,12 +198,14 @@ class ReportService:
         # Normalise section format for the endpoint response
         normalised_sections: list[dict[str, Any]] = []
         for idx, section in enumerate(result.get("sections", [])):
-            normalised_sections.append({
-                "title": section.get("heading", section.get("title", "Section")),
-                "content": section.get("content", ""),
-                "order": idx,
-                "charts": section.get("charts", []),
-            })
+            normalised_sections.append(
+                {
+                    "title": section.get("heading", section.get("title", "Section")),
+                    "content": section.get("content", ""),
+                    "order": idx,
+                    "charts": section.get("charts", []),
+                }
+            )
 
         return {
             "title": result.get("title", current_report.get("title", "")),

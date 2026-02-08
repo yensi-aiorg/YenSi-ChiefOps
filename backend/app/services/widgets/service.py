@@ -10,12 +10,13 @@ placement, updates, NL editing, and deletion.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.core.exceptions import NotFoundException
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -66,9 +67,7 @@ class WidgetService:
         Raises:
             NotFoundException: If *widget_id* does not exist.
         """
-        doc = await self._collection.find_one(
-            {"widget_id": widget_id}, {"_id": 0}
-        )
+        doc = await self._collection.find_one({"widget_id": widget_id}, {"_id": 0})
         if doc is None:
             raise NotFoundException(resource="Widget", identifier=widget_id)
         return doc
@@ -89,12 +88,10 @@ class WidgetService:
         Raises:
             NotFoundException: If *widget_id* does not exist.
         """
-        from app.services.widgets.query_engine import execute_query
         from app.services.widgets import cache as widget_cache
+        from app.services.widgets.query_engine import execute_query
 
-        doc = await self._collection.find_one(
-            {"widget_id": widget_id}, {"_id": 0}
-        )
+        doc = await self._collection.find_one({"widget_id": widget_id}, {"_id": 0})
         if doc is None:
             raise NotFoundException(resource="Widget", identifier=widget_id)
 
@@ -109,7 +106,9 @@ class WidgetService:
                 "title": doc.get("title", ""),
                 "widget_type": doc.get("widget_type", "metric_card"),
                 "data": cached.get("data", []),
-                "row_count": len(cached.get("data", [])) if isinstance(cached.get("data"), list) else 1,
+                "row_count": len(cached.get("data", []))
+                if isinstance(cached.get("data"), list)
+                else 1,
                 "executed_at": utc_now(),
             }
 
@@ -202,7 +201,7 @@ class WidgetService:
         except ValueError:
             widget_type = WidgetType.METRIC_CARD
 
-        spec = WidgetSpec(
+        return WidgetSpec(
             widget_id=widget_doc.get("widget_id", generate_uuid()),
             title=widget_doc.get("title", f"Generated: {description[:80]}"),
             description=widget_doc.get("description", description),
@@ -213,8 +212,6 @@ class WidgetService:
             created_at=now,
             updated_at=now,
         )
-
-        return spec
 
     async def add_to_dashboard(
         self,
@@ -233,13 +230,9 @@ class WidgetService:
         Raises:
             NotFoundException: If *dashboard_id* does not exist.
         """
-        dashboard = await self._dashboards.find_one(
-            {"dashboard_id": dashboard_id}
-        )
+        dashboard = await self._dashboards.find_one({"dashboard_id": dashboard_id})
         if dashboard is None:
-            raise NotFoundException(
-                resource="Dashboard", identifier=dashboard_id
-            )
+            raise NotFoundException(resource="Dashboard", identifier=dashboard_id)
 
         now = utc_now()
         widget_id = widget_spec.get("widget_id", generate_uuid())
@@ -260,9 +253,7 @@ class WidgetService:
         )
 
         widget_spec.pop("_id", None)
-        logger.info(
-            "Added widget %s to dashboard %s", widget_id, dashboard_id
-        )
+        logger.info("Added widget %s to dashboard %s", widget_id, dashboard_id)
         return widget_spec
 
     async def update_widget(
@@ -305,9 +296,7 @@ class WidgetService:
         except Exception:
             pass  # Cache invalidation is best-effort
 
-        updated = await self._collection.find_one(
-            {"widget_id": widget_id}, {"_id": 0}
-        )
+        updated = await self._collection.find_one({"widget_id": widget_id}, {"_id": 0})
         return updated or {}
 
     async def edit_from_nl(
@@ -329,7 +318,6 @@ class WidgetService:
         Returns:
             An updated ``WidgetSpec`` instance.
         """
-        from app.services.widgets.spec_generator import generate_widget_spec
         from app.api.v1.endpoints.widgets import DataQuery, WidgetSpec, WidgetType
 
         ai_adapter = self._get_ai_adapter()
@@ -395,7 +383,7 @@ class WidgetService:
         else:
             data_query = current_spec.data_query
 
-        updated_spec = WidgetSpec(
+        return WidgetSpec(
             widget_id=widget_id,
             title=raw_spec.get("title", current_spec.title),
             description=raw_spec.get("description", current_spec.description),
@@ -406,8 +394,6 @@ class WidgetService:
             created_at=current_spec.created_at,
             updated_at=now,
         )
-
-        return updated_spec
 
     async def nl_edit(
         self,
@@ -428,9 +414,7 @@ class WidgetService:
         """
         from app.api.v1.endpoints.widgets import WidgetSpec
 
-        doc = await self._collection.find_one(
-            {"widget_id": widget_id}, {"_id": 0}
-        )
+        doc = await self._collection.find_one({"widget_id": widget_id}, {"_id": 0})
         if doc is None:
             raise NotFoundException(resource="Widget", identifier=widget_id)
 
@@ -515,7 +499,9 @@ async def _ai_edit_widget(
 
     import json
 
-    spec_dict = current_spec.model_dump() if hasattr(current_spec, "model_dump") else dict(current_spec)
+    spec_dict = (
+        current_spec.model_dump() if hasattr(current_spec, "model_dump") else dict(current_spec)
+    )
     # Remove non-serialisable fields
     spec_dict.pop("created_at", None)
     spec_dict.pop("updated_at", None)

@@ -11,15 +11,15 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
-from app.services.ingestion.hasher import compute_hash, check_duplicate, record_hash
+from app.services.ingestion.hasher import check_duplicate, compute_hash, record_hash
 from app.services.ingestion.slack_admin import IngestionFileResult
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +141,7 @@ async def _extract_text(
     raw_content: bytes,
     ext: str,
     result: IngestionFileResult,
-) -> Optional[str]:
+) -> str | None:
     """Extract text content from a file based on its extension."""
 
     if ext in _TEXT_EXTENSIONS:
@@ -197,7 +197,7 @@ def _extract_html_text(content: bytes) -> str:
     return text.strip()
 
 
-def _extract_docx_text(file_path: str, result: IngestionFileResult) -> Optional[str]:
+def _extract_docx_text(file_path: str, result: IngestionFileResult) -> str | None:
     """Extract text from a DOCX file using python-docx."""
     try:
         from docx import Document
@@ -227,7 +227,7 @@ def _extract_docx_text(file_path: str, result: IngestionFileResult) -> Optional[
         return None
 
 
-def _extract_xlsx_text(file_path: str, result: IngestionFileResult) -> Optional[str]:
+def _extract_xlsx_text(file_path: str, result: IngestionFileResult) -> str | None:
     """Extract text from an XLSX file using openpyxl."""
     try:
         from openpyxl import load_workbook
@@ -259,7 +259,7 @@ def _extract_xlsx_text(file_path: str, result: IngestionFileResult) -> Optional[
         return None
 
 
-def _extract_pdf_text(content: bytes, result: IngestionFileResult) -> Optional[str]:
+def _extract_pdf_text(content: bytes, result: IngestionFileResult) -> str | None:
     """Extract text from PDF using basic binary parsing.
 
     This implements a lightweight PDF text extraction that works without

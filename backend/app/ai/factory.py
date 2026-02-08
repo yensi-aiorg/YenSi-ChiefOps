@@ -10,10 +10,12 @@ from __future__ import annotations
 
 import logging
 import threading
+from typing import TYPE_CHECKING
 
 from app.config import get_settings
 
-from .adapter import AIAdapter
+if TYPE_CHECKING:
+    from .adapter import AIAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +37,7 @@ def get_adapter() -> AIAdapter:
     Returns:
         A ready-to-use AIAdapter instance.
     """
-    global _adapter_instance  # noqa: PLW0603
+    global _adapter_instance
 
     if _adapter_instance is not None:
         return _adapter_instance
@@ -101,7 +103,7 @@ def reset_adapter() -> None:
 
     Useful in tests to force re-initialisation with different settings.
     """
-    global _adapter_instance  # noqa: PLW0603
+    global _adapter_instance
     with _adapter_lock:
         _adapter_instance = None
         logger.debug("AI adapter singleton reset")

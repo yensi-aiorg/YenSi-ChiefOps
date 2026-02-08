@@ -10,12 +10,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
 from app.citex.models import (
-    CitexChunk,
     CitexIngestRequest,
     CitexQueryRequest,
     CitexQueryResponse,
@@ -89,7 +88,7 @@ class CitexClient:
 
             except (httpx.HTTPStatusError, httpx.RequestError) as exc:
                 last_exc = exc
-                wait = _BACKOFF_BASE * (2 ** attempt)
+                wait = _BACKOFF_BASE * (2**attempt)
                 logger.warning(
                     "Citex request %s %s failed (attempt %d/%d): %s – retrying in %.1fs",
                     method,
@@ -177,7 +176,7 @@ class CitexClient:
         self,
         project_id: str,
         query_text: str,
-        filters: Optional[dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         top_k: int = 5,
     ) -> list[dict[str, Any]]:
         """Perform a semantic search against Citex.
@@ -237,7 +236,5 @@ class CitexClient:
             logger.info("Deleted Citex documents for project=%s", project_id)
             return True
 
-        logger.error(
-            "Failed to delete Citex documents for project=%s", project_id
-        )
+        logger.error("Failed to delete Citex documents for project=%s", project_id)
         return False

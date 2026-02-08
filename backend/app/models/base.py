@@ -5,7 +5,7 @@ Provides MongoBaseModel with automatic created_at/updated_at timestamps,
 UUID generation helpers, and Pydantic v2 configuration for MongoDB compatibility.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -18,7 +18,7 @@ def generate_uuid() -> str:
 
 def utc_now() -> datetime:
     """Return the current UTC datetime (timezone-aware)."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class MongoBaseModel(BaseModel):
@@ -39,9 +39,7 @@ class MongoBaseModel(BaseModel):
         "arbitrary_types_allowed": True,
         "ser_json_timedelta": "iso8601",
         "from_attributes": True,
-        "json_schema_extra": {
-            "description": "ChiefOps MongoDB document base model."
-        },
+        "json_schema_extra": {"description": "ChiefOps MongoDB document base model."},
     }
 
     created_at: datetime = Field(

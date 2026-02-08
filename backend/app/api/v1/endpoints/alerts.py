@@ -9,16 +9,19 @@ Supports creation from natural language, listing, updating, and deletion.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, Field
 
 from app.database import get_database
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +82,9 @@ class AlertUpdateRequest(BaseModel):
 
     status: AlertStatus | None = Field(default=None, description="New status.")
     severity: AlertSeverity | None = Field(default=None, description="Updated severity.")
-    name: str | None = Field(default=None, min_length=1, max_length=200, description="Updated name.")
+    name: str | None = Field(
+        default=None, min_length=1, max_length=200, description="Updated name."
+    )
 
 
 class AlertResponse(BaseModel):
@@ -207,9 +212,9 @@ async def create_alert(
 async def list_alerts(
     skip: int = Query(default=0, ge=0, description="Records to skip."),
     limit: int = Query(default=50, ge=1, le=200, description="Maximum records to return."),
-    status: Optional[AlertStatus] = Query(default=None, description="Filter by status."),
-    severity: Optional[AlertSeverity] = Query(default=None, description="Filter by severity."),
-    project_id: Optional[str] = Query(default=None, description="Filter by project ID."),
+    status: AlertStatus | None = Query(default=None, description="Filter by status."),
+    severity: AlertSeverity | None = Query(default=None, description="Filter by severity."),
+    project_id: str | None = Query(default=None, description="Filter by project ID."),
     db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
 ) -> AlertListResponse:
     collection = _get_collection(db)
@@ -223,12 +228,7 @@ async def list_alerts(
         query["project_id"] = project_id
 
     total = await collection.count_documents(query)
-    cursor = (
-        collection.find(query, {"_id": 0})
-        .sort("created_at", -1)
-        .skip(skip)
-        .limit(limit)
-    )
+    cursor = collection.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
     docs = await cursor.to_list(length=limit)
 
     alerts = [AlertResponse(**doc) for doc in docs]
@@ -253,10 +253,7 @@ async def list_triggered_alerts(
 
     total = await collection.count_documents(query)
     cursor = (
-        collection.find(query, {"_id": 0})
-        .sort("last_triggered_at", -1)
-        .skip(skip)
-        .limit(limit)
+        collection.find(query, {"_id": 0}).sort("last_triggered_at", -1).skip(skip).limit(limit)
     )
     docs = await cursor.to_list(length=limit)
 

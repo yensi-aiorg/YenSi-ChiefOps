@@ -12,14 +12,16 @@ Handles the full lifecycle of a conversation message:
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncGenerator
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
 from app.services.conversation.intent import Intent, detect_intent
 from app.services.memory.manager import get_context, process_turn
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -155,9 +157,7 @@ async def _handle_correction(
 
     if person_name and new_role:
         # Find the person by name
-        person = await db.people.find_one({
-            "name": {"$regex": person_name, "$options": "i"}
-        })
+        person = await db.people.find_one({"name": {"$regex": person_name, "$options": "i"}})
 
         if person:
             try:

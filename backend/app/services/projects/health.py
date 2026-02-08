@@ -8,13 +8,14 @@ trend, blocker count, and other metrics derived from Jira task data.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from app.models.base import utc_now
 from app.models.project import SprintHealth
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -54,18 +55,24 @@ async def calculate_health(
         return SprintHealth()
 
     # Status breakdown
-    done_count = await db.jira_tasks.count_documents({
-        **task_query,
-        "status": {"$in": ["done", "closed", "resolved"]},
-    })
-    blocked_count = await db.jira_tasks.count_documents({
-        **task_query,
-        "status": {"$in": ["blocked", "impediment", "on_hold"]},
-    })
-    in_progress_count = await db.jira_tasks.count_documents({
-        **task_query,
-        "status": {"$in": ["in_progress", "in_development", "in_review", "in_testing"]},
-    })
+    done_count = await db.jira_tasks.count_documents(
+        {
+            **task_query,
+            "status": {"$in": ["done", "closed", "resolved"]},
+        }
+    )
+    blocked_count = await db.jira_tasks.count_documents(
+        {
+            **task_query,
+            "status": {"$in": ["blocked", "impediment", "on_hold"]},
+        }
+    )
+    in_progress_count = await db.jira_tasks.count_documents(
+        {
+            **task_query,
+            "status": {"$in": ["in_progress", "in_development", "in_review", "in_testing"]},
+        }
+    )
 
     # Completion rate
     completion_rate = (done_count / total_tasks) * 100 if total_tasks > 0 else 0.0
@@ -90,16 +97,18 @@ async def calculate_health(
     )
 
     # Store health score history
-    await db.health_scores.insert_one({
-        "project_id": project_id,
-        "score": score,
-        "completion_rate": completion_rate,
-        "blocker_count": blocked_count,
-        "velocity_trend": velocity_trend,
-        "total_tasks": total_tasks,
-        "done_count": done_count,
-        "created_at": utc_now(),
-    })
+    await db.health_scores.insert_one(
+        {
+            "project_id": project_id,
+            "score": score,
+            "completion_rate": completion_rate,
+            "blocker_count": blocked_count,
+            "velocity_trend": velocity_trend,
+            "total_tasks": total_tasks,
+            "done_count": done_count,
+            "created_at": utc_now(),
+        }
+    )
 
     return health
 
@@ -109,25 +118,29 @@ async def _calculate_velocity_trend(
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
 ) -> str:
     """Calculate velocity trend by comparing recent completion rates."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     two_weeks_ago = now - timedelta(days=14)
     four_weeks_ago = now - timedelta(days=28)
 
     task_query = {"project_key": {"$in": jira_keys}}
 
     # Recent period completions (last 2 weeks)
-    recent_completed = await db.jira_tasks.count_documents({
-        **task_query,
-        "status": {"$in": ["done", "closed", "resolved"]},
-        "resolved_date": {"$gte": two_weeks_ago},
-    })
+    recent_completed = await db.jira_tasks.count_documents(
+        {
+            **task_query,
+            "status": {"$in": ["done", "closed", "resolved"]},
+            "resolved_date": {"$gte": two_weeks_ago},
+        }
+    )
 
     # Previous period completions (2-4 weeks ago)
-    previous_completed = await db.jira_tasks.count_documents({
-        **task_query,
-        "status": {"$in": ["done", "closed", "resolved"]},
-        "resolved_date": {"$gte": four_weeks_ago, "$lt": two_weeks_ago},
-    })
+    previous_completed = await db.jira_tasks.count_documents(
+        {
+            **task_query,
+            "status": {"$in": ["done", "closed", "resolved"]},
+            "resolved_date": {"$gte": four_weeks_ago, "$lt": two_weeks_ago},
+        }
+    )
 
     if previous_completed == 0 and recent_completed == 0:
         return "stable"
@@ -137,7 +150,7 @@ async def _calculate_velocity_trend(
     ratio = recent_completed / previous_completed
     if ratio > 1.15:
         return "increasing"
-    elif ratio < 0.85:
+    if ratio < 0.85:
         return "decreasing"
     return "stable"
 
@@ -185,10 +198,7 @@ def _calculate_composite_score(
 
     # Weighted composite
     composite = (
-        completion_score * 0.40
-        + blocker_score * 0.25
-        + wip_score * 0.15
-        + velocity_score * 0.20
+        completion_score * 0.40 + blocker_score * 0.25 + wip_score * 0.15 + velocity_score * 0.20
     )
 
     return max(0, min(100, int(round(composite))))

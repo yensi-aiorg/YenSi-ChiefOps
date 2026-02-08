@@ -110,6 +110,7 @@ class TestReportGenerationWithMockAI:
         assert spec.status == ReportStatus.READY
 
 
+@pytest.mark.integration
 class TestReportEditing:
     """Test conversational editing of report sections."""
 
@@ -249,6 +250,7 @@ class TestPdfExportGracefulFallback:
         assert mime_type in ("application/pdf", "text/html")
 
 
+@pytest.mark.integration
 class TestReportHistory:
     """Test report history / versioning."""
 

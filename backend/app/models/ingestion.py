@@ -9,12 +9,10 @@ resolution transforms them into unified Person/Project/Task records.
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from app.models.base import MongoBaseModel, generate_uuid, utc_now
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -88,11 +86,11 @@ class IngestionFileResult(BaseModel):
         ge=0,
         description="Number of records skipped (duplicates, invalid, etc.).",
     )
-    error_message: Optional[str] = Field(
+    error_message: str | None = Field(
         default=None,
         description="Error message if processing failed.",
     )
-    content_hash: Optional[str] = Field(
+    content_hash: str | None = Field(
         default=None,
         description="SHA-256 hash of file content for deduplication.",
     )
@@ -128,11 +126,11 @@ class IngestionJob(MongoBaseModel):
         description="Per-file processing results.",
     )
 
-    started_at: Optional[datetime] = Field(
+    started_at: datetime | None = Field(
         default=None,
         description="When processing began.",
     )
-    completed_at: Optional[datetime] = Field(
+    completed_at: datetime | None = Field(
         default=None,
         description="When processing finished (success or failure).",
     )
@@ -184,7 +182,7 @@ class SlackMessage(MongoBaseModel):
         default_factory=utc_now,
         description="Message timestamp.",
     )
-    thread_ts: Optional[str] = Field(
+    thread_ts: str | None = Field(
         default=None,
         description="Thread timestamp if this message is part of a thread.",
     )
@@ -256,15 +254,15 @@ class JiraTask(MongoBaseModel):
         default="To Do",
         description="Current issue status (e.g. To Do, In Progress, Done).",
     )
-    assignee: Optional[str] = Field(
+    assignee: str | None = Field(
         default=None,
         description="Assignee display name or account ID.",
     )
-    reporter: Optional[str] = Field(
+    reporter: str | None = Field(
         default=None,
         description="Reporter display name or account ID.",
     )
-    priority: Optional[str] = Field(
+    priority: str | None = Field(
         default=None,
         description="Priority level (e.g. Critical, High, Medium, Low).",
     )
@@ -276,12 +274,12 @@ class JiraTask(MongoBaseModel):
         default_factory=utc_now,
         description="Last update date in Jira.",
     )
-    story_points: Optional[float] = Field(
+    story_points: float | None = Field(
         default=None,
         ge=0,
         description="Story point estimate.",
     )
-    sprint: Optional[str] = Field(
+    sprint: str | None = Field(
         default=None,
         description="Sprint name this issue belongs to.",
     )
@@ -315,7 +313,7 @@ class DriveFile(MongoBaseModel):
         default="",
         description="MIME type or file extension.",
     )
-    file_hash: Optional[str] = Field(
+    file_hash: str | None = Field(
         default=None,
         description="SHA-256 hash of file content for deduplication.",
     )
@@ -328,7 +326,7 @@ class DriveFile(MongoBaseModel):
         default=False,
         description="Whether this file has been successfully ingested into Citex.",
     )
-    citex_document_id: Optional[str] = Field(
+    citex_document_id: str | None = Field(
         default=None,
         description="Citex document reference ID after successful ingestion.",
     )

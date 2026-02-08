@@ -9,12 +9,13 @@ deadlines across all projects.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ async def generate_briefing(
     Returns:
         The generated briefing document.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     yesterday = now - timedelta(hours=24)
 
     # Gather briefing data
@@ -78,9 +79,17 @@ async def _gather_briefing_data(
     projects: list[dict[str, Any]] = []
     async for project in db.projects.find(
         {},
-        {"project_id": 1, "name": 1, "status": 1, "health_score": 1,
-         "completion_percentage": 1, "deadline": 1, "key_risks": 1,
-         "task_summary": 1, "_id": 0},
+        {
+            "project_id": 1,
+            "name": 1,
+            "status": 1,
+            "health_score": 1,
+            "completion_percentage": 1,
+            "deadline": 1,
+            "key_risks": 1,
+            "task_summary": 1,
+            "_id": 0,
+        },
     ):
         projects.append(project)
     data["projects"] = projects
@@ -88,14 +97,15 @@ async def _gather_briefing_data(
 
     # Projects at risk
     data["at_risk_projects"] = [
-        p for p in projects
+        p
+        for p in projects
         if p.get("status") in ("at_risk", "behind") or (p.get("health_score", 100) < 50)
     ]
 
     # Active blockers across all projects
-    blocked_count = await db.jira_tasks.count_documents({
-        "status": {"$in": ["blocked", "impediment", "on_hold"]}
-    })
+    blocked_count = await db.jira_tasks.count_documents(
+        {"status": {"$in": ["blocked", "impediment", "on_hold"]}}
+    )
     data["total_blocked"] = blocked_count
 
     blocked_tasks: list[dict[str, Any]] = []
@@ -107,22 +117,28 @@ async def _gather_briefing_data(
     data["blocked_tasks"] = blocked_tasks
 
     # Overnight activity (tasks completed since yesterday)
-    completed_since = await db.jira_tasks.count_documents({
-        "status": {"$in": ["done", "closed", "resolved"]},
-        "resolved_date": {"$gte": since},
-    })
+    completed_since = await db.jira_tasks.count_documents(
+        {
+            "status": {"$in": ["done", "closed", "resolved"]},
+            "resolved_date": {"$gte": since},
+        }
+    )
     data["tasks_completed_overnight"] = completed_since
 
     # New tasks created since yesterday
-    new_tasks = await db.jira_tasks.count_documents({
-        "created_date": {"$gte": since},
-    })
+    new_tasks = await db.jira_tasks.count_documents(
+        {
+            "created_date": {"$gte": since},
+        }
+    )
     data["new_tasks_overnight"] = new_tasks
 
     # Slack activity overnight
-    messages_overnight = await db.slack_messages.count_documents({
-        "timestamp": {"$gte": since},
-    })
+    messages_overnight = await db.slack_messages.count_documents(
+        {
+            "timestamp": {"$gte": since},
+        }
+    )
     data["messages_overnight"] = messages_overnight
 
     # Upcoming deadlines (next 7 days)
@@ -132,18 +148,22 @@ async def _gather_briefing_data(
         deadline = project.get("deadline")
         if deadline and isinstance(deadline, datetime) and now <= deadline <= seven_days_out:
             days_until = (deadline - now).days
-            upcoming_deadlines.append({
-                "project": project.get("name", ""),
-                "deadline": deadline.strftime("%Y-%m-%d"),
-                "days_until": days_until,
-            })
+            upcoming_deadlines.append(
+                {
+                    "project": project.get("name", ""),
+                    "deadline": deadline.strftime("%Y-%m-%d"),
+                    "days_until": days_until,
+                }
+            )
     data["upcoming_deadlines"] = upcoming_deadlines
 
     # Overdue tasks
-    overdue_count = await db.jira_tasks.count_documents({
-        "due_date": {"$lt": now},
-        "status": {"$nin": ["done", "closed", "resolved"]},
-    })
+    overdue_count = await db.jira_tasks.count_documents(
+        {
+            "due_date": {"$lt": now},
+            "status": {"$nin": ["done", "closed", "resolved"]},
+        }
+    )
     data["overdue_tasks"] = overdue_count
 
     # Active alerts
@@ -160,9 +180,11 @@ async def _gather_briefing_data(
     data["team_size"] = team_size
 
     # Active team members (activity in last 7 days)
-    active_members = await db.people.count_documents({
-        "activity_level": {"$in": ["very_active", "active"]},
-    })
+    active_members = await db.people.count_documents(
+        {
+            "activity_level": {"$in": ["very_active", "active"]},
+        }
+    )
     data["active_members"] = active_members
 
     return data
@@ -200,7 +222,7 @@ async def _ai_generate_briefing(
             context_parts.append(f"  - {d['project']}: {d['deadline']} ({d['days_until']} days)")
 
     if data.get("blocked_tasks"):
-        context_parts.append(f"\nTop blocked tasks:")
+        context_parts.append("\nTop blocked tasks:")
         for t in data["blocked_tasks"][:5]:
             context_parts.append(
                 f"  - [{t.get('task_key', '')}] {t.get('summary', '')} "
@@ -262,7 +284,9 @@ def _heuristic_generate_briefing(data: dict[str, Any]) -> dict[str, Any]:
     if at_risk:
         health_content += f"Projects at risk: {len(at_risk)}\n"
         for p in at_risk:
-            health_content += f"- {p.get('name', '')}: health score {p.get('health_score', 'N/A')}\n"
+            health_content += (
+                f"- {p.get('name', '')}: health score {p.get('health_score', 'N/A')}\n"
+            )
     else:
         health_content += "All projects are on track."
 

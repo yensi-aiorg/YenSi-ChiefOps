@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
 from app.config import get_settings
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +21,7 @@ async def connect_mongodb() -> None:
 
     Called once during application startup.
     """
-    global _client, _database  # noqa: PLW0603
+    global _client, _database
     settings = get_settings()
 
     logger.info(
@@ -49,7 +52,7 @@ async def close_mongodb() -> None:
 
     Called once during application shutdown.
     """
-    global _client, _database  # noqa: PLW0603
+    global _client, _database
     if _client is not None:
         _client.close()
         logger.info("MongoDB connection closed")

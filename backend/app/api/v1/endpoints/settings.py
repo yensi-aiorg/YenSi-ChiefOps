@@ -8,16 +8,19 @@ Settings are persisted in MongoDB so they survive restarts.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, Field
 
 from app.database import get_database
 from app.models.base import utc_now
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +55,12 @@ class SettingsResponse(BaseModel):
     """Current application settings."""
 
     ai_adapter: str = Field(default="openrouter", description="AI backend: 'openrouter' or 'cli'.")
-    openrouter_model: str = Field(default="anthropic/claude-sonnet-4", description="OpenRouter model ID.")
-    pii_redaction_enabled: bool = Field(default=True, description="Whether PII redaction is active.")
+    openrouter_model: str = Field(
+        default="anthropic/claude-sonnet-4", description="OpenRouter model ID."
+    )
+    pii_redaction_enabled: bool = Field(
+        default=True, description="Whether PII redaction is active."
+    )
     auto_analyze_on_ingest: bool = Field(
         default=True,
         description="Automatically run project analysis after ingestion.",
@@ -104,7 +111,9 @@ class DataExportResponse(BaseModel):
 class DataClearResponse(BaseModel):
     """Response after clearing all data."""
 
-    collections_cleared: list[str] = Field(default_factory=list, description="Collections that were cleared.")
+    collections_cleared: list[str] = Field(
+        default_factory=list, description="Collections that were cleared."
+    )
     total_deleted: int = Field(default=0, description="Total documents deleted.")
     message: str = Field(..., description="Human-readable status message.")
 
@@ -166,8 +175,12 @@ async def get_settings(
     return SettingsResponse(
         ai_adapter=doc.get("ai_adapter", DEFAULT_SETTINGS["ai_adapter"]),
         openrouter_model=doc.get("openrouter_model", DEFAULT_SETTINGS["openrouter_model"]),
-        pii_redaction_enabled=doc.get("pii_redaction_enabled", DEFAULT_SETTINGS["pii_redaction_enabled"]),
-        auto_analyze_on_ingest=doc.get("auto_analyze_on_ingest", DEFAULT_SETTINGS["auto_analyze_on_ingest"]),
+        pii_redaction_enabled=doc.get(
+            "pii_redaction_enabled", DEFAULT_SETTINGS["pii_redaction_enabled"]
+        ),
+        auto_analyze_on_ingest=doc.get(
+            "auto_analyze_on_ingest", DEFAULT_SETTINGS["auto_analyze_on_ingest"]
+        ),
         dashboard_refresh_interval_seconds=doc.get(
             "dashboard_refresh_interval_seconds",
             DEFAULT_SETTINGS["dashboard_refresh_interval_seconds"],
@@ -215,7 +228,9 @@ async def update_settings(
         update_fields["auto_analyze_on_ingest"] = body.auto_analyze_on_ingest
 
     if body.dashboard_refresh_interval_seconds is not None:
-        update_fields["dashboard_refresh_interval_seconds"] = body.dashboard_refresh_interval_seconds
+        update_fields["dashboard_refresh_interval_seconds"] = (
+            body.dashboard_refresh_interval_seconds
+        )
 
     if body.notification_preferences is not None:
         update_fields["notification_preferences"] = body.notification_preferences
@@ -238,8 +253,12 @@ async def update_settings(
     return SettingsResponse(
         ai_adapter=doc.get("ai_adapter", DEFAULT_SETTINGS["ai_adapter"]),
         openrouter_model=doc.get("openrouter_model", DEFAULT_SETTINGS["openrouter_model"]),
-        pii_redaction_enabled=doc.get("pii_redaction_enabled", DEFAULT_SETTINGS["pii_redaction_enabled"]),
-        auto_analyze_on_ingest=doc.get("auto_analyze_on_ingest", DEFAULT_SETTINGS["auto_analyze_on_ingest"]),
+        pii_redaction_enabled=doc.get(
+            "pii_redaction_enabled", DEFAULT_SETTINGS["pii_redaction_enabled"]
+        ),
+        auto_analyze_on_ingest=doc.get(
+            "auto_analyze_on_ingest", DEFAULT_SETTINGS["auto_analyze_on_ingest"]
+        ),
         dashboard_refresh_interval_seconds=doc.get(
             "dashboard_refresh_interval_seconds",
             DEFAULT_SETTINGS["dashboard_refresh_interval_seconds"],

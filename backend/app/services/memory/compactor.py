@@ -9,11 +9,12 @@ context window manageable while preserving essential information.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +42,7 @@ async def check_compaction_needed(
     Returns:
         True if compaction should be performed.
     """
-    total_turns = await db.conversation_turns.count_documents(
-        {"project_id": project_id}
-    )
+    total_turns = await db.conversation_turns.count_documents({"project_id": project_id})
 
     if total_turns <= COMPACTION_TRIGGER:
         return False
@@ -58,10 +57,12 @@ async def check_compaction_needed(
     if compacted_summary:
         last_compacted_turn = compacted_summary.get("last_compacted_turn", 0)
 
-    uncompacted_count = await db.conversation_turns.count_documents({
-        "project_id": project_id,
-        "turn_number": {"$gt": last_compacted_turn},
-    })
+    uncompacted_count = await db.conversation_turns.count_documents(
+        {
+            "project_id": project_id,
+            "turn_number": {"$gt": last_compacted_turn},
+        }
+    )
 
     return uncompacted_count > COMPACTION_TRIGGER
 
@@ -87,9 +88,7 @@ async def compact(
     """
     # Get all turns sorted by turn number
     all_turns: list[dict[str, Any]] = []
-    async for turn in db.conversation_turns.find(
-        {"project_id": project_id}
-    ).sort("turn_number", 1):
+    async for turn in db.conversation_turns.find({"project_id": project_id}).sort("turn_number", 1):
         all_turns.append(turn)
 
     if len(all_turns) <= RECENT_WINDOW:

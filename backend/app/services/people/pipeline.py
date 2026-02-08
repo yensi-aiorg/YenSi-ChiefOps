@@ -14,15 +14,16 @@ people from all ingested data sources:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
 from app.models.person import ActivityLevel
 from app.services.people.resolver import MergedPerson, RawPerson, resolve_entities
 from app.services.people.role_detector import detect_roles
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -77,24 +78,24 @@ async def _step1_build_directory(
 
     # Slack users
     async for user in db.people.find({"slack_user_id": {"$ne": None}}):
-        raw_people.append(RawPerson(
-            name=user.get("name", ""),
-            email=user.get("email"),
-            slack_user_id=user.get("slack_user_id"),
-            jira_username=user.get("jira_username"),
-            source="slack",
-            source_id=user.get("slack_user_id", ""),
-            avatar_url=user.get("avatar_url"),
-            extra={
-                "person_id": user.get("person_id"),
-                "engagement_metrics": user.get("engagement_metrics", {}),
-            },
-        ))
+        raw_people.append(
+            RawPerson(
+                name=user.get("name", ""),
+                email=user.get("email"),
+                slack_user_id=user.get("slack_user_id"),
+                jira_username=user.get("jira_username"),
+                source="slack",
+                source_id=user.get("slack_user_id", ""),
+                avatar_url=user.get("avatar_url"),
+                extra={
+                    "person_id": user.get("person_id"),
+                    "engagement_metrics": user.get("engagement_metrics", {}),
+                },
+            )
+        )
 
     # Jira assignees not already in the list
-    seen_jira: set[str] = {
-        p.jira_username for p in raw_people if p.jira_username
-    }
+    seen_jira: set[str] = {p.jira_username for p in raw_people if p.jira_username}
 
     distinct_assignees = await db.jira_tasks.distinct("assignee")
     distinct_reporters = await db.jira_tasks.distinct("reporter")
@@ -106,22 +107,26 @@ async def _step1_build_directory(
         # Check if person already has a jira_username record
         existing = await db.people.find_one({"jira_username": jira_name})
         if existing:
-            raw_people.append(RawPerson(
-                name=existing.get("name", jira_name),
-                email=existing.get("email"),
-                slack_user_id=existing.get("slack_user_id"),
-                jira_username=jira_name,
-                source="jira",
-                source_id=jira_name,
-                extra={"person_id": existing.get("person_id")},
-            ))
+            raw_people.append(
+                RawPerson(
+                    name=existing.get("name", jira_name),
+                    email=existing.get("email"),
+                    slack_user_id=existing.get("slack_user_id"),
+                    jira_username=jira_name,
+                    source="jira",
+                    source_id=jira_name,
+                    extra={"person_id": existing.get("person_id")},
+                )
+            )
         else:
-            raw_people.append(RawPerson(
-                name=jira_name,
-                jira_username=jira_name,
-                source="jira",
-                source_id=jira_name,
-            ))
+            raw_people.append(
+                RawPerson(
+                    name=jira_name,
+                    jira_username=jira_name,
+                    source="jira",
+                    source_id=jira_name,
+                )
+            )
 
     # Drive file owners
     distinct_owners = await db.drive_files.distinct("owner")
@@ -130,11 +135,13 @@ async def _step1_build_directory(
         for owner in distinct_owners:
             if not owner or owner.lower() in seen_names:
                 continue
-            raw_people.append(RawPerson(
-                name=owner,
-                source="gdrive",
-                source_id=owner,
-            ))
+            raw_people.append(
+                RawPerson(
+                    name=owner,
+                    source="gdrive",
+                    source_id=owner,
+                )
+            )
 
     return raw_people
 
@@ -233,7 +240,7 @@ async def _step4_calculate_activity(
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
 ) -> list[dict[str, Any]]:
     """Calculate activity levels based on engagement metrics and recency."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for person in people:
         activity = person.get("activity_data", {})
@@ -255,7 +262,7 @@ async def _step4_calculate_activity(
         # Calculate activity score
         score = 0
         score += min(messages, 200) / 2  # Up to 100 points from messages
-        score += min(threads, 50) * 2    # Up to 100 points from thread participation
+        score += min(threads, 50) * 2  # Up to 100 points from thread participation
         score += min(tasks_assigned, 30) * 3  # Up to 90 points from task assignment
         score += min(tasks_completed, 20) * 4  # Up to 80 points from task completion
 
@@ -318,11 +325,14 @@ async def _step5_persist(
             "department": person.get("department"),
             "activity_level": person.get("activity_level", "moderate"),
             "last_active_date": person.get("last_active_date", utc_now()),
-            "engagement_metrics": person.get("engagement_metrics", {
-                "messages_sent": 0,
-                "threads_replied": 0,
-                "reactions_given": 0,
-            }),
+            "engagement_metrics": person.get(
+                "engagement_metrics",
+                {
+                    "messages_sent": 0,
+                    "threads_replied": 0,
+                    "reactions_given": 0,
+                },
+            ),
             "tasks_assigned": person.get("tasks_assigned", 0),
             "tasks_completed": person.get("tasks_completed", 0),
             "projects": person.get("projects", []),
@@ -367,13 +377,17 @@ async def _gather_activity_data(
     if person.slack_user_id:
         pipeline = [
             {"$match": {"user_id": person.slack_user_id}},
-            {"$group": {
-                "_id": None,
-                "messages_sent": {"$sum": 1},
-                "threads_replied": {"$sum": {"$cond": [{"$ifNull": ["$thread_ts", False]}, 1, 0]}},
-                "reactions_given": {"$sum": {"$size": {"$ifNull": ["$reactions", []]}}},
-                "last_message": {"$max": "$timestamp"},
-            }},
+            {
+                "$group": {
+                    "_id": None,
+                    "messages_sent": {"$sum": 1},
+                    "threads_replied": {
+                        "$sum": {"$cond": [{"$ifNull": ["$thread_ts", False]}, 1, 0]}
+                    },
+                    "reactions_given": {"$sum": {"$size": {"$ifNull": ["$reactions", []]}}},
+                    "last_message": {"$max": "$timestamp"},
+                }
+            },
         ]
         async for agg in db.slack_messages.aggregate(pipeline):
             activity["slack"] = {
@@ -389,10 +403,14 @@ async def _gather_activity_data(
         activity["channels"] = channels
 
         # Get sample messages for role detection
-        sample_cursor = db.slack_messages.find(
-            {"user_id": person.slack_user_id},
-            {"text": 1, "_id": 0},
-        ).sort("timestamp", -1).limit(10)
+        sample_cursor = (
+            db.slack_messages.find(
+                {"user_id": person.slack_user_id},
+                {"text": 1, "_id": 0},
+            )
+            .sort("timestamp", -1)
+            .limit(10)
+        )
         sample_messages = [doc["text"] async for doc in sample_cursor]
         activity["sample_messages"] = sample_messages
 
@@ -400,10 +418,12 @@ async def _gather_activity_data(
     jira_name = person.jira_username or person.name
     if jira_name:
         assigned_count = await db.jira_tasks.count_documents({"assignee": jira_name})
-        completed_count = await db.jira_tasks.count_documents({
-            "assignee": jira_name,
-            "status": {"$in": ["done", "closed", "resolved"]},
-        })
+        completed_count = await db.jira_tasks.count_documents(
+            {
+                "assignee": jira_name,
+                "status": {"$in": ["done", "closed", "resolved"]},
+            }
+        )
 
         task_types = await db.jira_tasks.distinct("issue_type", {"assignee": jira_name})
         statuses = await db.jira_tasks.distinct("status", {"assignee": jira_name})
@@ -424,7 +444,9 @@ async def _gather_activity_data(
         if last_jira and last_jira.get("updated_date"):
             jira_last = last_jira["updated_date"]
             current_last = activity.get("last_active_date")
-            if current_last is None or (isinstance(jira_last, datetime) and jira_last > current_last):
+            if current_last is None or (
+                isinstance(jira_last, datetime) and jira_last > current_last
+            ):
                 activity["last_active_date"] = jira_last
 
     return activity

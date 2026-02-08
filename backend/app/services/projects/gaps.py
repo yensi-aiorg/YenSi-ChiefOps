@@ -8,12 +8,13 @@ and generates backward plans from deadlines to current state.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from app.models.project import BackwardPlanItem, GapAnalysis
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -72,10 +73,20 @@ async def _gather_project_context(
     if jira_keys:
         async for task in db.jira_tasks.find(
             {"project_key": {"$in": jira_keys}},
-            {"_id": 0, "task_key": 1, "summary": 1, "status": 1,
-             "assignee": 1, "issue_type": 1, "priority": 1,
-             "story_points": 1, "epic_link": 1, "labels": 1,
-             "due_date": 1, "created_date": 1},
+            {
+                "_id": 0,
+                "task_key": 1,
+                "summary": 1,
+                "status": 1,
+                "assignee": 1,
+                "issue_type": 1,
+                "priority": 1,
+                "story_points": 1,
+                "epic_link": 1,
+                "labels": 1,
+                "due_date": 1,
+                "created_date": 1,
+            },
         ):
             tasks.append(task)
 
@@ -123,7 +134,7 @@ async def _ai_gap_detection(
         deadline = context["deadline"]
         if isinstance(deadline, datetime):
             deadline_str = deadline.strftime("%Y-%m-%d")
-            days_until = (deadline - datetime.now(timezone.utc)).days
+            days_until = (deadline - datetime.now(UTC)).days
             deadline_str += f" ({days_until} days from now)"
 
     milestones_str = ""
@@ -164,7 +175,10 @@ async def _ai_gap_detection(
                         "task": {"type": "string"},
                         "estimated_days": {"type": "integer", "minimum": 1},
                         "depends_on": {"type": "array", "items": {"type": "string"}},
-                        "priority": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
+                        "priority": {
+                            "type": "string",
+                            "enum": ["critical", "high", "medium", "low"],
+                        },
                     },
                     "required": ["task", "estimated_days", "priority"],
                 },
@@ -233,10 +247,14 @@ def _heuristic_gap_detection(
         missing_tasks.append("No bug tracking tasks found -- consider adding QA/testing tasks")
 
     if "epic" not in task_types and len(tasks) > 15:
-        missing_tasks.append("No epics defined -- consider organizing tasks into epics for better tracking")
+        missing_tasks.append(
+            "No epics defined -- consider organizing tasks into epics for better tracking"
+        )
 
     if not any(t.get("due_date") for t in tasks):
-        missing_prerequisites.append("No due dates set on any tasks -- add due dates for timeline tracking")
+        missing_prerequisites.append(
+            "No due dates set on any tasks -- add due dates for timeline tracking"
+        )
 
     # Check for unassigned tasks
     unassigned = [t for t in tasks if not t.get("assignee")]
@@ -255,32 +273,37 @@ def _heuristic_gap_detection(
     # Simple backward plan if deadline exists
     deadline = context.get("deadline")
     if deadline and isinstance(deadline, datetime):
-        days_remaining = (deadline - datetime.now(timezone.utc)).days
+        days_remaining = (deadline - datetime.now(UTC)).days
         done_ratio = sum(
-            v for k, v in status_breakdown.items()
-            if k in ("done", "closed", "resolved")
+            v for k, v in status_breakdown.items() if k in ("done", "closed", "resolved")
         ) / max(len(tasks), 1)
         remaining_ratio = 1.0 - done_ratio
 
         if remaining_ratio > 0 and days_remaining > 0:
-            backward_plan.append(BackwardPlanItem(
-                task="Complete remaining tasks",
-                estimated_days=max(1, int(days_remaining * 0.7)),
-                depends_on=[],
-                priority="high" if remaining_ratio > 0.5 else "medium",
-            ))
-            backward_plan.append(BackwardPlanItem(
-                task="Final testing and QA",
-                estimated_days=max(1, int(days_remaining * 0.2)),
-                depends_on=["Complete remaining tasks"],
-                priority="high",
-            ))
-            backward_plan.append(BackwardPlanItem(
-                task="Release preparation and deployment",
-                estimated_days=max(1, int(days_remaining * 0.1)),
-                depends_on=["Final testing and QA"],
-                priority="critical",
-            ))
+            backward_plan.append(
+                BackwardPlanItem(
+                    task="Complete remaining tasks",
+                    estimated_days=max(1, int(days_remaining * 0.7)),
+                    depends_on=[],
+                    priority="high" if remaining_ratio > 0.5 else "medium",
+                )
+            )
+            backward_plan.append(
+                BackwardPlanItem(
+                    task="Final testing and QA",
+                    estimated_days=max(1, int(days_remaining * 0.2)),
+                    depends_on=["Complete remaining tasks"],
+                    priority="high",
+                )
+            )
+            backward_plan.append(
+                BackwardPlanItem(
+                    task="Release preparation and deployment",
+                    estimated_days=max(1, int(days_remaining * 0.1)),
+                    depends_on=["Final testing and QA"],
+                    priority="critical",
+                )
+            )
 
     return GapAnalysis(
         missing_tasks=missing_tasks,

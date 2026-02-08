@@ -9,12 +9,10 @@ a full audit trail of conversational edits.
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from app.models.base import MongoBaseModel, generate_uuid, utc_now
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -174,7 +172,7 @@ class ReportHistory(MongoBaseModel):
         default_factory=dict,
         description="Full report specification snapshot at time of generation.",
     )
-    pdf_path: Optional[str] = Field(
+    pdf_path: str | None = Field(
         default=None,
         description="File system path to the generated PDF (None if not yet exported).",
     )

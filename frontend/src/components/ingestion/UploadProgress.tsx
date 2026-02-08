@@ -7,7 +7,7 @@ import {
   FileText,
 } from "lucide-react";
 import type { IngestionJob, IngestionFileResult } from "@/types";
-import { IngestionFileStatus, IngestionFileType } from "@/types";
+import { IngestionFileStatus, IngestionFileType, IngestionStatus } from "@/types";
 import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
@@ -201,12 +201,14 @@ export function UploadProgress({ job, className }: UploadProgressProps) {
       {/* Overall progress header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {job.status === IngestionFileStatus.PROCESSING ||
+          {job.status === IngestionStatus.PROCESSING ||
           job.status === ("processing" as typeof job.status) ? (
             <Loader2 className="h-4 w-4 animate-spin text-teal-500" />
-          ) : job.status === ("completed" as typeof job.status) ? (
+          ) : job.status === IngestionStatus.COMPLETED ||
+            job.status === ("completed" as typeof job.status) ? (
             <CheckCircle2 className="h-4 w-4 text-green-500" />
-          ) : job.status === ("failed" as typeof job.status) ? (
+          ) : job.status === IngestionStatus.FAILED ||
+            job.status === ("failed" as typeof job.status) ? (
             <XCircle className="h-4 w-4 text-red-500" />
           ) : (
             <Clock className="h-4 w-4 text-slate-400" />

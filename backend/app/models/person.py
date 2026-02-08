@@ -9,12 +9,10 @@ and those corrections are preserved as coo_corrected.
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from app.models.base import MongoBaseModel, generate_uuid, utc_now
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -112,7 +110,7 @@ class Person(MongoBaseModel):
         max_length=200,
         description="Display name (resolved from best available source).",
     )
-    email: Optional[str] = Field(
+    email: str | None = Field(
         default=None,
         description="Email address if discovered from any source.",
     )
@@ -130,7 +128,7 @@ class Person(MongoBaseModel):
         default=RoleSource.AI_IDENTIFIED,
         description="Whether the role was set by AI analysis or corrected by the COO.",
     )
-    department: Optional[str] = Field(
+    department: str | None = Field(
         default=None,
         description="Department name (e.g. Engineering, Sales).",
     )
@@ -144,15 +142,15 @@ class Person(MongoBaseModel):
         description="Most recent activity timestamp across all sources.",
     )
 
-    avatar_url: Optional[str] = Field(
+    avatar_url: str | None = Field(
         default=None,
         description="Profile image URL from Slack.",
     )
-    slack_user_id: Optional[str] = Field(
+    slack_user_id: str | None = Field(
         default=None,
         description="Slack member ID (e.g. U01ABC123).",
     )
-    jira_username: Optional[str] = Field(
+    jira_username: str | None = Field(
         default=None,
         description="Jira display name or account ID.",
     )

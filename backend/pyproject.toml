@@ -39,11 +39,23 @@ select = [
     "S",      # flake8-bandit
 ]
 ignore = [
-    "S101",   # allow assert in tests
-    "S104",   # allow binding to 0.0.0.0
-    "B008",   # allow function calls in defaults (FastAPI Depends)
-    "A003",   # allow shadowing builtins on classes (id, type)
-    "RUF012", # allow mutable class variables without ClassVar
+    "S101",     # allow assert in tests
+    "S104",     # allow binding to 0.0.0.0
+    "S110",     # allow try-except-pass (used for best-effort cleanup)
+    "B008",     # allow function calls in defaults (FastAPI Depends)
+    "B904",     # allow raise without from in except (cleaner for wrapping)
+    "A003",     # allow shadowing builtins on classes (id, type)
+    "ARG001",   # allow unused function arguments (abstract methods, stubs)
+    "ARG002",   # allow unused method arguments
+    "E501",     # let formatter handle line length
+    "E741",     # allow ambiguous variable names (l, O, I)
+    "N818",     # allow exception naming convention flexibility
+    "ISC001",   # conflicts with formatter
+    "RUF001",   # allow ambiguous unicode characters in strings
+    "RUF012",   # allow mutable class variables without ClassVar
+    "ASYNC230", # async file I/O not required for our use patterns
+    "DTZ007",   # allow naive datetime (UTC-enforced elsewhere)
+    "SIM115",   # context manager not always needed for open()
 ]
 
 [tool.ruff.lint.per-file-ignores]

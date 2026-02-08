@@ -161,36 +161,59 @@ class TestContentHashComputation:
 
 
 class TestDuplicateDetection:
-    """Test duplicate detection via content hashing."""
+    """Test duplicate detection via content hashing (mocked DB)."""
 
-    async def test_duplicate_detection(self, test_db):
+    async def test_duplicate_detection(self):
         """Recording a hash and then checking it should detect the duplicate."""
+        from unittest.mock import AsyncMock, MagicMock
+
         from app.services.ingestion.hasher import check_duplicate, record_hash
 
         content = b"unique document content for duplicate test"
         content_hash = compute_hash(content)
 
+        # Simulate an in-memory collection
+        stored: dict = {}
+        mock_coll = MagicMock()
+        mock_coll.find_one = AsyncMock(side_effect=lambda q: stored.get(q["content_hash"]))
+        mock_coll.update_one = AsyncMock(
+            side_effect=lambda q, u, **kw: stored.update({q["content_hash"]: u["$set"]})
+        )
+        mock_db = MagicMock()
+        mock_db.ingestion_hashes = mock_coll
+
         # Should not be a duplicate initially
-        is_dup = await check_duplicate(content_hash, test_db)
+        is_dup = await check_duplicate(content_hash, mock_db)
         assert is_dup is False
 
         # Record the hash
-        await record_hash(content_hash, "test_file.pdf", test_db)
+        await record_hash(content_hash, "test_file.pdf", mock_db)
 
         # Now it should be detected as a duplicate
-        is_dup = await check_duplicate(content_hash, test_db)
+        is_dup = await check_duplicate(content_hash, mock_db)
         assert is_dup is True
 
-    async def test_different_content_not_duplicate(self, test_db):
+    async def test_different_content_not_duplicate(self):
         """Different content should not be flagged as duplicate."""
+        from unittest.mock import AsyncMock, MagicMock
+
         from app.services.ingestion.hasher import check_duplicate, record_hash
 
         hash1 = compute_hash(b"first document")
         hash2 = compute_hash(b"second document")
 
-        await record_hash(hash1, "first.pdf", test_db)
+        stored: dict = {}
+        mock_coll = MagicMock()
+        mock_coll.find_one = AsyncMock(side_effect=lambda q: stored.get(q["content_hash"]))
+        mock_coll.update_one = AsyncMock(
+            side_effect=lambda q, u, **kw: stored.update({q["content_hash"]: u["$set"]})
+        )
+        mock_db = MagicMock()
+        mock_db.ingestion_hashes = mock_coll
 
-        is_dup = await check_duplicate(hash2, test_db)
+        await record_hash(hash1, "first.pdf", mock_db)
+
+        is_dup = await check_duplicate(hash2, mock_db)
         assert is_dup is False
 
 

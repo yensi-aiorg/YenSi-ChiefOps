@@ -9,15 +9,16 @@ to analyze all projects after ingestion.
 from __future__ import annotations
 
 import logging
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
 from app.models.project import ProjectStatus
 from app.services.projects.feasibility import assess_feasibility
 from app.services.projects.gaps import detect_gaps
 from app.services.projects.health import calculate_health
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +186,13 @@ async def _discover_projects(
             "slack_channels": [],
             "people_involved": [],
             "milestones": [],
-            "task_summary": {"total": 0, "completed": 0, "in_progress": 0, "blocked": 0, "to_do": 0},
+            "task_summary": {
+                "total": 0,
+                "completed": 0,
+                "in_progress": 0,
+                "blocked": 0,
+                "to_do": 0,
+            },
             "health_score": 50,
             "key_risks": [],
             "missing_tasks": [],
@@ -218,18 +225,20 @@ async def _link_slack_channels(
         async for channel in db.slack_channels.find({}):
             channel_name = channel.get("name", "").lower()
             # Match by project name or Jira key
-            if any(key in channel_name for key in jira_keys):
-                matching_channels.append(channel.get("name", ""))
-            elif project_name and len(project_name) > 3 and project_name in channel_name:
+            if any(key in channel_name for key in jira_keys) or (
+                project_name and len(project_name) > 3 and project_name in channel_name
+            ):
                 matching_channels.append(channel.get("name", ""))
 
         if matching_channels:
             await db.projects.update_one(
                 {"project_id": project["project_id"]},
-                {"$set": {
-                    "slack_channels": matching_channels,
-                    "updated_at": utc_now(),
-                }},
+                {
+                    "$set": {
+                        "slack_channels": matching_channels,
+                        "updated_at": utc_now(),
+                    }
+                },
             )
             logger.info(
                 "Linked channels %s to project %s",
@@ -250,20 +259,28 @@ async def _compute_task_summary(
     query = {"project_key": {"$in": jira_keys}}
     total = await db.jira_tasks.count_documents(query)
 
-    completed = await db.jira_tasks.count_documents({
-        **query,
-        "status": {"$in": ["done", "closed", "resolved"]},
-    })
+    completed = await db.jira_tasks.count_documents(
+        {
+            **query,
+            "status": {"$in": ["done", "closed", "resolved"]},
+        }
+    )
 
-    in_progress = await db.jira_tasks.count_documents({
-        **query,
-        "status": {"$in": ["in_progress", "in_development", "in_review", "in_testing", "code_review"]},
-    })
+    in_progress = await db.jira_tasks.count_documents(
+        {
+            **query,
+            "status": {
+                "$in": ["in_progress", "in_development", "in_review", "in_testing", "code_review"]
+            },
+        }
+    )
 
-    blocked = await db.jira_tasks.count_documents({
-        **query,
-        "status": {"$in": ["blocked", "impediment", "on_hold"]},
-    })
+    blocked = await db.jira_tasks.count_documents(
+        {
+            **query,
+            "status": {"$in": ["blocked", "impediment", "on_hold"]},
+        }
+    )
 
     to_do = total - completed - in_progress - blocked
 
@@ -294,7 +311,6 @@ def _determine_status(
 
     if health_score >= 70 and critical_issues <= 2:
         return ProjectStatus.ON_TRACK
-    elif health_score >= 40 or critical_issues <= 5:
+    if health_score >= 40 or critical_issues <= 5:
         return ProjectStatus.AT_RISK
-    else:
-        return ProjectStatus.BEHIND
+    return ProjectStatus.BEHIND

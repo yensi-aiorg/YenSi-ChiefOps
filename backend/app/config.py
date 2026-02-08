@@ -110,7 +110,7 @@ _settings_lock = threading.Lock()
 
 def get_settings() -> Settings:
     """Return the singleton Settings instance (thread-safe)."""
-    global _settings_instance  # noqa: PLW0603
+    global _settings_instance
     if _settings_instance is None:
         with _settings_lock:
             if _settings_instance is None:
