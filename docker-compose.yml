@@ -1,0 +1,240 @@
+version: "3.9"
+
+services:
+  # ─────────────────────────────────────────────
+  # ChiefOps Frontend — React 19 / Vite
+  # ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "23100:5173"
+    environment:
+      - VITE_API_URL=http://localhost:23101
+      - VITE_WS_URL=ws://localhost:23101
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - chiefops
+
+  # ─────────────────────────────────────────────
+  # ChiefOps Backend — FastAPI / Python 3.11+
+  # ─────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "23101:8000"
+    environment:
+      - MONGO_URL=mongodb://chiefops-mongo:27017
+      - MONGO_DB_NAME=chiefops
+      - REDIS_URL=redis://chiefops-redis:6379/0
+      - CITEX_API_URL=http://citex-api:8000
+      - AI_ADAPTER=${AI_ADAPTER:-mock}
+      - AI_CLI_TOOL=${AI_CLI_TOOL:-claude}
+      - AI_CLI_TIMEOUT=${AI_CLI_TIMEOUT:-120}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-anthropic/claude-sonnet-4-20250514}
+      - PII_REDACTION_ENABLED=${PII_REDACTION_ENABLED:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - UPLOAD_MAX_FILE_SIZE_MB=${UPLOAD_MAX_FILE_SIZE_MB:-500}
+      - UPLOAD_MAX_BATCH_SIZE_MB=${UPLOAD_MAX_BATCH_SIZE_MB:-2048}
+    volumes:
+      - upload-data:/app/uploads
+      - export-data:/app/exports
+    depends_on:
+      chiefops-mongo:
+        condition: service_healthy
+      chiefops-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - chiefops
+
+  # ─────────────────────────────────────────────
+  # ChiefOps MongoDB — Primary datastore
+  # ─────────────────────────────────────────────
+  chiefops-mongo:
+    image: mongo:7
+    ports:
+      - "23102:27017"
+    volumes:
+      - chiefops-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chiefops
+
+  # ─────────────────────────────────────────────
+  # ChiefOps Redis — Caching + pub/sub
+  # ─────────────────────────────────────────────
+  chiefops-redis:
+    image: redis:7-alpine
+    ports:
+      - "23103:6379"
+    volumes:
+      - chiefops-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chiefops
+
+  # ─────────────────────────────────────────────
+  # Citex API — RAG backbone
+  # ─────────────────────────────────────────────
+  citex-api:
+    image: yensi/citex:latest
+    ports:
+      - "23104:8000"
+    environment:
+      - QDRANT_URL=http://citex-qdrant:6333
+      - MONGO_URL=mongodb://citex-mongo:27017
+      - MINIO_ENDPOINT=citex-minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
+      - NEO4J_URL=bolt://citex-neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-chiefops-neo4j}
+      - REDIS_URL=redis://citex-redis:6379/0
+    depends_on:
+      citex-qdrant:
+        condition: service_healthy
+      citex-mongo:
+        condition: service_healthy
+      citex-minio:
+        condition: service_healthy
+      citex-neo4j:
+        condition: service_healthy
+      citex-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - chiefops
+
+  # ─────────────────────────────────────────────
+  # Citex Qdrant — Vector search engine
+  # ─────────────────────────────────────────────
+  citex-qdrant:
+    image: qdrant/qdrant:v1.12.1
+    ports:
+      - "23105:6333"
+    volumes:
+      - citex-qdrant-data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chiefops
+
+  # ─────────────────────────────────────────────
+  # Citex MongoDB — Citex internal storage
+  # ─────────────────────────────────────────────
+  citex-mongo:
+    image: mongo:7
+    ports:
+      - "23106:27017"
+    volumes:
+      - citex-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chiefops
+
+  # ─────────────────────────────────────────────
+  # Citex MinIO — Object storage for raw files
+  # ─────────────────────────────────────────────
+  citex-minio:
+    image: minio/minio:latest
+    ports:
+      - "23107:9000"
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - citex-minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chiefops
+
+  # ─────────────────────────────────────────────
+  # Citex Neo4j — Graph database for entities
+  # ─────────────────────────────────────────────
+  citex-neo4j:
+    image: neo4j:5
+    ports:
+      - "23108:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-chiefops-neo4j}
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - citex-neo4j-data:/data
+    healthcheck:
+      test: ["CMD", "neo4j", "status"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - chiefops
+
+  # ─────────────────────────────────────────────
+  # Citex Redis — Citex internal caching
+  # ─────────────────────────────────────────────
+  citex-redis:
+    image: redis:7-alpine
+    ports:
+      - "23109:6379"
+    volumes:
+      - citex-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chiefops
+
+volumes:
+  upload-data:
+  export-data:
+  chiefops-mongo-data:
+  chiefops-redis-data:
+  citex-qdrant-data:
+  citex-mongo-data:
+  citex-minio-data:
+  citex-neo4j-data:
+  citex-redis-data:
+
+networks:
+  chiefops:
+    driver: bridge

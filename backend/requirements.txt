@@ -1,0 +1,36 @@
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# Database
+motor==3.6.0
+pymongo==4.10.1
+
+# Cache + pub/sub
+redis[hiredis]==5.2.1
+
+# HTTP client (for Citex + OpenRouter)
+httpx==0.28.1
+
+# File handling
+aiofiles==24.1.0
+python-multipart==0.0.20
+openpyxl==3.1.5
+python-docx==1.1.2
+
+# PDF export
+weasyprint==62.3
+jinja2==3.1.5
+
+# Utilities
+python-dateutil==2.9.0
+orjson==3.10.13
+python-dotenv==1.0.1
+
+# Streaming
+sse-starlette==2.2.1
+
+# WebSocket
+websockets==14.1
