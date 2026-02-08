@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, Query
@@ -20,8 +21,6 @@ from app.database import get_database
 from app.models.base import generate_uuid, utc_now
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)

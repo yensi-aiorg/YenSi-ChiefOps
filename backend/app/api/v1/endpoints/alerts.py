@@ -9,6 +9,7 @@ Supports creation from natural language, listing, updating, and deletion.
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
@@ -19,8 +20,6 @@ from app.database import get_database
 from app.models.base import generate_uuid, utc_now
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)

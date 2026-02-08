@@ -28,6 +28,62 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+async def start_ingestion_job(job_id: str) -> None:
+    """Bridge called by the upload endpoint to kick off processing.
+
+    Reads stored files from ``ingestion_file_store``, feeds them to
+    ``process_upload``, and updates the original job record created by the
+    endpoint with the orchestrator's results.
+    """
+    import asyncio
+
+    from app.database import get_database_sync
+
+    db = get_database_sync()
+
+    # Read raw files stored by the upload endpoint
+    file_store = db["ingestion_file_store"]
+    stored = await file_store.find({"job_id": job_id}).to_list(length=None)
+
+    if not stored:
+        logger.warning("No stored files found for job %s", job_id)
+        return
+
+    files = [
+        {"filename": doc["filename"], "content": doc["data"]}
+        for doc in stored
+    ]
+
+    # Run the full ingestion pipeline
+    result = await process_upload(files, db)
+
+    # Copy results back to the original job record (the one the UI tracks)
+    jobs_col = db["ingestion_jobs"]
+    await jobs_col.update_one(
+        {"job_id": job_id},
+        {
+            "$set": {
+                "status": result.status,
+                "files_processed": result.processed_files,
+                "total_records": sum(
+                    fr.get("records_processed", 0) for fr in result.file_results
+                ),
+                "error_count": sum(
+                    1 for fr in result.file_results if fr.get("status") == "failed"
+                ),
+                "error_message": "; ".join(result.errors) if result.errors else None,
+                "completed_at": result.completed_at,
+                "updated_at": utc_now(),
+            }
+        },
+    )
+
+    # Clean up stored file data
+    await file_store.delete_many({"job_id": job_id})
+
+    logger.info("Ingestion job %s completed via start_ingestion_job", job_id)
+
+
 class IngestionJob:
     """Tracks the overall status of a batch ingestion job."""
 

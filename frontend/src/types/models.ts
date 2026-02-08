@@ -442,7 +442,10 @@ export interface ReportSpec {
 
 /** Global application settings configurable by the COO. */
 export interface AppSettings {
+  ai_adapter: string;
+  ai_cli_tool: string;
   ai_model: string;
+  openrouter_model: string;
   pii_redaction_enabled: boolean;
   has_completed_onboarding: boolean;
   [key: string]: unknown;

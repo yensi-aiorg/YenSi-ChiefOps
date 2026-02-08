@@ -8,6 +8,7 @@ Settings are persisted in MongoDB so they survive restarts.
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -18,8 +19,6 @@ from app.database import get_database
 from app.models.base import utc_now
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
@@ -32,7 +31,8 @@ router = APIRouter(prefix="/settings", tags=["settings"])
 
 DEFAULT_SETTINGS: dict[str, Any] = {
     "settings_id": "singleton",
-    "ai_adapter": "openrouter",
+    "ai_adapter": "cli",
+    "ai_cli_tool": "claude",
     "openrouter_model": "anthropic/claude-sonnet-4",
     "pii_redaction_enabled": True,
     "auto_analyze_on_ingest": True,
@@ -54,7 +54,8 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 class SettingsResponse(BaseModel):
     """Current application settings."""
 
-    ai_adapter: str = Field(default="openrouter", description="AI backend: 'openrouter' or 'cli'.")
+    ai_adapter: str = Field(default="cli", description="AI backend: 'openrouter' or 'cli'.")
+    ai_cli_tool: str = Field(default="claude", description="CLI tool name when ai_adapter=cli.")
     openrouter_model: str = Field(
         default="anthropic/claude-sonnet-4", description="OpenRouter model ID."
     )
@@ -86,6 +87,7 @@ class SettingsUpdateRequest(BaseModel):
     """Request to update one or more settings."""
 
     ai_adapter: str | None = Field(default=None, description="AI backend.")
+    ai_cli_tool: str | None = Field(default=None, description="CLI tool name.")
     openrouter_model: str | None = Field(default=None, description="OpenRouter model ID.")
     pii_redaction_enabled: bool | None = Field(default=None, description="PII redaction toggle.")
     auto_analyze_on_ingest: bool | None = Field(default=None, description="Auto-analyze toggle.")
@@ -174,6 +176,7 @@ async def get_settings(
 
     return SettingsResponse(
         ai_adapter=doc.get("ai_adapter", DEFAULT_SETTINGS["ai_adapter"]),
+        ai_cli_tool=doc.get("ai_cli_tool", DEFAULT_SETTINGS["ai_cli_tool"]),
         openrouter_model=doc.get("openrouter_model", DEFAULT_SETTINGS["openrouter_model"]),
         pii_redaction_enabled=doc.get(
             "pii_redaction_enabled", DEFAULT_SETTINGS["pii_redaction_enabled"]
@@ -218,6 +221,9 @@ async def update_settings(
             )
         update_fields["ai_adapter"] = body.ai_adapter
 
+    if body.ai_cli_tool is not None:
+        update_fields["ai_cli_tool"] = body.ai_cli_tool
+
     if body.openrouter_model is not None:
         update_fields["openrouter_model"] = body.openrouter_model
 
@@ -252,6 +258,7 @@ async def update_settings(
 
     return SettingsResponse(
         ai_adapter=doc.get("ai_adapter", DEFAULT_SETTINGS["ai_adapter"]),
+        ai_cli_tool=doc.get("ai_cli_tool", DEFAULT_SETTINGS["ai_cli_tool"]),
         openrouter_model=doc.get("openrouter_model", DEFAULT_SETTINGS["openrouter_model"]),
         pii_redaction_enabled=doc.get(
             "pii_redaction_enabled", DEFAULT_SETTINGS["pii_redaction_enabled"]

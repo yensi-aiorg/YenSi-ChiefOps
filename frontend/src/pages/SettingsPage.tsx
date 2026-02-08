@@ -132,12 +132,9 @@ function SettingsCard({
 /*  Model selector options                                             */
 /* ================================================================== */
 
-const modelOptions = [
-  { value: "gpt-4o", label: "GPT-4o (Default)" },
-  { value: "gpt-4o-mini", label: "GPT-4o Mini (Faster)" },
-  { value: "claude-3-5-sonnet", label: "Claude 3.5 Sonnet" },
-  { value: "claude-3-5-haiku", label: "Claude 3.5 Haiku (Faster)" },
-  { value: "local", label: "Local Model (Ollama)" },
+const adapterOptions = [
+  { value: "cli", label: "Claude CLI (Local)" },
+  { value: "openrouter", label: "OpenRouter (Cloud API)" },
 ];
 
 /* ================================================================== */
@@ -164,8 +161,8 @@ export function SettingsPage() {
     fetchSettings();
   }, [fetchSettings]);
 
-  const handleModelChange = async (model: string) => {
-    await updateSettings({ ai_model: model });
+  const handleAdapterChange = async (adapter: string) => {
+    await updateSettings({ ai_adapter: adapter });
     flashSaveSuccess();
   };
 
@@ -249,25 +246,47 @@ export function SettingsPage() {
         icon={<Brain className="h-5 w-5 text-chief-500" />}
         title="AI Configuration"
       >
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Language Model
-          </label>
-          <select
-            value={settings?.ai_model ?? "gpt-4o"}
-            onChange={(e) => handleModelChange(e.target.value)}
-            className="input w-full max-w-md"
-          >
-            {modelOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Select the AI model used for analysis, report generation, and
-            conversational interactions.
-          </p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              AI Adapter
+            </label>
+            <select
+              value={settings?.ai_adapter ?? "cli"}
+              onChange={(e) => handleAdapterChange(e.target.value)}
+              className="input w-full max-w-md"
+            >
+              {adapterOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Choose between Claude CLI (runs locally via subprocess) or
+              OpenRouter (cloud API).
+            </p>
+          </div>
+          {settings?.ai_adapter === "cli" && (
+            <div className="rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 dark:border-teal-800 dark:bg-teal-900/20">
+              <p className="text-sm font-medium text-teal-800 dark:text-teal-300">
+                CLI Tool: <span className="font-mono">{settings?.ai_cli_tool ?? "claude"}</span>
+              </p>
+              <p className="mt-0.5 text-xs text-teal-600 dark:text-teal-400">
+                Using the local Claude CLI binary for AI operations.
+              </p>
+            </div>
+          )}
+          {settings?.ai_adapter === "openrouter" && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                OpenRouter Model
+              </label>
+              <p className="font-mono text-sm text-slate-600 dark:text-slate-400">
+                {settings?.openrouter_model ?? "anthropic/claude-sonnet-4"}
+              </p>
+            </div>
+          )}
         </div>
       </SettingsCard>
 
