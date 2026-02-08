@@ -24,8 +24,10 @@ yarn-error.log*
 .pnp
 .pnp.js
 
-# Vite
+# Vite / TypeScript build
 frontend/dist/
+frontend/dist-node/
+*.tsbuildinfo
 
 # Environment
 .env
