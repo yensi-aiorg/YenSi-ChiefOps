@@ -19,7 +19,6 @@ import { useDashboardStore } from "@/stores/dashboardStore";
 import { cn } from "@/lib/utils";
 import {
   formatRelativeTime,
-  formatDate,
   getHealthScoreBadge,
   getHealthScoreColor,
 } from "@/lib/utils";
@@ -284,7 +283,6 @@ function AiBriefingPanel({ projects }: { projects: Project[] }) {
 /* ================================================================== */
 
 function ProjectOverviewCard({ project }: { project: Project }) {
-  const badge = getHealthScoreBadge(project.health_score);
   const statusColors: Record<string, string> = {
     on_track: "badge-teal",
     at_risk: "badge-warm",
@@ -541,19 +539,18 @@ export function MainDashboard() {
     fetchProjects,
   } = useProjectStore();
   const {
-    alerts,
-    unreadCount,
+    triggeredAlerts,
     isLoading: alertsLoading,
-    fetchAlerts,
+    fetchTriggeredAlerts,
     dismissAlert,
   } = useAlertStore();
-  const { fetchDashboard } = useDashboardStore();
+  const { fetchDashboards } = useDashboardStore();
 
   useEffect(() => {
     fetchProjects();
-    fetchAlerts();
-    fetchDashboard();
-  }, [fetchProjects, fetchAlerts, fetchDashboard]);
+    fetchTriggeredAlerts();
+    fetchDashboards();
+  }, [fetchProjects, fetchTriggeredAlerts, fetchDashboards]);
 
   // Computed stats
   const activeProjects = projects.filter((p) => p.status !== "completed");
@@ -579,7 +576,8 @@ export function MainDashboard() {
     return Math.round(sum / activeProjects.length);
   }, [activeProjects]);
 
-  const activeAlerts = alerts.filter((a) => !a.dismissed);
+  const activeAlerts = triggeredAlerts.filter((a) => !a.acknowledged);
+  const unreadCount = activeAlerts.length;
   const isLoading = projectsLoading || alertsLoading;
 
   return (

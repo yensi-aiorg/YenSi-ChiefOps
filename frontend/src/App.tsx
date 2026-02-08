@@ -52,6 +52,9 @@ const ReportPreview = lazy(() =>
 const SettingsPage = lazy(() =>
   import("@/pages/SettingsPage").then((m) => ({ default: m.SettingsPage })),
 );
+const NotFound = lazy(() =>
+  import("@/pages/NotFound").then((m) => ({ default: m.NotFound })),
+);
 
 /* ------------------------------------------------------------------ */
 /*  Navigation items                                                  */
@@ -357,6 +360,7 @@ export function App() {
                 <Route path="/reports" element={<ReportList />} />
                 <Route path="/reports/:reportId" element={<ReportPreview />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
           </div>
