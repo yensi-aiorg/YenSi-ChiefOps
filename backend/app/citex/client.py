@@ -195,16 +195,24 @@ class CitexClient:
                 compact_meta = json.dumps(metadata, default=str, ensure_ascii=True)
                 metadata_header = f"[citex-metadata]\n{compact_meta}\n[/citex-metadata]\n\n"
             payload_text = f"{metadata_header}{content}"
+
+            # Citex only supports certain extensions; map unsupported ones to .txt
+            citex_filename = filename
+            _unsupported_text_exts = {".md", ".html", ".htm", ".xml", ".eml", ".rst"}
+            ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+            if ext in _unsupported_text_exts:
+                citex_filename = filename.rsplit(".", 1)[0] + ".txt"
+
             response = await self._request_with_retry(
                 "POST",
                 "/api/ingest",
                 data={
                     "project_id": project_id,
-                    "file_name": filename,
+                    "file_name": citex_filename,
                 },
                 files={
                     "file": (
-                        filename,
+                        citex_filename,
                         payload_text.encode("utf-8"),
                         "text/plain",
                     )

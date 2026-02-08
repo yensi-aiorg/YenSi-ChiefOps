@@ -104,6 +104,14 @@ class DeleteDashboardResponse(BaseModel):
     message: str = Field(..., description="Human-readable status message.")
 
 
+class GenerateDefaultResponse(BaseModel):
+    """Response from default dashboard generation."""
+
+    dashboard_id: str = Field(..., description="Dashboard ID.")
+    widget_ids: list[str] = Field(default_factory=list, description="Created widget IDs.")
+    created: bool = Field(default=False, description="Whether a new dashboard was created.")
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -159,6 +167,23 @@ async def list_dashboards(
         )
 
     return DashboardListResponse(dashboards=dashboards, total=total, skip=skip, limit=limit)
+
+
+@router.post(
+    "/generate-default",
+    response_model=GenerateDefaultResponse,
+    status_code=201,
+    summary="Generate default COO dashboard",
+    description="Create or regenerate the default COO Command Center dashboard with all widgets.",
+)
+async def generate_default(
+    force: bool = Query(default=False, description="Force regeneration even if dashboard exists."),
+    db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
+) -> GenerateDefaultResponse:
+    from app.services.dashboards.default_generator import generate_default_dashboard
+
+    result = await generate_default_dashboard(db, force=force)
+    return GenerateDefaultResponse(**result)
 
 
 @router.get(

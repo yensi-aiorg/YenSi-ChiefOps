@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import api from "@/lib/api";
-import type { Project } from "@/types";
+import type { Project, ProjectFileInfo } from "@/types";
 
 // ---------------------------------------------------------------------------
 // State & actions
@@ -13,6 +13,11 @@ interface ProjectState {
   analysis: unknown | null;
   isLoading: boolean;
   error: string | null;
+
+  // Per-project files
+  projectFiles: ProjectFileInfo[];
+  isUploadingFiles: boolean;
+  uploadError: string | null;
 }
 
 interface ProjectActions {
@@ -38,6 +43,15 @@ interface ProjectActions {
 
   /** Clear the error state. */
   clearError: () => void;
+
+  /** Upload files to a project. */
+  uploadProjectFiles: (projectId: string, files: File[]) => Promise<void>;
+
+  /** Fetch files for a project. */
+  fetchProjectFiles: (projectId: string) => Promise<void>;
+
+  /** Delete a file from a project. */
+  deleteProjectFile: (projectId: string, fileId: string) => Promise<void>;
 }
 
 type ProjectStore = ProjectState & ProjectActions;
@@ -55,6 +69,9 @@ export const useProjectStore = create<ProjectStore>()(
       analysis: null,
       isLoading: false,
       error: null,
+      projectFiles: [],
+      isUploadingFiles: false,
+      uploadError: null,
 
       // -- actions --
 
@@ -206,6 +223,69 @@ export const useProjectStore = create<ProjectStore>()(
 
       clearError: () => {
         set({ error: null }, false, "clearError");
+      },
+
+      uploadProjectFiles: async (projectId, files) => {
+        set(
+          { isUploadingFiles: true, uploadError: null },
+          false,
+          "uploadProjectFiles/start",
+        );
+        try {
+          const formData = new FormData();
+          for (const file of files) {
+            formData.append("files", file);
+          }
+          await api.post(
+            `/v1/projects/${projectId}/files/upload`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } },
+          );
+          set({ isUploadingFiles: false }, false, "uploadProjectFiles/success");
+          // Refetch files to get updated list
+          await get().fetchProjectFiles(projectId);
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Failed to upload files";
+          set(
+            { uploadError: message, isUploadingFiles: false },
+            false,
+            "uploadProjectFiles/error",
+          );
+          throw err;
+        }
+      },
+
+      fetchProjectFiles: async (projectId) => {
+        try {
+          const { data } = await api.get<
+            { files: ProjectFileInfo[] } | ProjectFileInfo[]
+          >(`/v1/projects/${projectId}/files`);
+          const files = Array.isArray(data)
+            ? data
+            : (data as { files?: ProjectFileInfo[] }).files ?? [];
+          set({ projectFiles: files }, false, "fetchProjectFiles/success");
+        } catch {
+          // Non-critical: silently set empty
+          set({ projectFiles: [] }, false, "fetchProjectFiles/error");
+        }
+      },
+
+      deleteProjectFile: async (projectId, fileId) => {
+        try {
+          await api.delete(`/v1/projects/${projectId}/files/${fileId}`);
+          // Refetch files to get updated list
+          await get().fetchProjectFiles(projectId);
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Failed to delete file";
+          set(
+            { uploadError: message },
+            false,
+            "deleteProjectFile/error",
+          );
+          throw err;
+        }
       },
     }),
     { name: "ProjectStore" },

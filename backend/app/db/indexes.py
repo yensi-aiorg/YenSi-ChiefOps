@@ -140,6 +140,33 @@ async def create_indexes(db: AsyncIOMotorDatabase) -> None:  # type: ignore[type
         ]
     )
 
+    # ---- project_files ----
+    await db.project_files.create_indexes(
+        [
+            IndexModel([("file_id", ASCENDING)], unique=True, name="uq_pf_file_id"),
+            IndexModel([("project_id", ASCENDING)], name="idx_pf_project"),
+            IndexModel(
+                [("project_id", ASCENDING), ("content_hash", ASCENDING)],
+                name="idx_pf_project_hash",
+            ),
+            IndexModel(
+                [("project_id", ASCENDING), ("created_at", DESCENDING)],
+                name="idx_pf_project_created",
+            ),
+        ]
+    )
+
+    # ---- text_documents (project_id sparse) ----
+    await db.text_documents.create_indexes(
+        [
+            IndexModel(
+                [("project_id", ASCENDING)],
+                sparse=True,
+                name="idx_textdoc_project",
+            ),
+        ]
+    )
+
     # ---- drive_files ----
     await db.drive_files.create_indexes(
         [

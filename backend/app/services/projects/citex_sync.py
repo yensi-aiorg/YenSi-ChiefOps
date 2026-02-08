@@ -242,6 +242,16 @@ async def sync_project_to_citex(
     ).to_list(length=500)
     doc_files = await _load_project_documents(project, db)
 
+    # Include files uploaded directly to this project via the Files tab.
+    project_uploaded_docs = await db.text_documents.find(
+        {"project_id": project_id}
+    ).to_list(length=200)
+    if project_uploaded_docs:
+        existing_ids = {_doc_id(d) for d in doc_files}
+        for pdoc in project_uploaded_docs:
+            if _doc_id(pdoc) not in existing_ids:
+                doc_files.append(pdoc)
+
     settings = get_settings()
     citex_client = CitexClient(settings.CITEX_API_URL)
     groups: list[dict[str, Any]] = []

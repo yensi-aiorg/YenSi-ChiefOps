@@ -227,25 +227,38 @@ function UploadProgressDetail({ job }: { job: IngestionJob }) {
 
       {/* Per-file details */}
       <div className="space-y-2">
-        {job.files.map((file, idx) => (
-          <div
-            key={idx}
-            className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/50"
-          >
-            <FileText className="h-4 w-4 flex-shrink-0 text-slate-400" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-slate-700 dark:text-slate-300">
-                {file.filename}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {formatNumber(file.records_processed)} records
-                {file.records_skipped > 0 &&
-                  ` (${formatNumber(file.records_skipped)} skipped)`}
-              </p>
+        {job.files.map((file, idx) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const raw = file as any;
+          const recordsProcessed = raw.records_processed ?? null;
+          const recordsSkipped = raw.records_skipped ?? 0;
+          const fileStatus = raw.status ?? "";
+          const sizeBytes = raw.size_bytes ?? null;
+
+          return (
+            <div
+              key={idx}
+              className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/50"
+            >
+              <FileText className="h-4 w-4 flex-shrink-0 text-slate-400" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-slate-700 dark:text-slate-300">
+                  {file.filename}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {recordsProcessed != null
+                    ? `${formatNumber(recordsProcessed)} records`
+                    : sizeBytes != null
+                      ? `${formatNumber(sizeBytes)} bytes`
+                      : ""}
+                  {recordsSkipped > 0 &&
+                    ` (${formatNumber(recordsSkipped)} skipped)`}
+                </p>
+              </div>
+              {fileStatus && <StatusBadge status={fileStatus} />}
             </div>
-            <StatusBadge status={file.status} />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -256,11 +269,15 @@ function UploadProgressDetail({ job }: { job: IngestionJob }) {
 /* ================================================================== */
 
 function IngestionSummary({ job }: { job: IngestionJob }) {
-  const totalRecords = job.total_records;
-  const errorCount = job.error_count;
-  const fileCount = job.files.length;
-  const completedFiles = job.files.filter(
-    (f) => f.status === "completed",
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = job as any;
+  const totalRecords = raw.total_records ?? 0;
+  const errorCount = raw.error_count ?? 0;
+  const files = Array.isArray(job.files) ? job.files : [];
+  const fileCount = files.length;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const completedFiles = files.filter(
+    (f: any) => f.status === "completed",
   ).length;
 
   return (
@@ -359,38 +376,60 @@ function JobRow({ job }: { job: IngestionJob }) {
             className="border-b border-slate-100 px-8 pb-4 pt-2 dark:border-slate-800"
           >
             <div className="space-y-2">
-              {job.files.map((file, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/50"
-                >
-                  <FileText className="h-4 w-4 flex-shrink-0 text-slate-400" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-slate-700 dark:text-slate-300">
-                      {file.filename}
-                    </p>
-                    <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
-                      <span>
-                        Type: {file.file_type.replace(/_/g, " ")}
-                      </span>
-                      <span>
-                        {formatNumber(file.records_processed)} records
-                      </span>
-                      {file.records_skipped > 0 && (
-                        <span>
-                          {formatNumber(file.records_skipped)} skipped
-                        </span>
+              {job.files.map((file, idx) => {
+                // Backend FileInfo may return extra fields (file_type, records_processed, etc.)
+                // or only basics (filename, size_bytes, content_type). Safely handle both.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const raw = file as any;
+                const fileType = raw.file_type ?? raw.content_type ?? "";
+                const recordsProcessed = raw.records_processed ?? null;
+                const recordsSkipped = raw.records_skipped ?? 0;
+                const errorMessage = raw.error_message ?? null;
+                const fileStatus = raw.status ?? "";
+                const sizeBytes = raw.size_bytes ?? null;
+
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/50"
+                  >
+                    <FileText className="h-4 w-4 flex-shrink-0 text-slate-400" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm text-slate-700 dark:text-slate-300">
+                        {file.filename}
+                      </p>
+                      <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        {fileType && (
+                          <span>
+                            Type: {fileType.replace(/_/g, " ")}
+                          </span>
+                        )}
+                        {recordsProcessed != null && (
+                          <span>
+                            {formatNumber(recordsProcessed)} records
+                          </span>
+                        )}
+                        {sizeBytes != null && recordsProcessed == null && (
+                          <span>
+                            {formatNumber(sizeBytes)} bytes
+                          </span>
+                        )}
+                        {recordsSkipped > 0 && (
+                          <span>
+                            {formatNumber(recordsSkipped)} skipped
+                          </span>
+                        )}
+                      </div>
+                      {errorMessage && (
+                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                          {errorMessage}
+                        </p>
                       )}
                     </div>
-                    {file.error_message && (
-                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                        {file.error_message}
-                      </p>
-                    )}
+                    {fileStatus && <StatusBadge status={fileStatus} />}
                   </div>
-                  <StatusBadge status={file.status} />
-                </div>
-              ))}
+                );
+              })}
             </div>
           </td>
         </tr>

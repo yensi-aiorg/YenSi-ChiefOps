@@ -19,6 +19,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useProjectStore } from "@/stores/projectStore";
+import { ProjectFilesTab } from "@/components/project/ProjectFilesTab";
 import { cn } from "@/lib/utils";
 import {
   formatDate,
@@ -676,7 +677,7 @@ function ProjectDetailSkeleton() {
 /*  Project Detail / Dashboard Page                                    */
 /* ================================================================== */
 
-type TabId = "overview" | "custom";
+type TabId = "overview" | "files" | "custom";
 
 export function ProjectDetail() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -686,6 +687,8 @@ export function ProjectDetail() {
     error,
     fetchProjectDetail,
     triggerAnalysis,
+    projectFiles,
+    fetchProjectFiles,
   } = useProjectStore();
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
@@ -694,8 +697,9 @@ export function ProjectDetail() {
   useEffect(() => {
     if (projectId) {
       fetchProjectDetail(projectId);
+      fetchProjectFiles(projectId);
     }
-  }, [projectId, fetchProjectDetail]);
+  }, [projectId, fetchProjectDetail, fetchProjectFiles]);
 
   const handleAnalyze = async () => {
     if (!projectId) return;
@@ -800,8 +804,9 @@ export function ProjectDetail() {
       <div className="flex gap-1 border-b border-slate-200 dark:border-slate-700">
         {(
           [
-            { id: "overview" as TabId, label: "Overview" },
-            { id: "custom" as TabId, label: "Custom Dashboard" },
+            { id: "overview" as TabId, label: "Overview", count: 0 },
+            { id: "files" as TabId, label: "Files", count: projectFiles.length },
+            { id: "custom" as TabId, label: "Custom Dashboard", count: 0 },
           ] as const
         ).map((tab) => (
           <button
@@ -815,6 +820,11 @@ export function ProjectDetail() {
             )}
           >
             {tab.label}
+            {tab.count > 0 && (
+              <span className="ml-1.5 rounded-full bg-slate-200 px-1.5 py-0.5 text-2xs tabular-nums text-slate-600 dark:bg-slate-700 dark:text-slate-400">
+                {tab.count}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -891,6 +901,11 @@ export function ProjectDetail() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Files tab */}
+      {activeTab === "files" && projectId && (
+        <ProjectFilesTab projectId={projectId} />
       )}
 
       {/* Custom Dashboard tab */}

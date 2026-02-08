@@ -18,6 +18,7 @@ from app.api.v1.endpoints.dashboards import router as dashboards_router
 from app.api.v1.endpoints.health import router as health_router
 from app.api.v1.endpoints.ingestion import router as ingestion_router
 from app.api.v1.endpoints.people import router as people_router
+from app.api.v1.endpoints.project_files import router as project_files_router
 from app.api.v1.endpoints.projects import router as projects_router
 from app.api.v1.endpoints.reports import router as reports_router
 from app.api.v1.endpoints.settings import router as settings_router
@@ -40,6 +41,9 @@ api_v1_router.include_router(people_router)
 
 # Projects -- /api/v1/projects/*
 api_v1_router.include_router(projects_router)
+
+# Project files -- /api/v1/projects/{project_id}/files/*
+api_v1_router.include_router(project_files_router)
 
 # Dashboards -- /api/v1/dashboards/*
 api_v1_router.include_router(dashboards_router)

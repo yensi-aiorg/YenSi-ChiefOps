@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -11,7 +11,10 @@ import {
   Sparkles,
   ArrowRight,
   XCircle,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
+import ReactEChartsCore from "echarts-for-react";
 import { useProjectStore } from "@/stores/projectStore";
 import { useAlertStore } from "@/stores/alertStore";
 import { useDashboardStore } from "@/stores/dashboardStore";
@@ -21,7 +24,12 @@ import {
   getHealthScoreBadge,
   getHealthScoreColor,
 } from "@/lib/utils";
-import type { Project, AlertTriggered } from "@/types";
+import {
+  transformWidgetData,
+  mapBackendWidgetType,
+} from "@/lib/widgetDataTransformer";
+import type { Project, AlertTriggered, WidgetSpec } from "@/types";
+import { WidgetType } from "@/types";
 
 /* ================================================================== */
 /*  API → Dashboard adapters                                           */
@@ -95,6 +103,23 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 /* ================================================================== */
+/*  Section labels for the widget grid                                 */
+/* ================================================================== */
+
+const SECTION_LABELS: { minY: number; maxY: number; label: string }[] = [
+  { minY: 0, maxY: 1, label: "Executive Summary" },
+  { minY: 2, maxY: 9, label: "Project Health & Status" },
+  { minY: 10, maxY: 17, label: "Execution & Delivery" },
+  { minY: 18, maxY: 21, label: "Team & Capacity" },
+  { minY: 22, maxY: 29, label: "Risk & Gap Analysis" },
+  { minY: 30, maxY: 99, label: "Forward Planning" },
+];
+
+function getSectionLabel(y: number): string {
+  return SECTION_LABELS.find((s) => y >= s.minY && y <= s.maxY)?.label ?? "";
+}
+
+/* ================================================================== */
 /*  Skeleton helpers                                                   */
 /* ================================================================== */
 
@@ -121,6 +146,300 @@ function SkeletonProjectCard() {
         <div className="skeleton h-3 w-20" />
         <div className="skeleton h-3 w-24" />
       </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Widget Content (renders transformed data)                          */
+/* ================================================================== */
+
+function WidgetContent({
+  type,
+  payload,
+}: {
+  type: string;
+  payload: unknown;
+}) {
+  // Map backend types to frontend types
+  const frontendType = mapBackendWidgetType(type);
+
+  switch (frontendType) {
+    case WidgetType.BAR_CHART:
+    case WidgetType.LINE_CHART:
+    case WidgetType.PIE_CHART: {
+      // payload is already an ECharts option from the transformer
+      const option = payload as Record<string, unknown>;
+      return (
+        <ReactEChartsCore
+          option={option}
+          style={{ width: "100%", height: "100%", minHeight: "200px" }}
+          notMerge
+          lazyUpdate
+        />
+      );
+    }
+
+    case WidgetType.KPI_CARD: {
+      const metric = payload as {
+        value?: string | number;
+        label?: string;
+        change?: string;
+        trend?: string;
+      };
+      return (
+        <div className="flex h-full flex-col items-center justify-center text-center">
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">
+            {metric.value ?? "--"}
+          </p>
+          {metric.label && (
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {metric.label}
+            </p>
+          )}
+          {metric.change && (
+            <p
+              className={cn(
+                "mt-1 text-xs font-medium",
+                metric.trend === "up"
+                  ? "text-green-600 dark:text-green-400"
+                  : metric.trend === "down"
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-slate-500",
+              )}
+            >
+              {metric.change}
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    case WidgetType.TABLE: {
+      const tableData = payload as {
+        headers?: string[];
+        rows?: (string | number)[][];
+      };
+      if (!tableData.headers || !tableData.rows) {
+        return (
+          <p className="text-xs text-slate-400">No table data available</p>
+        );
+      }
+      if (tableData.rows.length === 0) {
+        return (
+          <p className="py-4 text-center text-xs text-slate-400">No data</p>
+        );
+      }
+      return (
+        <div className="overflow-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                {tableData.headers.map((h, i) => (
+                  <th
+                    key={i}
+                    className="pb-2 pr-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {tableData.rows.map((row, ri) => (
+                <tr key={ri}>
+                  {row.map((cell, ci) => (
+                    <td
+                      key={ci}
+                      className="py-2 pr-3 text-sm text-slate-700 dark:text-slate-300"
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    case WidgetType.SUMMARY_TEXT: {
+      return (
+        <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          {String(payload)}
+        </div>
+      );
+    }
+
+    default: {
+      return (
+        <pre className="overflow-auto text-xs text-slate-600 dark:text-slate-400">
+          {JSON.stringify(payload, null, 2)}
+        </pre>
+      );
+    }
+  }
+}
+
+/* ================================================================== */
+/*  DB-backed Widget Card                                              */
+/* ================================================================== */
+
+function DbWidgetCard({
+  widget,
+  rawData,
+  isDataLoading,
+  onRefresh,
+}: {
+  widget: WidgetSpec;
+  rawData: unknown;
+  isDataLoading: boolean;
+  onRefresh: () => void;
+}) {
+  // Get the backend widget type (stored in the widget spec)
+  const backendType =
+    (widget as unknown as Record<string, unknown>).widget_type as string;
+  const transformed = rawData
+    ? transformWidgetData(backendType, rawData)
+    : undefined;
+
+  // Read position from widget doc (backend stores as { x, y, w, h })
+  const pos = (widget as unknown as Record<string, unknown>).position as
+    | { x: number; y: number; w: number; h: number }
+    | undefined;
+
+  const style = pos
+    ? {
+        gridColumn: `${pos.x + 1} / span ${pos.w}`,
+        gridRow: `${pos.y + 1} / span ${pos.h}`,
+      }
+    : {};
+
+  return (
+    <div className="card flex flex-col overflow-hidden" style={style}>
+      {/* Widget header */}
+      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5 dark:border-slate-800">
+        <h4 className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+          {widget.title}
+        </h4>
+        <button
+          onClick={onRefresh}
+          className="rounded p-1 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
+          aria-label={`Refresh ${widget.title}`}
+        >
+          <RefreshCw
+            className={cn("h-3.5 w-3.5", isDataLoading && "animate-spin")}
+          />
+        </button>
+      </div>
+
+      {/* Widget body */}
+      <div className="flex-1 p-4">
+        {isDataLoading && transformed === undefined && (
+          <div className="flex h-full items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-teal-500" />
+          </div>
+        )}
+
+        {transformed !== undefined && (
+          <WidgetContent type={backendType} payload={transformed} />
+        )}
+
+        {!isDataLoading && transformed === undefined && (
+          <div className="flex h-full items-center justify-center text-xs text-slate-400">
+            No data available
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  DB-Backed Default Dashboard View                                   */
+/* ================================================================== */
+
+function DefaultDashboardView() {
+  const {
+    activeDashboard,
+    widgets: widgetMap,
+    widgetData,
+    isLoading: dashboardLoading,
+    fetchWidgetData,
+  } = useDashboardStore();
+
+  // Resolve widget specs from the active dashboard's widget_ids
+  const resolvedWidgets: WidgetSpec[] = useMemo(() => {
+    if (!activeDashboard) return [];
+    return activeDashboard.widget_ids
+      .map((id) => widgetMap.get(id))
+      .filter((w): w is WidgetSpec => w !== undefined);
+  }, [activeDashboard, widgetMap]);
+
+  // Load widget data when widgets are resolved
+  useEffect(() => {
+    resolvedWidgets.forEach((w) => {
+      if (!widgetData.has(w.widget_id)) {
+        fetchWidgetData(w.widget_id);
+      }
+    });
+  }, [resolvedWidgets, widgetData, fetchWidgetData]);
+
+  // Group widgets by section for section headers
+  const widgetsBySection = useMemo(() => {
+    const sections: { label: string; widgets: WidgetSpec[] }[] = [];
+    let currentLabel = "";
+
+    // Sort by y position first
+    const sorted = [...resolvedWidgets].sort((a, b) => {
+      const posA = (a as unknown as Record<string, unknown>).position as
+        | { y: number }
+        | undefined;
+      const posB = (b as unknown as Record<string, unknown>).position as
+        | { y: number }
+        | undefined;
+      return (posA?.y ?? 0) - (posB?.y ?? 0);
+    });
+
+    for (const w of sorted) {
+      const pos = (w as unknown as Record<string, unknown>).position as
+        | { y: number }
+        | undefined;
+      const sectionLabel = getSectionLabel(pos?.y ?? 0);
+      if (sectionLabel !== currentLabel) {
+        currentLabel = sectionLabel;
+        sections.push({ label: sectionLabel, widgets: [] });
+      }
+      sections[sections.length - 1]!.widgets.push(w);
+    }
+
+    return sections;
+  }, [resolvedWidgets]);
+
+  return (
+    <div className="space-y-8">
+      {widgetsBySection.map((section) => (
+        <div key={section.label}>
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            {section.label}
+          </h2>
+          <div
+            className="grid grid-cols-12 gap-4"
+            style={{ gridAutoRows: "minmax(80px, auto)" }}
+          >
+            {section.widgets.map((widget) => (
+              <DbWidgetCard
+                key={widget.widget_id}
+                widget={widget}
+                rawData={widgetData.get(widget.widget_id)}
+                isDataLoading={dashboardLoading}
+                onRefresh={() => fetchWidgetData(widget.widget_id)}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -499,10 +818,10 @@ function EmptyDashboard() {
 }
 
 /* ================================================================== */
-/*  Main Dashboard Page                                                */
+/*  Hardcoded Fallback Dashboard (pre-ingestion)                       */
 /* ================================================================== */
 
-export function MainDashboard() {
+function FallbackDashboard() {
   const {
     projects,
     isLoading: projectsLoading,
@@ -514,13 +833,11 @@ export function MainDashboard() {
     fetchTriggeredAlerts,
     dismissAlert,
   } = useAlertStore();
-  const { fetchDashboards } = useDashboardStore();
 
   useEffect(() => {
     fetchProjects();
     fetchTriggeredAlerts();
-    fetchDashboards();
-  }, [fetchProjects, fetchTriggeredAlerts, fetchDashboards]);
+  }, [fetchProjects, fetchTriggeredAlerts]);
 
   // Computed stats
   const activeProjects = projects.filter(
@@ -548,15 +865,7 @@ export function MainDashboard() {
   const isLoading = projectsLoading || alertsLoading;
 
   return (
-    <div className="animate-fade-in space-y-6">
-      {/* Page header */}
-      <div className="flex items-center gap-3">
-        <LayoutDashboard className="h-6 w-6 text-teal-600 dark:text-teal-400" />
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          Dashboard
-        </h1>
-      </div>
-
+    <>
       {/* Loading state */}
       {isLoading && projects.length === 0 && (
         <>
@@ -580,7 +889,7 @@ export function MainDashboard() {
       {/* Content (post-load) */}
       {!isLoading && projects.length === 0 && <EmptyDashboard />}
 
-      {(projects.length > 0 || (!isLoading && projects.length > 0)) && (
+      {projects.length > 0 && (
         <>
           {/* Top row: Health Score + KPI cards */}
           <div className="grid gap-4 lg:grid-cols-5">
@@ -645,6 +954,68 @@ export function MainDashboard() {
           <TeamQuickLink totalPeople={totalPeople} />
         </>
       )}
+    </>
+  );
+}
+
+/* ================================================================== */
+/*  Main Dashboard Page                                                */
+/* ================================================================== */
+
+export function MainDashboard() {
+  const { fetchDefaultDashboard, activeDashboard, isLoading: dashLoading } =
+    useDashboardStore();
+  const [hasDefaultDashboard, setHasDefaultDashboard] = useState<
+    boolean | null
+  >(null);
+
+  const loadDefault = useCallback(async () => {
+    const found = await fetchDefaultDashboard();
+    setHasDefaultDashboard(found);
+  }, [fetchDefaultDashboard]);
+
+  useEffect(() => {
+    loadDefault();
+  }, [loadDefault]);
+
+  // While checking for default dashboard, show loading
+  const isChecking = hasDefaultDashboard === null && dashLoading;
+
+  return (
+    <div className="animate-fade-in space-y-6">
+      {/* Page header */}
+      <div className="flex items-center gap-3">
+        <LayoutDashboard className="h-6 w-6 text-teal-600 dark:text-teal-400" />
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          {hasDefaultDashboard ? "COO Command Center" : "Dashboard"}
+        </h1>
+        {hasDefaultDashboard && activeDashboard && (
+          <span className="badge-teal text-2xs">
+            {activeDashboard.widget_ids.length} widgets
+          </span>
+        )}
+      </div>
+
+      {/* Loading indicator while checking for default dashboard */}
+      {isChecking && (
+        <>
+          <div className="grid gap-4 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <SkeletonCard className="h-36" />
+            </div>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+          <div className="skeleton h-24 rounded-xl" />
+        </>
+      )}
+
+      {/* DB-backed default dashboard */}
+      {hasDefaultDashboard === true && <DefaultDashboardView />}
+
+      {/* Hardcoded fallback */}
+      {hasDefaultDashboard === false && <FallbackDashboard />}
     </div>
   );
 }

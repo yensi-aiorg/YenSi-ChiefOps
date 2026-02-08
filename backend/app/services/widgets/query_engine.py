@@ -29,6 +29,8 @@ QUERYABLE_COLLECTIONS = {
     "drive_files",
     "slack_channels",
     "alerts",
+    "alerts_triggered",
+    "health_scores",
 }
 
 

@@ -197,6 +197,24 @@ export interface Project {
 }
 
 // ===========================================================================
+// Project Files
+// ===========================================================================
+
+/** Metadata for a file uploaded to a specific project. */
+export interface ProjectFileInfo {
+  file_id: string;
+  filename: string;
+  file_type: string; // "slack_json" | "jira_xlsx" | "documentation"
+  content_type: string;
+  file_size: number;
+  status: string; // "completed" | "failed" | "skipped"
+  citex_ingested: boolean;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ===========================================================================
 // Ingestion
 // ===========================================================================
 

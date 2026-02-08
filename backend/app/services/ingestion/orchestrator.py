@@ -339,6 +339,23 @@ async def _run_post_ingestion(
         logger.exception("Project analysis failed for job %s", job.job_id)
         job.errors.append(f"Project analysis error: {exc}")
 
+    # Default COO dashboard generation
+    try:
+        from app.services.dashboards.default_generator import generate_default_dashboard
+
+        result = await generate_default_dashboard(db, force=True)
+        logger.info(
+            "Default dashboard %s for job %s (%d widgets)",
+            "regenerated" if result.get("created") else "unchanged",
+            job.job_id,
+            len(result.get("widget_ids", [])),
+        )
+    except ImportError:
+        logger.warning("Dashboard generator module not available")
+    except Exception as exc:
+        logger.exception("Default dashboard generation failed for job %s", job.job_id)
+        job.errors.append(f"Dashboard generation error: {exc}")
+
 
 async def _update_job_progress(
     job: IngestionJob,

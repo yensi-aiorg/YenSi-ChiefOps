@@ -23,6 +23,9 @@ interface DashboardActions {
   /** Fetch a single dashboard by ID and set it as active. */
   fetchDashboard: (dashboardId: string) => Promise<void>;
 
+  /** Fetch the default COO dashboard and load all its widget specs. */
+  fetchDefaultDashboard: () => Promise<boolean>;
+
   /** Add a widget to a dashboard. */
   addWidget: (
     dashboardId: string,
@@ -142,6 +145,45 @@ export const useDashboardStore = create<DashboardStore>()(
             "fetchDashboard/error",
           );
           throw err;
+        }
+      },
+
+      fetchDefaultDashboard: async () => {
+        set({ isLoading: true, error: null }, false, "fetchDefaultDashboard/start");
+        try {
+          // Fetch the well-known default dashboard
+          const { data: dashboard } = await api.get<Dashboard>(
+            `/v1/dashboards/default_coo_dashboard`,
+          );
+
+          // Load all widget specs for this dashboard
+          const widgetsMap = new Map(get().widgets);
+          const widgetPromises = dashboard.widget_ids.map(async (wid) => {
+            try {
+              const { data: spec } = await api.get<WidgetSpec>(
+                `/v1/widgets/${wid}`,
+              );
+              widgetsMap.set(wid, spec);
+            } catch {
+              // Widget may have been deleted; skip silently
+            }
+          });
+          await Promise.all(widgetPromises);
+
+          set(
+            {
+              activeDashboard: dashboard,
+              widgets: widgetsMap,
+              isLoading: false,
+            },
+            false,
+            "fetchDefaultDashboard/success",
+          );
+          return true;
+        } catch {
+          // Dashboard doesn't exist yet (pre-ingestion state)
+          set({ isLoading: false }, false, "fetchDefaultDashboard/notFound");
+          return false;
         }
       },
 

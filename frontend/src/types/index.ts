@@ -62,6 +62,7 @@ export type {
   ReportSpec,
   AppSettings,
   PeopleFilters,
+  ProjectFileInfo,
 } from "./models";
 
 // Widget and dashboard types and enums

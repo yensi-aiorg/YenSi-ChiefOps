@@ -88,11 +88,17 @@ class IngestionJobStatus(str, Enum):
 
 
 class FileInfo(BaseModel):
-    """Metadata for a single uploaded file."""
+    """Per-file processing result returned in ingestion job responses."""
 
     filename: str = Field(..., description="Original filename.")
-    size_bytes: int = Field(..., description="File size in bytes.")
-    content_type: str = Field(..., description="MIME content type.")
+    size_bytes: int = Field(default=0, description="File size in bytes.")
+    content_type: str = Field(default="application/octet-stream", description="MIME content type.")
+    file_type: str | None = Field(default=None, description="Detected file type category.")
+    status: str | None = Field(default=None, description="Processing status of this file.")
+    records_processed: int = Field(default=0, description="Records successfully processed.")
+    records_skipped: int = Field(default=0, description="Records skipped (duplicates, invalid).")
+    error_message: str | None = Field(default=None, description="Error message if processing failed.")
+    content_hash: str | None = Field(default=None, description="Content hash for deduplication.")
 
 
 class IngestionJobResponse(BaseModel):
@@ -103,6 +109,8 @@ class IngestionJobResponse(BaseModel):
     files: list[FileInfo] = Field(default_factory=list, description="Files in this job.")
     total_files: int = Field(default=0, description="Number of files in the job.")
     files_processed: int = Field(default=0, description="Number of files processed so far.")
+    total_records: int = Field(default=0, description="Total records processed across all files.")
+    error_count: int = Field(default=0, description="Total errors encountered across all files.")
     error_message: str | None = Field(default=None, description="Error details if failed.")
     created_at: datetime = Field(..., description="Job creation timestamp.")
     updated_at: datetime = Field(..., description="Last status update timestamp.")
