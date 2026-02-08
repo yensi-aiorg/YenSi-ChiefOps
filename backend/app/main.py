@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
-from app.api.v1.router import router as v1_router
+from app.api.v1.router import api_v1_router as v1_router
 from app.config import get_settings
 from app.core.exceptions import AppException
 from app.core.logging import setup_logging
