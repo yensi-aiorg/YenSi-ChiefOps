@@ -170,7 +170,7 @@ export function SettingsPage() {
   };
 
   const handlePiiToggle = async (enabled: boolean) => {
-    await updateSettings({ pii_redaction: enabled });
+    await updateSettings({ pii_redaction_enabled: enabled });
     flashSaveSuccess();
   };
 
@@ -287,7 +287,7 @@ export function SettingsPage() {
             </p>
           </div>
           <Toggle
-            checked={settings?.pii_redaction ?? false}
+            checked={settings?.pii_redaction_enabled ?? false}
             onChange={handlePiiToggle}
           />
         </div>
@@ -348,7 +348,7 @@ export function SettingsPage() {
                 Version
               </p>
               <p className="font-medium text-slate-700 dark:text-slate-300">
-                {settings?.version ?? "1.0.0"}
+                {String(settings?.["version"] ?? "1.0.0")}
               </p>
             </div>
             <div>
@@ -356,7 +356,7 @@ export function SettingsPage() {
                 Build
               </p>
               <p className="font-mono text-xs text-slate-700 dark:text-slate-300">
-                {settings?.build_hash ?? "dev"}
+                {String(settings?.["build_hash"] ?? "dev")}
               </p>
             </div>
             <div>
@@ -364,7 +364,7 @@ export function SettingsPage() {
                 Environment
               </p>
               <p className="font-medium text-slate-700 dark:text-slate-300">
-                {settings?.environment ?? "development"}
+                {String(settings?.["environment"] ?? "development")}
               </p>
             </div>
           </div>

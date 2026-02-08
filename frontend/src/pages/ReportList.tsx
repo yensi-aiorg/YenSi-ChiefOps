@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FileText,
-  Plus,
   Download,
   Eye,
   Trash2,
@@ -14,7 +13,6 @@ import {
 import { useReportStore } from "@/stores/reportStore";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/utils";
-import type { ReportSpec } from "@/types";
 
 /* ================================================================== */
 /*  Report type badge                                                  */
@@ -235,12 +233,13 @@ export function ReportList() {
                     {formatDate(report.created_at, "MMM d, yyyy")}
                   </td>
                   <td className="px-5 py-3 text-slate-600 dark:text-slate-400">
-                    {report.project_id ? (
+                    {report.projects.length > 0 ? (
                       <Link
-                        to={`/projects/${report.project_id}`}
+                        to={`/projects/${report.projects[0]}`}
                         className="text-teal-600 hover:underline dark:text-teal-400"
                       >
-                        {report.project_id.slice(0, 8)}...
+                        {report.projects[0]?.slice(0, 8)}...
+                        {report.projects.length > 1 && ` +${report.projects.length - 1}`}
                       </Link>
                     ) : (
                       <span className="text-slate-400">Organization</span>

@@ -393,7 +393,7 @@ async def export_report_pdf(
 
     # Generate PDF content
     try:
-        from app.services.reports.pdf_exporter import export_report_to_pdf
+        from app.services.reports.pdf_export import export_report_to_pdf
 
         pdf_bytes = await export_report_to_pdf(doc)
     except ImportError:

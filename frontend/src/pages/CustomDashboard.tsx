@@ -9,9 +9,10 @@ import {
   RefreshCw,
 } from "lucide-react";
 import ReactEChartsCore from "echarts-for-react";
-import { useDashboardStore, type WidgetPayload } from "@/stores/dashboardStore";
+import { useDashboardStore } from "@/stores/dashboardStore";
 import { cn } from "@/lib/utils";
-import type { WidgetSpec, WidgetType } from "@/types";
+import { WidgetType } from "@/types";
+import type { WidgetSpec } from "@/types";
 
 /* ================================================================== */
 /*  Widget Content by Type                                             */
@@ -25,30 +26,45 @@ function WidgetContent({
   payload: unknown;
 }) {
   switch (type) {
-    case "bar_chart":
-    case "line_chart":
-    case "pie_chart":
-    case "scatter_chart":
-    case "area_chart": {
+    case WidgetType.BAR_CHART:
+    case WidgetType.LINE_CHART:
+    case WidgetType.PIE_CHART: {
+      const chartType =
+        type === WidgetType.BAR_CHART
+          ? "bar"
+          : type === WidgetType.LINE_CHART
+            ? "line"
+            : "pie";
+
       const option =
         typeof payload === "object" && payload !== null && "series" in payload
           ? payload
           : {
-              tooltip: { trigger: "axis" },
-              grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
-              xAxis: {
-                type: "category",
-                data: Array.isArray(payload)
-                  ? payload.map((_: unknown, i: number) => `Item ${i + 1}`)
-                  : [],
+              tooltip: { trigger: chartType === "pie" ? "item" : "axis" },
+              grid: {
+                left: "3%",
+                right: "4%",
+                bottom: "3%",
+                containLabel: true,
               },
-              yAxis: { type: "value" },
+              ...(chartType !== "pie"
+                ? {
+                    xAxis: {
+                      type: "category" as const,
+                      data: Array.isArray(payload)
+                        ? payload.map(
+                            (_: unknown, i: number) => `Item ${i + 1}`,
+                          )
+                        : [],
+                    },
+                    yAxis: { type: "value" as const },
+                  }
+                : {}),
               series: [
                 {
-                  type: type.replace("_chart", ""),
+                  type: chartType,
                   data: Array.isArray(payload) ? payload : [],
-                  smooth: type === "line_chart" || type === "area_chart",
-                  areaStyle: type === "area_chart" ? {} : undefined,
+                  smooth: type === WidgetType.LINE_CHART,
                 },
               ],
             };
@@ -63,7 +79,7 @@ function WidgetContent({
       );
     }
 
-    case "metric_card": {
+    case WidgetType.KPI_CARD: {
       const metric = payload as {
         value?: string | number;
         label?: string;
@@ -98,7 +114,7 @@ function WidgetContent({
       );
     }
 
-    case "table": {
+    case WidgetType.TABLE: {
       const tableData = payload as {
         headers?: string[];
         rows?: (string | number)[][];
@@ -142,8 +158,7 @@ function WidgetContent({
       );
     }
 
-    case "markdown":
-    case "summary_text": {
+    case WidgetType.SUMMARY_TEXT: {
       return (
         <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed text-slate-600 dark:text-slate-300">
           {String(payload)}
@@ -168,16 +183,14 @@ function WidgetContent({
 function WidgetRenderer({
   widget,
   data,
+  isDataLoading,
   onRefresh,
 }: {
   widget: WidgetSpec;
-  data: WidgetPayload | undefined;
+  data: unknown;
+  isDataLoading: boolean;
   onRefresh: () => void;
 }) {
-  const isLoading = data?.loading ?? true;
-  const hasError = !!data?.error;
-  const payload = data?.payload;
-
   return (
     <div
       className="card flex flex-col overflow-hidden"
@@ -197,56 +210,29 @@ function WidgetRenderer({
           aria-label={`Refresh ${widget.title}`}
         >
           <RefreshCw
-            className={cn("h-3.5 w-3.5", isLoading && "animate-spin")}
+            className={cn("h-3.5 w-3.5", isDataLoading && "animate-spin")}
           />
         </button>
       </div>
 
       {/* Widget body */}
       <div className="flex-1 p-4">
-        {isLoading && !payload && (
+        {isDataLoading && data === undefined && (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-teal-500" />
           </div>
         )}
 
-        {hasError && (
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <AlertCircle className="mb-2 h-6 w-6 text-red-400" />
-            <p className="text-xs text-red-600 dark:text-red-400">
-              {data?.error}
-            </p>
-            <button
-              onClick={onRefresh}
-              className="mt-2 text-xs font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400"
-            >
-              Retry
-            </button>
-          </div>
+        {!isDataLoading && data !== undefined && (
+          <WidgetContent type={widget.widget_type} payload={data} />
         )}
 
-        {!isLoading && !hasError && payload && (
-          <WidgetContent type={widget.widget_type} payload={payload} />
-        )}
-
-        {!isLoading && !hasError && !payload && (
+        {!isDataLoading && data === undefined && (
           <div className="flex h-full items-center justify-center text-xs text-slate-400">
             No data available
           </div>
         )}
       </div>
-
-      {data?.lastUpdated && (
-        <div className="border-t border-slate-100 px-4 py-1.5 dark:border-slate-800">
-          <p className="text-2xs text-slate-400 dark:text-slate-500">
-            Updated{" "}
-            {new Date(data.lastUpdated).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-        </div>
-      )}
     </div>
   );
 }
@@ -301,43 +287,48 @@ function EmptyCustomDashboard() {
 export function CustomDashboard() {
   const { projectId } = useParams<{ projectId: string }>();
   const {
-    dashboard,
+    activeDashboard,
+    widgets: widgetMap,
     widgetData,
     isLoading,
     error,
-    fetchDashboard,
+    fetchDashboards,
     fetchWidgetData,
   } = useDashboardStore();
 
-  // Load dashboard for this project
+  // Load dashboards for this project
   useEffect(() => {
     if (projectId) {
-      fetchDashboard(projectId);
+      fetchDashboards(projectId);
     }
-  }, [projectId, fetchDashboard]);
+  }, [projectId, fetchDashboards]);
 
-  // Load widget data when dashboard loads
+  // Resolve widget specs from the active dashboard's widget_ids
+  const resolvedWidgets: WidgetSpec[] = useMemo(() => {
+    if (!activeDashboard) return [];
+    return activeDashboard.widget_ids
+      .map((id) => widgetMap.get(id))
+      .filter((w): w is WidgetSpec => w !== undefined);
+  }, [activeDashboard, widgetMap]);
+
+  // Load widget data when widgets are resolved
   useEffect(() => {
-    if (dashboard?.widgets) {
-      dashboard.widgets.forEach((w) => {
-        if (!widgetData[w.widget_id]) {
-          fetchWidgetData(w.widget_id);
-        }
-      });
-    }
-  }, [dashboard, widgetData, fetchWidgetData]);
-
-  const widgets = dashboard?.widgets ?? [];
+    resolvedWidgets.forEach((w) => {
+      if (!widgetData.has(w.widget_id)) {
+        fetchWidgetData(w.widget_id);
+      }
+    });
+  }, [resolvedWidgets, widgetData, fetchWidgetData]);
 
   // Compute the grid row count from widget positions
   const maxRow = useMemo(() => {
-    if (widgets.length === 0) return 1;
+    if (resolvedWidgets.length === 0) return 1;
     return Math.max(
-      ...widgets.map((w) => w.position.row + w.position.height - 1),
+      ...resolvedWidgets.map((w) => w.position.row + w.position.height - 1),
     );
-  }, [widgets]);
+  }, [resolvedWidgets]);
 
-  if (isLoading && !dashboard) {
+  if (isLoading && !activeDashboard) {
     return (
       <div className="animate-fade-in space-y-6">
         <div className="flex items-center gap-3">
@@ -379,9 +370,10 @@ export function CustomDashboard() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
           Custom Dashboard
         </h1>
-        {dashboard && (
+        {activeDashboard && (
           <span className="badge-neutral">
-            {widgets.length} widget{widgets.length !== 1 ? "s" : ""}
+            {resolvedWidgets.length} widget
+            {resolvedWidgets.length !== 1 ? "s" : ""}
           </span>
         )}
       </div>
@@ -395,21 +387,24 @@ export function CustomDashboard() {
       )}
 
       {/* Empty state */}
-      {!isLoading && widgets.length === 0 && <EmptyCustomDashboard />}
+      {!isLoading && resolvedWidgets.length === 0 && (
+        <EmptyCustomDashboard />
+      )}
 
       {/* Widget grid -- 12-column CSS Grid */}
-      {widgets.length > 0 && (
+      {resolvedWidgets.length > 0 && (
         <div
           className="grid grid-cols-12 gap-4"
           style={{
             gridTemplateRows: `repeat(${maxRow}, minmax(200px, auto))`,
           }}
         >
-          {widgets.map((widget) => (
+          {resolvedWidgets.map((widget) => (
             <WidgetRenderer
               key={widget.widget_id}
               widget={widget}
-              data={widgetData[widget.widget_id]}
+              data={widgetData.get(widget.widget_id)}
+              isDataLoading={isLoading}
               onRefresh={() => fetchWidgetData(widget.widget_id)}
             />
           ))}

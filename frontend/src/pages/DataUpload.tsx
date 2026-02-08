@@ -58,7 +58,8 @@ const statusConfig: Record<
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const cfg = statusConfig[status] ?? statusConfig.pending;
+  const defaultCfg = { label: status, icon: null, className: "" };
+  const cfg = statusConfig[status] ?? statusConfig["pending"] ?? defaultCfg;
   return (
     <span className={cn("badge gap-1", cfg.className)}>
       {cfg.icon}
