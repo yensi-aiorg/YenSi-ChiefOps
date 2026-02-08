@@ -1,0 +1,45 @@
+{#
+  Narrative section template.
+
+  Renders a block of formatted text content, supporting paragraphs,
+  bullet points, and emphasis. Used for executive summaries, analysis
+  descriptions, and recommendation narratives.
+
+  Expected section.content keys:
+    - text (str): The narrative text content. Paragraphs are separated
+      by double newlines. Lines starting with "- " are rendered as
+      bullet items.
+    - highlights (list[str], optional): Key points to call out in a
+      highlighted box.
+#}
+
+{% set text = section.content.get("text", "") %}
+{% set highlights = section.content.get("highlights", []) %}
+
+{% if highlights %}
+<div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 12px 16px; margin-bottom: 14px; border-radius: 0 6px 6px 0;">
+    <div style="font-weight: 600; font-size: 9pt; color: #1e40af; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Key Highlights</div>
+    <ul style="margin-left: 16px;">
+        {% for highlight in highlights %}
+        <li style="margin-bottom: 3px;">{{ highlight }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% for paragraph in text.split("\n\n") %}
+    {% set trimmed = paragraph.strip() %}
+    {% if trimmed %}
+        {% if trimmed.startswith("- ") %}
+        <ul>
+            {% for line in trimmed.split("\n") %}
+                {% if line.strip().startswith("- ") %}
+                <li>{{ line.strip()[2:] }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>{{ trimmed }}</p>
+        {% endif %}
+    {% endif %}
+{% endfor %}

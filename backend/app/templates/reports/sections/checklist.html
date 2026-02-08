@@ -1,0 +1,53 @@
+{#
+  Checklist section template.
+
+  Renders a checklist with checked and unchecked items. Used for
+  action items, readiness checklists, and task completion tracking.
+
+  Expected section.content keys:
+    - items (list[dict]): Each dict should contain:
+        - text (str): Checklist item description.
+        - checked (bool): Whether the item is completed.
+        - note (str, optional): Additional note or context.
+        - assignee (str, optional): Person responsible.
+        - due_date (str, optional): Due date string.
+#}
+
+{% set items = section.content.get("items", []) %}
+
+{% if items %}
+{% set total = items | length %}
+{% set done = items | selectattr("checked") | list | length %}
+
+<div style="font-size: 8.5pt; color: #6b7280; margin-bottom: 10px;">
+    {{ done }} of {{ total }} items completed
+    <span style="display: inline-block; width: 120px; height: 6px; background: #e5e7eb; border-radius: 3px; vertical-align: middle; margin-left: 8px; overflow: hidden;">
+        <span style="display: block; height: 100%; width: {{ (done / total * 100) if total > 0 else 0 }}%; background: #2563eb; border-radius: 3px;"></span>
+    </span>
+</div>
+
+<ul class="checklist">
+    {% for item in items %}
+    <li class="{% if item.checked %}checked{% endif %}">
+        <div>
+            <span style="font-weight: {% if not item.checked %}400{% else %}400{% endif %}; {% if item.checked %}text-decoration: line-through; color: #9ca3af;{% endif %}">
+                {{ item.text }}
+            </span>
+            {% if item.assignee %}
+            <span style="font-size: 8pt; color: #6b7280; margin-left: 8px;">&mdash; {{ item.assignee }}</span>
+            {% endif %}
+            {% if item.due_date %}
+            <span style="font-size: 7.5pt; color: #9ca3af; margin-left: 6px;">(due {{ item.due_date }})</span>
+            {% endif %}
+        </div>
+        {% if item.note %}
+        <div style="font-size: 8pt; color: #6b7280; margin-top: 2px; padding-left: 4px;">
+            {{ item.note }}
+        </div>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-muted">No checklist items defined.</p>
+{% endif %}

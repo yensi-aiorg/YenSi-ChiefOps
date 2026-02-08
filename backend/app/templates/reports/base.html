@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title | default("ChiefOps Report") }}</title>
+    <style>
+        /* --- Reset & Base --- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        @page {
+            size: A4;
+            margin: 20mm 15mm 25mm 15mm;
+
+            @top-left {
+                content: "YENSI ChiefOps";
+                font-family: "Inter", "Segoe UI", sans-serif;
+                font-size: 8pt;
+                color: #6b7280;
+            }
+
+            @top-right {
+                content: "{{ title | default('Report') }}";
+                font-family: "Inter", "Segoe UI", sans-serif;
+                font-size: 8pt;
+                color: #6b7280;
+            }
+
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-family: "Inter", "Segoe UI", sans-serif;
+                font-size: 8pt;
+                color: #9ca3af;
+            }
+
+            @bottom-right {
+                content: "Generated {{ generated_at | default('') }}";
+                font-family: "Inter", "Segoe UI", sans-serif;
+                font-size: 7pt;
+                color: #9ca3af;
+            }
+        }
+
+        body {
+            font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #1f2937;
+            background: #ffffff;
+        }
+
+        /* --- Header / Cover --- */
+        .report-header {
+            text-align: center;
+            padding: 40px 0 30px 0;
+            border-bottom: 3px solid #2563eb;
+            margin-bottom: 30px;
+        }
+
+        .report-header .brand {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+
+        .report-header .title {
+            font-size: 22pt;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+        .report-header .subtitle {
+            font-size: 11pt;
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+        .report-header .meta {
+            font-size: 9pt;
+            color: #9ca3af;
+            margin-top: 12px;
+        }
+
+        .report-header .meta span {
+            margin: 0 8px;
+        }
+
+        /* --- Section --- */
+        .section {
+            margin-bottom: 28px;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #1e40af;
+            border-bottom: 2px solid #dbeafe;
+            padding-bottom: 6px;
+            margin-bottom: 14px;
+        }
+
+        .section-subtitle {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        /* --- Typography --- */
+        p {
+            margin-bottom: 10px;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        li {
+            margin-bottom: 4px;
+        }
+
+        /* --- Tables --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+            font-size: 9pt;
+        }
+
+        thead th {
+            background-color: #1e40af;
+            color: #ffffff;
+            font-weight: 600;
+            text-align: left;
+            padding: 8px 10px;
+            font-size: 8.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        tbody tr:hover {
+            background-color: #eff6ff;
+        }
+
+        /* --- Metrics Grid --- */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .metric-card {
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .metric-card .value {
+            font-size: 20pt;
+            font-weight: 700;
+            color: #1e40af;
+            line-height: 1.2;
+        }
+
+        .metric-card .label {
+            font-size: 8.5pt;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        .metric-card .change {
+            font-size: 8pt;
+            margin-top: 2px;
+        }
+
+        .metric-card .change.positive {
+            color: #059669;
+        }
+
+        .metric-card .change.negative {
+            color: #dc2626;
+        }
+
+        /* --- Cards --- */
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px 16px;
+            background: #ffffff;
+        }
+
+        .card .card-title {
+            font-weight: 600;
+            font-size: 10pt;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .card .card-body {
+            font-size: 9pt;
+            color: #4b5563;
+        }
+
+        .card .card-meta {
+            font-size: 8pt;
+            color: #9ca3af;
+            margin-top: 6px;
+        }
+
+        /* --- Status badges --- */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 7.5pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-yellow { background: #fef3c7; color: #92400e; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        .badge-gray { background: #f3f4f6; color: #374151; }
+
+        /* --- Chart container --- */
+        .chart-container {
+            text-align: center;
+            margin: 16px 0;
+            page-break-inside: avoid;
+        }
+
+        .chart-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* --- Checklist --- */
+        .checklist {
+            list-style: none;
+            margin-left: 0;
+            margin-bottom: 16px;
+        }
+
+        .checklist li {
+            padding: 6px 0 6px 28px;
+            position: relative;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .checklist li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 3px;
+        }
+
+        .checklist li.checked::before {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .checklist li.checked::after {
+            content: "";
+            position: absolute;
+            left: 3px;
+            top: 11px;
+            width: 10px;
+            height: 6px;
+            border-left: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+            transform: rotate(-45deg);
+        }
+
+        /* --- Footer --- */
+        .report-footer {
+            margin-top: 40px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 8pt;
+            color: #9ca3af;
+            text-align: center;
+        }
+
+        /* --- Utility --- */
+        .page-break {
+            page-break-after: always;
+        }
+
+        .text-muted {
+            color: #6b7280;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-2 { margin-top: 8px; }
+        .mt-4 { margin-top: 16px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-4 { margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+
+    <!-- Report Header -->
+    <div class="report-header">
+        <div class="brand">YENSI ChiefOps</div>
+        <div class="title">{{ title | default("Report") }}</div>
+        {% if subtitle %}
+        <div class="subtitle">{{ subtitle }}</div>
+        {% endif %}
+        <div class="meta">
+            {% if audience %}<span>Audience: {{ audience }}</span>{% endif %}
+            {% if time_scope %}<span>Period: {{ time_scope }}</span>{% endif %}
+            <span>Generated: {{ generated_at | default("") }}</span>
+        </div>
+    </div>
+
+    <!-- Report Sections -->
+    {% block content %}
+    {% for section in sections %}
+    <div class="section">
+        {% if section.title %}
+        <h2 class="section-title">{{ section.title }}</h2>
+        {% endif %}
+
+        {% if section.section_type == "narrative" %}
+            {% include "reports/sections/narrative.html" %}
+        {% elif section.section_type == "metrics_grid" %}
+            {% include "reports/sections/metrics_grid.html" %}
+        {% elif section.section_type == "chart" %}
+            {% include "reports/sections/chart.html" %}
+        {% elif section.section_type == "table" %}
+            {% include "reports/sections/table.html" %}
+        {% elif section.section_type == "card_list" %}
+            {% include "reports/sections/card_list.html" %}
+        {% elif section.section_type == "checklist" %}
+            {% include "reports/sections/checklist.html" %}
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% endblock %}
+
+    <!-- Report Footer -->
+    <div class="report-footer">
+        <p>This report was generated by YENSI ChiefOps. Data is current as of {{ generated_at | default("the generation timestamp") }}.</p>
+        <p>Confidential &mdash; {{ audience | default("Internal Use Only") }}</p>
+    </div>
+
+</body>
+</html>

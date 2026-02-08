@@ -445,4 +445,16 @@ export interface AppSettings {
   ai_model: string;
   pii_redaction_enabled: boolean;
   has_completed_onboarding: boolean;
+  [key: string]: unknown;
+}
+
+// ===========================================================================
+// Filters
+// ===========================================================================
+
+/** Query filters for the people directory. */
+export interface PeopleFilters {
+  activity_level?: ActivityLevel;
+  department?: string;
+  project_id?: string;
 }

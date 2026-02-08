@@ -1,0 +1,38 @@
+{#
+  Metrics grid section template.
+
+  Renders a responsive grid of KPI cards showing metric values with
+  optional labels, change indicators, and color coding.
+
+  Expected section.content keys:
+    - metrics (list[dict]): Each dict should contain:
+        - label (str): Metric display name.
+        - value (str|int|float): The metric value.
+        - change (str, optional): Change indicator (e.g., "+12%", "-5%").
+        - change_direction (str, optional): "positive" or "negative".
+        - color (str, optional): Override color for the value.
+    - columns (int, optional): Number of grid columns (default: auto-fit).
+#}
+
+{% set metrics = section.content.get("metrics", []) %}
+{% set columns = section.content.get("columns", 0) %}
+
+{% if metrics %}
+<div class="metrics-grid" {% if columns %}style="grid-template-columns: repeat({{ columns }}, 1fr);"{% endif %}>
+    {% for metric in metrics %}
+    <div class="metric-card">
+        <div class="value" {% if metric.color %}style="color: {{ metric.color }};"{% endif %}>
+            {{ metric.value }}
+        </div>
+        <div class="label">{{ metric.label }}</div>
+        {% if metric.change %}
+        <div class="change {{ metric.get('change_direction', '') }}">
+            {{ metric.change }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted">No metrics data available.</p>
+{% endif %}

@@ -1,0 +1,43 @@
+{#
+  Card list section template.
+
+  Renders a vertical list of cards, each with a title, body text,
+  and optional metadata line. Used for risk items, blocker lists,
+  recommendation summaries, and people highlights.
+
+  Expected section.content keys:
+    - cards (list[dict]): Each dict should contain:
+        - title (str): Card heading.
+        - body (str): Card description or detail text.
+        - meta (str, optional): Metadata line (e.g., owner, date, severity).
+        - badge (str, optional): Status badge text.
+        - badge_color (str, optional): Badge CSS class suffix
+          ("green", "yellow", "red", "blue", "gray").
+#}
+
+{% set cards = section.content.get("cards", []) %}
+
+{% if cards %}
+<div class="card-list">
+    {% for card in cards %}
+    <div class="card">
+        <div class="card-title">
+            {% if card.badge %}
+            <span class="badge badge-{{ card.get('badge_color', 'gray') }}" style="margin-right: 8px;">
+                {{ card.badge }}
+            </span>
+            {% endif %}
+            {{ card.title }}
+        </div>
+        {% if card.body %}
+        <div class="card-body">{{ card.body }}</div>
+        {% endif %}
+        {% if card.meta %}
+        <div class="card-meta">{{ card.meta }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted">No items to display.</p>
+{% endif %}
