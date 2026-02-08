@@ -184,9 +184,9 @@ export function ReportPreview() {
                 <Calendar className="h-3.5 w-3.5" />
                 {formatDate(report.created_at, "MMMM d, yyyy")}
               </span>
-              {report.project_id && (
+              {report.projects.length > 0 && (
                 <Link
-                  to={`/projects/${report.project_id}`}
+                  to={`/projects/${report.projects[0]}`}
                   className="text-xs text-teal-600 hover:underline dark:text-teal-400"
                 >
                   View Project
@@ -197,26 +197,34 @@ export function ReportPreview() {
         </div>
       </div>
 
-      {/* Report body (rendered markdown) */}
-      <div className="card p-8">
-        <article className="prose prose-slate dark:prose-invert mx-auto max-w-none prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-teal-600 prose-strong:text-slate-900 dark:prose-headings:text-white dark:prose-p:text-slate-300 dark:prose-a:text-teal-400 dark:prose-strong:text-white">
-          <ReactMarkdown>{report.content}</ReactMarkdown>
-        </article>
-      </div>
-
-      {/* Report sections if available */}
+      {/* Report sections */}
       {report.sections && report.sections.length > 0 && (
         <div className="space-y-4">
-          {report.sections.map((section, idx) => (
-            <div key={idx} className="card p-6">
+          {report.sections.map((section) => (
+            <div key={section.section_id} className="card p-6">
               <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
-                {section.heading}
+                {section.title}
               </h2>
-              <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                <ReactMarkdown>{section.body}</ReactMarkdown>
+              <div className="prose prose-sm prose-slate dark:prose-invert mx-auto max-w-none prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-teal-600 dark:prose-headings:text-white dark:prose-p:text-slate-300 dark:prose-a:text-teal-400">
+                {typeof section.content === "string" ? (
+                  <ReactMarkdown>{section.content}</ReactMarkdown>
+                ) : (
+                  <pre className="overflow-auto text-xs text-slate-600 dark:text-slate-400">
+                    {JSON.stringify(section.content, null, 2)}
+                  </pre>
+                )}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Empty sections fallback */}
+      {(!report.sections || report.sections.length === 0) && (
+        <div className="card p-8">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            This report has no sections yet.
+          </p>
         </div>
       )}
     </div>

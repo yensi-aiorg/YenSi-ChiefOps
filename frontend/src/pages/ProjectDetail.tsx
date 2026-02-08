@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   FolderKanban,
@@ -23,11 +23,10 @@ import { cn } from "@/lib/utils";
 import {
   formatDate,
   formatRelativeTime,
-  getHealthScoreBadge,
   getHealthScoreColor,
   getInitials,
 } from "@/lib/utils";
-import type { Project, ProjectMember, BackwardPlanItem } from "@/types";
+import type { Project, ProjectMember } from "@/types";
 
 /* ================================================================== */
 /*  Status badge                                                       */
@@ -625,8 +624,6 @@ export function ProjectDetail() {
   }
 
   if (!project) return null;
-
-  const healthBadge = getHealthScoreBadge(project.health_score);
 
   return (
     <div className="animate-fade-in space-y-6">

@@ -3,11 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Users,
   Search,
-  Filter,
   ChevronLeft,
   ChevronRight,
   Upload,
-  ArrowRight,
   X,
 } from "lucide-react";
 import { usePeopleStore } from "@/stores/peopleStore";
@@ -44,7 +42,8 @@ const activityStyles: Record<string, { bg: string; label: string }> = {
 };
 
 function ActivityBadge({ level }: { level: string }) {
-  const cfg = activityStyles[level] ?? activityStyles.moderate;
+  const defaultCfg = { bg: "bg-slate-100 text-slate-600", label: level };
+  const cfg = activityStyles[level] ?? activityStyles["moderate"] ?? defaultCfg;
   return <span className={cn("badge text-2xs", cfg.bg)}>{cfg.label}</span>;
 }
 
@@ -190,7 +189,6 @@ export function PeopleDirectory() {
     isLoading,
     fetchPeople,
     setFilters,
-    setSelectedPerson,
   } = usePeopleStore();
 
   const { projects, fetchProjects } = useProjectStore();
