@@ -1,0 +1,2494 @@
+{
+  "_meta": {
+    "source": "chiefops-slack-capture",
+    "version": "1.0",
+    "captured_at": "2026-02-08T11:48:28.213Z",
+    "channel_name": "ara-salesforce-dev",
+    "channel_id": "C0AC9RNTZ0S",
+    "total_messages": 64,
+    "total_users": 3,
+    "total_threads": 0,
+    "api_requests_intercepted": 0,
+    "scroll_status": "api_direct",
+    "errors": []
+  },
+  "messages": [
+    {
+      "subtype": "channel_join",
+      "user": "UM3V8V1NK",
+      "text": "<@UM3V8V1NK> has joined the channel",
+      "type": "message",
+      "ts": "1769972894.132119"
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U37KPJ30D",
+      "text": "<@U37KPJ30D> has joined the channel",
+      "inviter": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1769972922.713739"
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1769972941.313719",
+      "edited": {
+        "user": "UM3V8V1NK",
+        "ts": "1769973086.000000"
+      },
+      "client_msg_id": "787473f3-4526-4b8e-9f1e-fe3ee4152315",
+      "text": "Tasks created in Jira:\n• ARA-25 LiveChatNow Integration Migration to New Salesforce Instance (Epic)\n    ◦ ARA-26 Document existing LiveChatNow to Salesforce integration\n    ◦ ARA-27 Create or configure integration user in new Salesforce org\n    ◦ ARA-28 Enable Case object with minimal configuration\n    ◦ ARA-29 Configure required Case Origin values\n    ◦ ARA-30 Review and disable blocking Case validation rules\n    ◦ ARA-31 Prepare Salesforce API endpoints for LiveChatNow\n    ◦ ARA-32 Pre-redirect integration readiness verification\n    ◦ ARA-33 Migration readiness documentation and checklist",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "xZE3n",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Tasks created in Jira:\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "ARA-25 LiveChatNow Integration Migration to New Salesforce Instance (Epic)"
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "ARA-26 Document existing LiveChatNow to Salesforce integration"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "ARA-27 Create or configure integration user in new Salesforce org"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "ARA-28 Enable Case object with minimal configuration"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "ARA-29 Configure required Case Origin values"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "ARA-30 Review and disable blocking Case validation rules"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "ARA-31 Prepare Salesforce API endpoints for LiveChatNow"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "ARA-32 Pre-redirect integration readiness verification"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "ARA-33 Migration readiness documentation and checklist"
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 1,
+              "border": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U06LZMW3466",
+      "text": "<@U06LZMW3466> has joined the channel",
+      "inviter": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770019417.004199"
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770019670.153329",
+      "client_msg_id": "2d8cccca-3ce1-4038-b08a-7fbc83bc3980",
+      "text": "<@U06LZMW3466> go through the information on the channel and then we can meet to get you up to speed.",
+      "team": "T355R0RT3",
+      "thread_ts": "1770019670.153329",
+      "reply_count": 1,
+      "reply_users_count": 1,
+      "latest_reply": "1770019689.346739",
+      "reply_users": [
+        "U06LZMW3466"
+      ],
+      "is_locked": false,
+      "subscribed": true,
+      "last_read": "1770019689.346739",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Bjv4r",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U06LZMW3466"
+                },
+                {
+                  "type": "text",
+                  "text": " go through the information on the channel and then we can meet to get you up to speed."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770025549.138219",
+      "client_msg_id": "75245070-a244-4be6-bc88-816ff9539602",
+      "text": "<@U06LZMW3466> Try to explore LiveChatNow application. Create a demo account and check the salesforce integration capability.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "2bPC0",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U06LZMW3466"
+                },
+                {
+                  "type": "text",
+                  "text": " Try to explore LiveChatNow application. Create a demo account and check the salesforce integration capability."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U06LZMW3466"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770029017.355039",
+      "client_msg_id": "60b6f1ab-4086-406f-8fd9-29965d72129c",
+      "text": "Hi <@U37KPJ30D> I’ve created a Salesforce Developer Edition org for testing. The next step is to validate LiveChatNow’s Salesforce integration.\nTo proceed, I need access to the LiveChatNow application (or the relevant admin details) so I can check whether the *Salesforce integration option is available under Settings → Integrations → Salesforce*.\n\nCould you please share the LiveChatNow details or confirm if this is the correct approach:",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "zLYKI",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Hi "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " I’ve created a Salesforce Developer Edition org for testing. The next step is to validate LiveChatNow’s Salesforce integration.\nTo proceed, I need access to the LiveChatNow application (or the relevant admin details) so I can check whether the "
+                },
+                {
+                  "type": "text",
+                  "text": "Salesforce integration option is available under Settings → Integrations → Salesforce",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": ".\n\nCould you please share the LiveChatNow details or confirm if this is the correct approach:"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770029171.368009",
+      "client_msg_id": "b5f41d6a-0484-4950-b998-9d3fcdd2471b",
+      "text": "<https://livehelpnow.net/free-trial/>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "qu8Qt",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "link",
+                  "url": "https://livehelpnow.net/free-trial/"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770029172.571309",
+      "client_msg_id": "75076c7f-c348-4eff-9895-59127c32c649",
+      "text": "Please be extremely extremely careful in handling the Prod instance. We cannot take any chances at this point in the project.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "+vBtW",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Please be extremely extremely careful in handling the Prod instance. We cannot take any chances at this point in the project."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U06LZMW3466"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770029175.427799",
+      "client_msg_id": "8a7a25cd-6c3f-4a94-89af-8101b6d1c035",
+      "text": "<https://help.livehelpnow.net/1/kb/article/6739/live-chat-salesforce-integration>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "8sWnf",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "link",
+                  "url": "https://help.livehelpnow.net/1/kb/article/6739/live-chat-salesforce-integration"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770029196.086439",
+      "client_msg_id": "57dbc161-ddc5-4260-a046-14ec2ed6660d",
+      "text": "create a trail account in livehelpnow",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "h81lU",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "create a trail account in livehelpnow"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U06LZMW3466"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770034395.261419",
+      "client_msg_id": "2401d9f9-02e2-4191-a44b-c2a4ccfd09c4",
+      "text": "<@U37KPJ30D>,\nI created a trial account in LiveHelpNow and tested its Salesforce integration. Below are the steps I followed and the final outcome:\nSteps performed:\n1. Created a Salesforce Developer Edition org.\n2. Created a dedicated integration user and generated a security token.\n3. Created a LiveHelpNow trial account.\n4. Navigated to Settings → Integrations → Salesforce in LiveHelpNow.\n5. Authorized Salesforce using OAuth (Authorize with Live).\n6. Enabled:\nEnable Salesforce Integration\nCreate a Case per Chat / Offline Message\n7. Configured field mappings (Subject, Description, Origin).\n8. Tested both Chat and Offline Message scenarios.\n9. Verified Salesforce permissions by manually creating a Case using the integration user.\n\n*Final outcome / Issue:*\nAuthorization and field mapping configuration completed successfully.\nHowever, no Case records were created in Salesforce from LiveHelpNow chats or offline messages.\n• Salesforce debug logs show no inbound API calls from LiveHelpNow, which confirms Salesforce is not receiving any Case creation request.\n• Manual Case creation works, so Salesforce is not the blocker.\n*Conclusion:*\nLiveHelpNow supports Salesforce integration by design (OAuth + Case mapping UI), but in the trial environment the runtime Case creation is not triggered. This indicates that the Salesforce connector likely requires vendor-side enablement or a licensed plan to activate.\n*Please confirm:*\n• Whether Salesforce integration is enabled for our LiveHelpNow plan, and\n• If any additional vendor-side configuration is required to activate Case creation.\n",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "O/zGm",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": ",\nI created a trial account in LiveHelpNow and tested its Salesforce integration. Below are the steps I followed and the final outcome:\nSteps performed:\n1. Created a Salesforce Developer Edition org.\n2. Created a dedicated integration user and generated a security token.\n3. Created a LiveHelpNow trial account.\n4. Navigated to Settings → Integrations → Salesforce in LiveHelpNow.\n5. Authorized Salesforce using OAuth (Authorize with Live).\n6. Enabled:\nEnable Salesforce Integration\nCreate a Case per Chat / Offline Message\n7. Configured field mappings (Subject, Description, Origin).\n8. Tested both Chat and Offline Message scenarios.\n9. Verified Salesforce permissions by manually creating a Case using the integration user.\n\n"
+                },
+                {
+                  "type": "text",
+                  "text": "Final outcome / Issue:",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\nAuthorization and field mapping configuration completed successfully.\nHowever, no Case records were created in Salesforce from LiveHelpNow chats or offline messages.\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Salesforce debug logs show no inbound API calls from LiveHelpNow, which confirms Salesforce is not receiving any Case creation request."
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Manual Case creation works, so Salesforce is not the blocker."
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Conclusion:",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\nLiveHelpNow supports Salesforce integration by design (OAuth + Case mapping UI), but in the trial environment the runtime Case creation is not triggered. This indicates that the Salesforce connector likely requires vendor-side enablement or a licensed plan to activate.\n"
+                },
+                {
+                  "type": "text",
+                  "text": "Please confirm:",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Whether Salesforce integration is enabled for our LiveHelpNow plan, and"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "If any additional vendor-side configuration is required to activate Case creation."
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_section",
+              "elements": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770039150.340459",
+      "client_msg_id": "a5ccb355-2d67-43d5-a16e-4bf62f58aec2",
+      "text": "<@UM3V8V1NK> do we have any paid account in LiveHelpNow",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "v5mbj",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "UM3V8V1NK"
+                },
+                {
+                  "type": "text",
+                  "text": " do we have any paid account in LiveHelpNow"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770039270.827019",
+      "client_msg_id": "f1fbd484-854d-4bfb-8572-ac08ad7a7d04",
+      "text": "No, Srikar.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "rvUGY",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "No, Srikar."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770039342.800469",
+      "client_msg_id": "7D260CEB-DD71-4AE8-B719-22F69FC2BF42",
+      "text": "Ok Bindu checking any alternative ",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "jsFoG",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Ok Bindu checking any alternative "
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770042560.830809",
+      "client_msg_id": "1f52f5f6-8605-40b7-ad8e-76a0f18fbdd1",
+      "text": "<@U37KPJ30D> <@UM3V8V1NK> where are we planning to use this LiveHelpNow like any wesbite??",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "8+pEK",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " "
+                },
+                {
+                  "type": "user",
+                  "user_id": "UM3V8V1NK"
+                },
+                {
+                  "type": "text",
+                  "text": " where are we planning to use this LiveHelpNow like any wesbite??"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770099507.543979",
+      "client_msg_id": "9fe00385-88fc-479d-9b25-c398c193238a",
+      "text": "<@UM3V8V1NK> since Aris said he and Darren are working on LiveHelpNow  dev instance do they get paid account and work on it??",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "CRdep",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "UM3V8V1NK"
+                },
+                {
+                  "type": "text",
+                  "text": " since Aris said he and Darren are working on LiveHelpNow  dev instance do they get paid account and work on it??"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770099659.973369",
+      "client_msg_id": "0ae454b4-452f-4952-a9a1-d3f60facf9f3",
+      "text": "<@U06LZMW3466> As it is confirmed we get livechatnow dev instance, there is a scope change as well",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ocmIa",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U06LZMW3466"
+                },
+                {
+                  "type": "text",
+                  "text": " As it is confirmed we get livechatnow dev instance, there is a scope change as well"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770099687.964229",
+      "client_msg_id": "010522eb-2b47-402c-93cd-a8380ff81dd4",
+      "text": "As per Aris, there r few servi ce queues and contact linking have to be done.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "jHEgv",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "As per Aris, there r few servi ce queues and contact linking have to be done."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770099723.674249",
+      "client_msg_id": "24fa1983-ac43-490e-b2cc-8cfd1b1ac41b",
+      "text": "Start exploring in prod instance, what queues exist currently and also is thr any process in place for casr and contact linking",
+      "team": "T355R0RT3",
+      "thread_ts": "1770099723.674249",
+      "reply_count": 3,
+      "reply_users_count": 2,
+      "latest_reply": "1770099965.515109",
+      "reply_users": [
+        "U06LZMW3466",
+        "U37KPJ30D"
+      ],
+      "is_locked": false,
+      "subscribed": false,
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "0n/vk",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Start exploring in prod instance, what queues exist currently and also is thr any process in place for casr and contact linking"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U06LZMW3466"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770099734.654949",
+      "client_msg_id": "79b3dbc5-1b1e-47e9-b330-7cb524fa38ec",
+      "text": "Pls document and will take it to business",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "vsRVl",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Pls document and will take it to business"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770100194.745409",
+      "edited": {
+        "user": "U06LZMW3466",
+        "ts": "1770100225.000000"
+      },
+      "client_msg_id": "87a4c1ad-1a35-45f4-90d6-b4bb6238df9c",
+      "text": "Hi <@UM3V8V1NK> could you please share ARA details so that i can login and verify the case object and its available fields to map, queues available, omnichannel routing , users in queues.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "GDy9F",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Hi "
+                },
+                {
+                  "type": "user",
+                  "user_id": "UM3V8V1NK"
+                },
+                {
+                  "type": "text",
+                  "text": " could you please share ARA details so that i can login and verify the case object and its available fields to map, queues available, omnichannel routing , users in queues."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770100263.247449",
+      "client_msg_id": "2db4ad95-2fa9-45f1-bbbf-cb5680ad78ab",
+      "text": "Sharing with you on dm.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "98bM0",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Sharing with you on dm."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770100267.702229",
+      "client_msg_id": "b60bea80-7a2c-41a3-84a7-96c97cc07200",
+      "text": "ok",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "luWBi",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "ok"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770103305.500659",
+      "client_msg_id": "73a508be-97c7-4b58-83df-0933b3815a94",
+      "text": "<@U06LZMW3466> Please share the google doc you are putting together for ARA Salesforce so we can do interim reviews to ensure we are inline.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "vd3PW",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U06LZMW3466"
+                },
+                {
+                  "type": "text",
+                  "text": " Please share the google doc you are putting together for ARA Salesforce so we can do interim reviews to ensure we are inline."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770103328.152759",
+      "client_msg_id": "827a3682-191f-4a8e-aed4-801cf299b692",
+      "text": "sure bindu updating the required information",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Zf8I9",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "sure bindu updating the required information"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "text": "This page is the Marketplace, and this is also possibly where the LiveHelpNow integration is hooked in.",
+      "files": [
+        {
+          "id": "F0ACJRGFB38",
+          "created": 1770103865,
+          "timestamp": 1770103865,
+          "name": "Screenshot 2026-02-03 at 12.58.01 PM.png",
+          "title": "Screenshot 2026-02-03 at 12.58.01 PM.png",
+          "mimetype": "image/png",
+          "filetype": "png",
+          "pretty_type": "PNG",
+          "user": "UM3V8V1NK",
+          "user_team": "T355R0RT3",
+          "editable": false,
+          "size": 386386,
+          "mode": "hosted",
+          "is_external": false,
+          "external_type": "",
+          "is_public": false,
+          "public_url_shared": false,
+          "display_as_bot": false,
+          "username": "",
+          "url_private": "https://files.slack.com/files-pri/T355R0RT3-F0ACJRGFB38/screenshot_2026-02-03_at_12.58.01___pm.png",
+          "url_private_download": "https://files.slack.com/files-pri/T355R0RT3-F0ACJRGFB38/download/screenshot_2026-02-03_at_12.58.01___pm.png",
+          "media_display_type": "unknown",
+          "thumb_64": "https://files.slack.com/files-tmb/T355R0RT3-F0ACJRGFB38-2f367b289e/screenshot_2026-02-03_at_12.58.01___pm_64.png",
+          "thumb_80": "https://files.slack.com/files-tmb/T355R0RT3-F0ACJRGFB38-2f367b289e/screenshot_2026-02-03_at_12.58.01___pm_80.png",
+          "thumb_360": "https://files.slack.com/files-tmb/T355R0RT3-F0ACJRGFB38-2f367b289e/screenshot_2026-02-03_at_12.58.01___pm_360.png",
+          "thumb_360_w": 360,
+          "thumb_360_h": 147,
+          "thumb_480": "https://files.slack.com/files-tmb/T355R0RT3-F0ACJRGFB38-2f367b289e/screenshot_2026-02-03_at_12.58.01___pm_480.png",
+          "thumb_480_w": 480,
+          "thumb_480_h": 196,
+          "thumb_160": "https://files.slack.com/files-tmb/T355R0RT3-F0ACJRGFB38-2f367b289e/screenshot_2026-02-03_at_12.58.01___pm_160.png",
+          "thumb_720": "https://files.slack.com/files-tmb/T355R0RT3-F0ACJRGFB38-2f367b289e/screenshot_2026-02-03_at_12.58.01___pm_720.png",
+          "thumb_720_w": 720,
+          "thumb_720_h": 294,
+          "thumb_800": "https://files.slack.com/files-tmb/T355R0RT3-F0ACJRGFB38-2f367b289e/screenshot_2026-02-03_at_12.58.01___pm_800.png",
+          "thumb_800_w": 800,
+          "thumb_800_h": 326,
+          "thumb_960": "https://files.slack.com/files-tmb/T355R0RT3-F0ACJRGFB38-2f367b289e/screenshot_2026-02-03_at_12.58.01___pm_960.png",
+          "thumb_960_w": 960,
+          "thumb_960_h": 391,
+          "thumb_1024": "https://files.slack.com/files-tmb/T355R0RT3-F0ACJRGFB38-2f367b289e/screenshot_2026-02-03_at_12.58.01___pm_1024.png",
+          "thumb_1024_w": 1024,
+          "thumb_1024_h": 418,
+          "original_w": 2477,
+          "original_h": 1010,
+          "thumb_tiny": "AwAUADCt583/AD1f/vo1NZyyPdIrSOQc8E+1Vansji6Q4J68D6VQjW5DKFUYOc0isx2naOeuDnFKQxI2nAB596aqzDbuYHnnnt+VSMyXnl3t+9fr/eNSRpdyoGR2IPT56rv99vrWrZMFskLEAc8k+9UIyafC7RyhlOCKZSp94UCLf2ufP38fgKPtc/8Af/QVDRTsBCeSTWxYf8ecf4/zNY5rYsP+POP8f5mpY0f/2Q==",
+          "permalink": "https://devpixeled.slack.com/files/UM3V8V1NK/F0ACJRGFB38/screenshot_2026-02-03_at_12.58.01___pm.png",
+          "permalink_public": "https://slack-files.com/T355R0RT3-F0ACJRGFB38-d60a193e46",
+          "is_starred": false,
+          "skipped_shares": true,
+          "has_rich_preview": false,
+          "file_access": "visible"
+        }
+      ],
+      "upload": false,
+      "user": "UM3V8V1NK",
+      "display_as_bot": false,
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "PwfkS",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "This page is the Marketplace, and this is also possibly where the LiveHelpNow integration is hooked in."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "message",
+      "ts": "1770103885.190399",
+      "client_msg_id": "f3ba1157-b01e-4b26-b4fc-6d9aec159117"
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770104197.330979",
+      "client_msg_id": "a3fb1b5e-8a38-4357-b98f-6a0858f632d3",
+      "text": "<@UM3V8V1NK> could you please create one shared drive folder for ARA documentation",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "VstCP",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "UM3V8V1NK"
+                },
+                {
+                  "type": "text",
+                  "text": " could you please create one shared drive folder for ARA documentation"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770104492.493909",
+      "client_msg_id": "b66cf6c5-dff2-4a32-b5a0-70f86938e254",
+      "text": "<https://drive.google.com/drive/u/0/folders/194mGV2wg5KLNBdy7Y4DRtK-kyiqJMVQc>\nARA Prod Salesforce - Documented",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "c8tnN",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "link",
+                  "url": "https://drive.google.com/drive/u/0/folders/194mGV2wg5KLNBdy7Y4DRtK-kyiqJMVQc"
+                },
+                {
+                  "type": "text",
+                  "text": "\nARA Prod Salesforce - Documented"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U06LZMW3466"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770109968.087149",
+      "client_msg_id": "938e8c8b-b66f-430b-ae65-a93eac5ce86e",
+      "text": "<@U37KPJ30D> Please find the details related to ARA documentation.Looking into more details. Please suggest if any areas i have missed.\n<https://docs.google.com/document/d/1mc_rMq0VXM0aiFSTSXF-qDPSRO3w91_rjt2Y-n9Rkfk/edit?tab=t.dv83wcwcr6ay>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "VQN3m",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " Please find the details related to ARA documentation.Looking into more details. Please suggest if any areas i have missed.\n"
+                },
+                {
+                  "type": "link",
+                  "url": "https://docs.google.com/document/d/1mc_rMq0VXM0aiFSTSXF-qDPSRO3w91_rjt2Y-n9Rkfk/edit?tab=t.dv83wcwcr6ay"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770112547.548799",
+      "client_msg_id": "d5e51d35-75f0-48f6-b959-a32c575d36d0",
+      "text": "<@U06LZMW3466> Keep the analysis in a sheet instead the word document",
+      "team": "T355R0RT3",
+      "thread_ts": "1770112547.548799",
+      "reply_count": 1,
+      "reply_users_count": 1,
+      "latest_reply": "1770119239.266449",
+      "reply_users": [
+        "U06LZMW3466"
+      ],
+      "is_locked": false,
+      "subscribed": false,
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Jij3g",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U06LZMW3466"
+                },
+                {
+                  "type": "text",
+                  "text": " Keep the analysis in a sheet instead the word document"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770112569.156819",
+      "client_msg_id": "d14be58d-5c6c-47f6-ba7f-4341bc74d018",
+      "text": "It is hard to understand",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "NWMRJ",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "It is hard to understand"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770112575.821359",
+      "client_msg_id": "29042148-f322-4bfc-9708-b99a7e19e838",
+      "text": "okay <@U37KPJ30D>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Ksups",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "okay "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770113656.218859",
+      "client_msg_id": "6a161658-51ba-42ff-b48a-3e4f5b2a0202",
+      "text": "<https://data-drive-3448.my.salesforce.com>\nUsername: ara-team-2@devpixel.com.new\nAqualens@123",
+      "team": "T355R0RT3",
+      "attachments": [
+        {
+          "from_url": "https://data-drive-3448.my.salesforce.com/",
+          "service_icon": "https://data-drive-3448.my.salesforce.com/favicon.ico",
+          "id": 1,
+          "original_url": "https://data-drive-3448.my.salesforce.com",
+          "fallback": "Login | Salesforce",
+          "text": "Salesforce Customer Secure Login Page. Login to your Salesforce Customer Account.",
+          "title": "Login | Salesforce",
+          "title_link": "https://data-drive-3448.my.salesforce.com/",
+          "service_name": "data-drive-3448.my.salesforce.com"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "YXPoM",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "link",
+                  "url": "https://data-drive-3448.my.salesforce.com"
+                },
+                {
+                  "type": "text",
+                  "text": "\nUsername: ara-team-2@devpixel.com.new\nAqualens@123"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770119826.099099",
+      "client_msg_id": "8d5ce3d0-2b62-4a01-8f21-06219d8de764",
+      "text": "<@U06LZMW3466> This document is sufficient only for understanding who belongs to which queue, but it does not yet fully document how LiveChatNow cases are assigned to those queues. We still need to capture assignment rules, routing triggers and whether Omni-Channel is involved to ensure the integration works correctly in the new org.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "KkvVH",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U06LZMW3466"
+                },
+                {
+                  "type": "text",
+                  "text": " This document is sufficient only for understanding who belongs to which queue, but it does not yet fully document how LiveChatNow cases are assigned to those queues. We still need to capture assignment rules, routing triggers and whether Omni-Channel is involved to ensure the integration works correctly in the new org."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770119934.221049",
+      "client_msg_id": "3ef42a43-ebf4-40ad-b072-1c2703dd72e0",
+      "text": "Yes srini now will check on points whatever you have mentioned and update in sheet.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "/iq5L",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Yes srini now will check on points whatever you have mentioned and update in sheet."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770120014.195889",
+      "edited": {
+        "user": "U37KPJ30D",
+        "ts": "1770120052.000000"
+      },
+      "client_msg_id": "6cf05f91-cada-4d5f-a039-66bf94bd2cbb",
+      "text": "<@U06LZMW3466>\n• Assignment rule names that handle LiveChatNow cases\n• Conditions used to route cases to each queue\n• Confirmation: Omni-Channel used or not for LiveChatNow\n• Case Origin values expected from LiveChatNow",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "6pwHJ",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U06LZMW3466"
+                },
+                {
+                  "type": "text",
+                  "text": "\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Assignment rule names that handle LiveChatNow cases"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Conditions used to route cases to each queue"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Confirmation: Omni-Channel used or not for LiveChatNow"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Case Origin values expected from LiveChatNow"
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 0,
+              "border": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770120068.029069",
+      "edited": {
+        "user": "U06LZMW3466",
+        "ts": "1770120083.000000"
+      },
+      "client_msg_id": "0cb0ec8a-311a-4a01-8e53-aafeeccb0c28",
+      "text": "yes there is criteria in *Case Assignment Rules* where case:Type equals Question it assigns to queue - ARACustomerCare",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "WPRao",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "yes there is criteria in "
+                },
+                {
+                  "type": "text",
+                  "text": "Case Assignment Rules ",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "where case:Type equals Question it assigns to queue - ARACustomerCare"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770120107.076629",
+      "client_msg_id": "d0b6c353-a66b-4212-85e5-0dd058b1a344",
+      "text": "Need all of them Srikar",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "mK/tV",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Need all of them Srikar"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U06LZMW3466"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770124423.377559",
+      "edited": {
+        "user": "U06LZMW3466",
+        "ts": "1770124475.000000"
+      },
+      "client_msg_id": "0cddaf35-9aa3-4baa-bce4-eecbc86846ff",
+      "text": "<@U37KPJ30D> I have updated in sheet and currently we have only one Case Assignment Rules - CC where case:Type equals Question which matches from LiveChatNow later  it assigns to queue - ARACustomerCare  and when omnichannel set to Available it will assign to users available in ARACustomerCare queue.\n\n*Question:* Do we have LiveChatNow valid access to test since i have tested with trail version it did not create case. Can i turn on omnichannel and connect this org to LiveChatNow and test srini??",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "e8biE",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " I have updated in sheet and currently we have only one Case Assignment Rules - CC where case:Type equals Question which matches from LiveChatNow later  it assigns to queue - ARACustomerCare  and when omnichannel set to Available it will assign to users available in ARACustomerCare queue.\n\n"
+                },
+                {
+                  "type": "text",
+                  "text": "Question: ",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "Do we have LiveChatNow valid access to test since i have tested with trail version it did not create case. Can i turn on omnichannel and connect this org to LiveChatNow and test srini??"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770125282.424399",
+      "client_msg_id": "80395d5b-45d7-4437-a5f0-ccaf36769e70",
+      "text": "<@U06LZMW3466> pls join ymc",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Hy62b",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U06LZMW3466"
+                },
+                {
+                  "type": "text",
+                  "text": " pls join ymc"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770127114.097029",
+      "client_msg_id": "450059b1-979f-4096-a415-b9b96c55bd12",
+      "text": "I m in Srini sorry for late",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "5J6Ys",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "I m in Srini sorry for late"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770127361.000719",
+      "client_msg_id": "1077c365-04bf-491c-b46b-263d7d424528",
+      "text": "Srini stepped out for a bit. Please give him 15 mins.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "URzqP",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Srini stepped out for a bit. Please give him 15 mins."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U06LZMW3466"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770191496.278019",
+      "client_msg_id": "BCFFE71A-6337-4963-981E-44A4016FEB95",
+      "text": "<@U37KPJ30D> can we turn on omnichannel and test on how LiveChatNow maps with our fields and what type will be triggered so that case gets created in Salesforce ",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "CeDfJ",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " "
+                },
+                {
+                  "type": "text",
+                  "text": "can we turn on omnichannel and test on how LiveChatNow maps with our fields and what type will be triggered so that case gets created in Salesforce "
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770191545.506969",
+      "client_msg_id": "2cfbd791-5dab-4267-b7b0-f04d0df8591f",
+      "text": "Which org are you asking to connect to <@U06LZMW3466>?",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ZiLEW",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Which org are you asking to connect to "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U06LZMW3466"
+                },
+                {
+                  "type": "text",
+                  "text": "?"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770191651.092589",
+      "client_msg_id": "6CFD1E40-DB92-42CF-8FCF-4B863E0B2D2A",
+      "text": "Currently it is prod instance right Bindu and also before doing anything LiveChatNow trail version did not create case in developer org so just wanted to check on how to verify ",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "XTzGm",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Currently it is prod instance right Bindu and also before doing anything LiveChatNow trail version did not create case in developer org so just wanted to check on how to verify "
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1770192573.974409",
+      "client_msg_id": "177e746c-e8f0-4c00-b5de-6b9e94bb4e0d",
+      "text": "Dont do anything in prod instance",
+      "team": "T355R0RT3",
+      "thread_ts": "1770192573.974409",
+      "reply_count": 1,
+      "reply_users_count": 1,
+      "latest_reply": "1770192626.475949",
+      "reply_users": [
+        "U06LZMW3466"
+      ],
+      "is_locked": false,
+      "subscribed": false,
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "8plfY",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Dont do anything in prod instance"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U06LZMW3466"
+          ],
+          "count": 1
+        },
+        {
+          "name": "pray",
+          "users": [
+            "UM3V8V1NK"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770197883.268229",
+      "client_msg_id": "139a14b0-5a41-4b63-9fe4-c288ceeb1872",
+      "text": "<@UM3V8V1NK> could you please give access to <mailto:ara-team-2@devpixel.com|ara-team-2@devpixel.com>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "eEwGT",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "UM3V8V1NK"
+                },
+                {
+                  "type": "text",
+                  "text": " could you please give access to "
+                },
+                {
+                  "type": "link",
+                  "url": "mailto:ara-team-2@devpixel.com",
+                  "text": "ara-team-2@devpixel.com"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770197968.191289",
+      "client_msg_id": "248e1552-5624-44be-89a4-0d7d4148ddfb",
+      "text": "Please join ymc",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ApEev",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Please join ymc"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770197974.079639",
+      "client_msg_id": "9146df1a-b651-4b0a-a95c-faf7eb763bb0",
+      "text": "ok",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "luWBi",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "ok"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770198640.223659",
+      "client_msg_id": "cce34623-a0a4-44d9-ba98-c58d4086f311",
+      "text": "<https://www.livehelpnow.net/lhn/console/admin/integrations/SalesForce/>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "nw5oX",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "link",
+                  "url": "https://www.livehelpnow.net/lhn/console/admin/integrations/SalesForce/"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770198733.782949",
+      "client_msg_id": "409e987d-8a90-4331-972e-15c8c7a2ec24",
+      "text": "<https://asppa.personifycloud.com/PersonifyEbusiness/#filter=%7B%22Facet%22%3Anull,%22SubFacet%22%3Anull,%22Category%22%3Anull,%22SubCategory%22%3Anull%7D&amp;searchTerm=&amp;searchItemNameTerm=&amp;searchDescriptionTerm=&amp;productClass=|https://asppa.personifycloud.com/PersonifyEbusiness/#filter=%7B%22Facet%22%3Anull,%22SubFacet%22%3A[…]NameTerm=&amp;searchDescriptionTerm=&amp;productClass=>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "dy2sF",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "link",
+                  "url": "https://asppa.personifycloud.com/PersonifyEbusiness/#filter=%7B%22Facet%22%3Anull,%22SubFacet%22%3Anull,%22Category%22%3Anull,%22SubCategory%22%3Anull%7D&searchTerm=&searchItemNameTerm=&searchDescriptionTerm=&productClass=",
+                  "text": "https://asppa.personifycloud.com/PersonifyEbusiness/#filter=%7B%22Facet%22%3Anull,%22SubFacet%22%3A[…]NameTerm=&searchDescriptionTerm=&productClass="
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770199604.014049",
+      "edited": {
+        "user": "U06LZMW3466",
+        "ts": "1770199615.000000"
+      },
+      "client_msg_id": "7102b398-651d-437d-965a-1bfe819703f2",
+      "text": "livehelpnow trail version credentials\n<mailto:iste.devforce2@devpixel.com|iste.devforce2@devpixel.com>\nDevpixeldev@2",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "6ssAR",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "livehelpnow trail version credentials\n"
+                },
+                {
+                  "type": "link",
+                  "url": "mailto:iste.devforce2@devpixel.com",
+                  "text": "iste.devforce2@devpixel.com"
+                },
+                {
+                  "type": "text",
+                  "text": "\nDevpixeldev@2"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770208068.214369",
+      "edited": {
+        "user": "U06LZMW3466",
+        "ts": "1770286282.000000"
+      },
+      "client_msg_id": "81de6c02-65bb-4ca8-aaae-9d9db96739ab",
+      "text": "<@U37KPJ30D> found  when LiveChatNow creates a Case, it is identified by Case Origin = Chat and Type = Question. livehelpnow only populates basic Case fields like Subject, Description, SuppliedName, and SuppliedEmail. After the Case is created, Salesforce runs the “*Case Created Add Contact*” Flow, which calls the Apex class *CreateContactForCaseHelper*. This Apex class creates a new Contact using the visitor’s name and email and assigns it to the Account named “ARA Customer Care”, then updates the Case to link both the Contact and the Account.\n\nand also found few users who has permission set assigned.Updated in sheet.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "SJyCJ",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " found  when LiveChatNow creates a Case, it is identified by Case Origin = Chat and Type = Question. livehelpnow only populates basic Case fields like Subject, Description, SuppliedName, and SuppliedEmail. After the Case is created, Salesforce runs the “"
+                },
+                {
+                  "type": "text",
+                  "text": "Case Created Add Contact",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "” Flow, which calls the Apex class "
+                },
+                {
+                  "type": "text",
+                  "text": "CreateContactForCaseHelper",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": ". This Apex class creates a new Contact using the visitor’s name and email and assigns it to the Account named “ARA Customer Care”, then updates the Case to link both the Contact and the Account.\n\nand also found few users who has permission set assigned.Updated in sheet."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770216775.042029",
+      "client_msg_id": "B4929AAE-CB1C-41B6-8D66-42A31B6B11BC",
+      "text": "<@U37KPJ30D>  could you please review above information gathered and also please suggest if any further information required. Thank you ",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "MLkxa",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": "  could you please review above information gathered and also please suggest if any further information required. Thank you "
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770275357.250309",
+      "edited": {
+        "user": "U06LZMW3466",
+        "ts": "1770275380.000000"
+      },
+      "client_msg_id": "e235024e-895c-4e60-9855-bf208cb66a7c",
+      "text": "<@UM3V8V1NK> can you please share LiveChatNow credentials so that i can check the mapping and also will understand the routing process",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "SJ8bl",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "UM3V8V1NK"
+                },
+                {
+                  "type": "text",
+                  "text": " can you please share LiveChatNow credentials so that i can check the mapping and also will understand the routing process"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770296635.372909",
+      "edited": {
+        "user": "U06LZMW3466",
+        "ts": "1770296795.000000"
+      },
+      "client_msg_id": "53c333b9-fd24-4995-be01-87cef087ba0a",
+      "text": "Apart from Type Question there are few other types like ARA Marketing Emails , Held messages,Problem,Spam,Voicemail  they too  directly get assigned to ARACustomerCare queue since there is 2nd rule without criteria in CC Case Assigment Rules. when checked few records within other Type first user from ARACustomerCare queue is accepting later they are changing owner from ARACustomerCare to Keyandra Bankston who is Service Agent Profile.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ccDig",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Apart from Type Question there are few other types like ARA Marketing Emails , Held messages,Problem,Spam,Voicemail  they too  directly get assigned to ARACustomerCare queue since there is 2nd rule without criteria in CC Case Assigment Rules. when checked few records within other Type first user from ARACustomerCare queue is accepting later they are changing owner from ARACustomerCare to "
+                },
+                {
+                  "type": "text",
+                  "text": "Keyandra Bankston who is ",
+                  "style": {
+                    "unlink": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "Service Agent Profile."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770310307.575239",
+      "edited": {
+        "user": "U06LZMW3466",
+        "ts": "1770310312.000000"
+      },
+      "client_msg_id": "A1BACBD7-01AB-4CA6-8B23-A8AA2C757D7C",
+      "text": "No email as of now Bindu",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Py4+u",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "No email as of now Bind"
+                },
+                {
+                  "type": "text",
+                  "text": "u"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770310371.640929",
+      "client_msg_id": "E3AA870E-6471-4A6E-906E-47648E116003",
+      "text": "Ok Srikar",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "HiCOn",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Ok Srikar"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770345276.443669",
+      "client_msg_id": "3209ecfb-27ce-4635-8f9b-33dbc6581021",
+      "text": "ARA production instance: <https://usaretirement.lightning.force.com/one/one.app>, <mailto:ara-team-2@devpixel.com|ara-team-2@devpixel.com> (Dev Pixel)\nSandboxes in this instance: ARAFullSB, CaseTest\n\nNew production instance stood up by Darren and Aris: <https://data-drive-3448.my.salesforce.com/>, ara-team-2@devpixel.com.new\nSandboxes in this instance: blank, full\nFull sandbox: <https://data-drive-3448--full.sandbox.lightning.force.com/>, ara-team-2@devpixel.com.new.full (DevPixel Dev)",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ArYJm",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "ARA production instance: "
+                },
+                {
+                  "type": "link",
+                  "url": "https://usaretirement.lightning.force.com/one/one.app"
+                },
+                {
+                  "type": "text",
+                  "text": ", "
+                },
+                {
+                  "type": "link",
+                  "url": "mailto:ara-team-2@devpixel.com",
+                  "text": "ara-team-2@devpixel.com"
+                },
+                {
+                  "type": "text",
+                  "text": " (Dev Pixel)\nSandboxes in this instance: ARAFullSB, CaseTest\n\nNew production instance stood up by Darren and Aris: "
+                },
+                {
+                  "type": "link",
+                  "url": "https://data-drive-3448.my.salesforce.com/"
+                },
+                {
+                  "type": "text",
+                  "text": ", ara-team-2@devpixel.com.new\nSandboxes in this instance: blank, full\nFull sandbox: "
+                },
+                {
+                  "type": "link",
+                  "url": "https://data-drive-3448--full.sandbox.lightning.force.com/"
+                },
+                {
+                  "type": "text",
+                  "text": ", ara-team-2@devpixel.com.new.full (DevPixel Dev)"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770346464.791939",
+      "client_msg_id": "2e2f3593-9428-48af-9d9b-a2e8f86e9a15",
+      "text": "New instance prod: Aqualens@123\nNew instance sandbox: ARAt$@m2@123!",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "E2Svf",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "New instance prod: Aqualens@123\nNew instance sandbox: ARAt$@m2@123!"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770358991.725569",
+      "edited": {
+        "user": "U06LZMW3466",
+        "ts": "1770359161.000000"
+      },
+      "client_msg_id": "390792aa-93f3-415d-aa5a-7984b8b9cc98",
+      "text": "<@U37KPJ30D> when logged in livehelpnow with admin credential i have verified in integrations >> salesforce there is no authorization and field mapping to case object . If at all we need test first we need to authroize live with our new org which we received credentials/reset yesterday. So my question what is the workaround to achieve case creation in salesforce",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ie89W",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " when logged in livehelpnow with admin credential i have verified in integrations >> salesforce there is no authorization and field mapping to case object . If at all we need test first we need to authroize live "
+                },
+                {
+                  "type": "text",
+                  "text": "with"
+                },
+                {
+                  "type": "text",
+                  "text": " our new org which we received credentials/reset yesterday. So my question what is the workaround to achieve case creation in salesforce"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770359314.338109",
+      "client_msg_id": "a37283eb-d322-453f-9c92-03f84429dbe4",
+      "text": "Currently i m exploring the tool",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Ljri7",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Currently i m exploring the tool"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U06LZMW3466",
+      "type": "message",
+      "ts": "1770363365.650979",
+      "client_msg_id": "EE7B3275-465A-4EB2-9AE3-D12815F5B2E3",
+      "text": "<@U37KPJ30D> would like guidance on the next steps on information w.r.t to development or await Aris’s direction.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "9Mkq3",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " "
+                },
+                {
+                  "type": "text",
+                  "text": "would like guidance on the next steps"
+                },
+                {
+                  "type": "text",
+                  "text": " on information w.r.t to development "
+                },
+                {
+                  "type": "text",
+                  "text": "or await Aris’s direction"
+                },
+                {
+                  "type": "text",
+                  "text": "."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "U06LZMW3466",
+      "name": "srikar.shesham",
+      "is_bot": false,
+      "updated": 1763452269,
+      "is_app_user": false,
+      "team_id": "T355R0RT3",
+      "deleted": false,
+      "color": "43761b",
+      "is_email_confirmed": true,
+      "real_name": "Srikar Shesham",
+      "tz": "Asia/Kolkata",
+      "tz_label": "India Standard Time",
+      "tz_offset": 19800,
+      "is_admin": false,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "has_2fa": false,
+      "who_can_share_contact_card": "EVERYONE",
+      "profile": {
+        "real_name": "Srikar Shesham",
+        "display_name": "Srikar Shesham",
+        "avatar_hash": "ebf3918ce524",
+        "real_name_normalized": "Srikar Shesham",
+        "display_name_normalized": "Srikar Shesham",
+        "image_24": "https://avatars.slack-edge.com/2024-02-28/6713936612755_ebf3918ce524e337fc0b_24.png",
+        "image_32": "https://avatars.slack-edge.com/2024-02-28/6713936612755_ebf3918ce524e337fc0b_32.png",
+        "image_48": "https://avatars.slack-edge.com/2024-02-28/6713936612755_ebf3918ce524e337fc0b_48.png",
+        "image_72": "https://avatars.slack-edge.com/2024-02-28/6713936612755_ebf3918ce524e337fc0b_72.png",
+        "image_192": "https://avatars.slack-edge.com/2024-02-28/6713936612755_ebf3918ce524e337fc0b_192.png",
+        "image_512": "https://avatars.slack-edge.com/2024-02-28/6713936612755_ebf3918ce524e337fc0b_512.png",
+        "image_1024": "https://avatars.slack-edge.com/2024-02-28/6713936612755_ebf3918ce524e337fc0b_1024.png",
+        "image_original": "https://avatars.slack-edge.com/2024-02-28/6713936612755_ebf3918ce524e337fc0b_original.png",
+        "is_custom_image": true,
+        "first_name": "Srikar",
+        "last_name": "Shesham",
+        "team": "T355R0RT3",
+        "email": "srikar.shesham@devpixel.com",
+        "title": "",
+        "phone": "",
+        "skype": "",
+        "fields": {},
+        "status_text": "",
+        "status_text_canonical": "",
+        "status_emoji": "",
+        "status_emoji_display_info": [],
+        "status_expiration": 0,
+        "huddle_state": "default_unset",
+        "huddle_state_expiration_ts": 0
+      }
+    },
+    {
+      "id": "UM3V8V1NK",
+      "name": "himabindu",
+      "is_bot": false,
+      "updated": 1769529965,
+      "is_app_user": false,
+      "team_id": "T355R0RT3",
+      "deleted": false,
+      "color": "dc7dbb",
+      "is_email_confirmed": true,
+      "real_name": "Bindu Guduru",
+      "tz": "Asia/Kolkata",
+      "tz_label": "India Standard Time",
+      "tz_offset": 19800,
+      "is_admin": true,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "has_2fa": true,
+      "two_factor_type": "app",
+      "who_can_share_contact_card": "EVERYONE",
+      "profile": {
+        "real_name": "Bindu Guduru",
+        "display_name": "Bindu Guduru",
+        "avatar_hash": "1e45391b7f7a",
+        "real_name_normalized": "Bindu Guduru",
+        "display_name_normalized": "Bindu Guduru",
+        "image_24": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_24.jpg",
+        "image_32": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_32.jpg",
+        "image_48": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_48.jpg",
+        "image_72": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_72.jpg",
+        "image_192": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_192.jpg",
+        "image_512": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_512.jpg",
+        "image_1024": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_1024.jpg",
+        "image_original": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_original.jpg",
+        "is_custom_image": true,
+        "first_name": "Bindu",
+        "last_name": "Guduru",
+        "team": "T355R0RT3",
+        "email": "bindu@devpixel.com",
+        "title": "Director of Operations",
+        "phone": "9000800106",
+        "skype": "",
+        "fields": {
+          "Xf0402NHB2M6": {
+            "value": "Director of Operations",
+            "alt": ""
+          },
+          "Xf03KM0ZFFSQ": {
+            "value": "9000800106",
+            "alt": ""
+          }
+        },
+        "status_text": "",
+        "status_text_canonical": "",
+        "status_emoji": "",
+        "status_emoji_display_info": [],
+        "status_expiration": 0,
+        "huddle_state": "default_unset",
+        "huddle_state_expiration_ts": 0
+      }
+    },
+    {
+      "id": "U37KPJ30D",
+      "name": "srinivas.rao",
+      "is_bot": false,
+      "updated": 1770389063,
+      "is_app_user": false,
+      "team_id": "T355R0RT3",
+      "deleted": false,
+      "color": "e7392d",
+      "is_email_confirmed": true,
+      "real_name": "Srini Chinta",
+      "tz": "Asia/Kolkata",
+      "tz_label": "India Standard Time",
+      "tz_offset": 19800,
+      "is_admin": false,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "has_2fa": false,
+      "who_can_share_contact_card": "EVERYONE",
+      "profile": {
+        "real_name": "Srini Chinta",
+        "display_name": "Srini Chinta",
+        "avatar_hash": "561456c1628a",
+        "real_name_normalized": "Srini Chinta",
+        "display_name_normalized": "Srini Chinta",
+        "image_24": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_24.jpg",
+        "image_32": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_32.jpg",
+        "image_48": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_48.jpg",
+        "image_72": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_72.jpg",
+        "image_192": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_192.jpg",
+        "image_512": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_512.jpg",
+        "image_1024": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_1024.jpg",
+        "image_original": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_original.jpg",
+        "is_custom_image": true,
+        "first_name": "Srini",
+        "last_name": "Chinta",
+        "team": "T355R0RT3",
+        "email": "srini@devpixel.com",
+        "title": "Director of Technology",
+        "phone": "7331129130",
+        "skype": "",
+        "fields": {
+          "Xf0402NHB2M6": {
+            "value": "Director of Technology",
+            "alt": ""
+          },
+          "Xf03KM0ZFFSQ": {
+            "value": "7331129130",
+            "alt": ""
+          }
+        },
+        "status_text": "",
+        "status_text_canonical": "",
+        "status_emoji": "",
+        "status_emoji_display_info": [],
+        "status_expiration": 0,
+        "huddle_state": "default_unset",
+        "huddle_state_expiration_ts": 0
+      }
+    }
+  ],
+  "threads": {}
+}

@@ -1,0 +1,2916 @@
+{
+  "_meta": {
+    "source": "chiefops-slack-capture",
+    "version": "1.0",
+    "captured_at": "2026-02-08T11:48:23.341Z",
+    "channel_name": "d2l-learning-academy",
+    "channel_id": "C09BCA59P4G",
+    "total_messages": 41,
+    "total_users": 7,
+    "total_threads": 0,
+    "api_requests_intercepted": 0,
+    "scroll_status": "api_direct",
+    "errors": []
+  },
+  "messages": [
+    {
+      "subtype": "channel_join",
+      "user": "U02JFCNHKHB",
+      "text": "<@U02JFCNHKHB> has joined the channel",
+      "type": "message",
+      "ts": "1755270349.760259"
+    },
+    {
+      "subtype": "channel_join",
+      "user": "UM3V8V1NK",
+      "text": "<@UM3V8V1NK> has joined the channel",
+      "inviter": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1755270363.120209"
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U37KPJ30D",
+      "text": "<@U37KPJ30D> has joined the channel",
+      "inviter": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1755270363.239879"
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1755270520.983799",
+      "client_msg_id": "85551692-961f-4131-b1c0-3892a8e647b9",
+      "text": "<@UM3V8V1NK> <@U37KPJ30D> I'm on the ISTE review board for a potential new vendor to replace D2L. \n\nFor that, I need to know what we did for D2L from a high level. Please get that to me as soon as you can, so I can review the new vendor's API to see how likely it is a fit.\n\nI need to give Darren and their executive team a high level evaluation early next week.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "L8tFL",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "UM3V8V1NK"
+                },
+                {
+                  "type": "text",
+                  "text": " "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " I'm on the ISTE review board for a potential new vendor to replace D2L. \n\nFor that, I need to know what we did for D2L from a high level. Please get that to me as soon as you can, so I can review the new vendor's API to see how likely it is a fit.\n\nI need to give Darren and their executive team a high level evaluation early next week."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U37KPJ30D",
+            "UM3V8V1NK"
+          ],
+          "count": 2
+        }
+      ]
+    },
+    {
+      "user": "U37KPJ30D",
+      "type": "message",
+      "ts": "1755271752.249279",
+      "client_msg_id": "5e9c0aee-16ae-4189-a8da-f04ff55e0877",
+      "text": "Sure <@U02JFCNHKHB>. I will provide complete technical details and API's information used in D2L.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "XjPv8",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Sure "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U02JFCNHKHB"
+                },
+                {
+                  "type": "text",
+                  "text": ". I will provide complete technical details and API's information used in D2L."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U02JFCNHKHB"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1755272052.679529",
+      "client_msg_id": "1103ceb6-47ec-4cc1-89bd-005986bd7979",
+      "text": "Here's the vendor we are evaluating: <https://canvas.instructure.com/doc/api/|https://canvas.instructure.com/doc/api/>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ETtgR",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Here's the vendor we are evaluating: "
+                },
+                {
+                  "type": "link",
+                  "url": "https://canvas.instructure.com/doc/api/",
+                  "text": "https://canvas.instructure.com/doc/api/"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "text": "<@U02JFCNHKHB> Not sure which of these might prove to be useful, but here you go.\n• <https://docs.google.com/document/d/1ItcR7nVRJnZpBSTGO42j4XRsFo6WDZX7/edit|D2L to Salesforce_Technical Documentation> - Old document (might be slightly outdated)\n• <https://docs.google.com/document/d/1-wz8UqNYyV99uFYxIKlDbddGO0C08YhO/edit|D2L API - Salesforce Configurations> - Might be useful to give a background on initial setup\n• <https://docs.google.com/document/d/1h5ZU10WdQxodIIlsFRyDitC9JiGmEdfFwIzefHvgedw/edit?tab=t.0#heading=h.hhevn0icya3z|D2L API Calls>\n• <https://docs.google.com/document/d/1esJ3NZidBroFc4CX2nIyin-tFcvjnXkiNrlj96veB6k/edit?tab=t.c55whhv7h2r|D2L Functionality Document> - A more latest document outlining D2L functionality\n<@U37KPJ30D> Could you please review these to confirm accuracy.",
+      "files": [
+        {
+          "id": "F09A88GS77Z",
+          "created": 1755278151,
+          "timestamp": 1755278151,
+          "name": "ISTE Architecture Diagram.jpeg",
+          "title": "ISTE Architecture Diagram.jpeg",
+          "mimetype": "image/jpeg",
+          "filetype": "jpg",
+          "pretty_type": "JPEG",
+          "user": "UM3V8V1NK",
+          "user_team": "T355R0RT3",
+          "editable": false,
+          "size": 184659,
+          "mode": "hosted",
+          "is_external": false,
+          "external_type": "",
+          "is_public": false,
+          "public_url_shared": false,
+          "display_as_bot": false,
+          "username": "",
+          "url_private": "https://files.slack.com/files-pri/T355R0RT3-F09A88GS77Z/iste_architecture_diagram.jpeg",
+          "url_private_download": "https://files.slack.com/files-pri/T355R0RT3-F09A88GS77Z/download/iste_architecture_diagram.jpeg",
+          "media_display_type": "unknown",
+          "thumb_64": "https://files.slack.com/files-tmb/T355R0RT3-F09A88GS77Z-e8e3aa1bc0/iste_architecture_diagram_64.jpg",
+          "thumb_80": "https://files.slack.com/files-tmb/T355R0RT3-F09A88GS77Z-e8e3aa1bc0/iste_architecture_diagram_80.jpg",
+          "thumb_360": "https://files.slack.com/files-tmb/T355R0RT3-F09A88GS77Z-e8e3aa1bc0/iste_architecture_diagram_360.jpg",
+          "thumb_360_w": 360,
+          "thumb_360_h": 327,
+          "thumb_480": "https://files.slack.com/files-tmb/T355R0RT3-F09A88GS77Z-e8e3aa1bc0/iste_architecture_diagram_480.jpg",
+          "thumb_480_w": 480,
+          "thumb_480_h": 435,
+          "thumb_160": "https://files.slack.com/files-tmb/T355R0RT3-F09A88GS77Z-e8e3aa1bc0/iste_architecture_diagram_160.jpg",
+          "thumb_720": "https://files.slack.com/files-tmb/T355R0RT3-F09A88GS77Z-e8e3aa1bc0/iste_architecture_diagram_720.jpg",
+          "thumb_720_w": 720,
+          "thumb_720_h": 653,
+          "thumb_800": "https://files.slack.com/files-tmb/T355R0RT3-F09A88GS77Z-e8e3aa1bc0/iste_architecture_diagram_800.jpg",
+          "thumb_800_w": 800,
+          "thumb_800_h": 726,
+          "thumb_960": "https://files.slack.com/files-tmb/T355R0RT3-F09A88GS77Z-e8e3aa1bc0/iste_architecture_diagram_960.jpg",
+          "thumb_960_w": 960,
+          "thumb_960_h": 871,
+          "thumb_1024": "https://files.slack.com/files-tmb/T355R0RT3-F09A88GS77Z-e8e3aa1bc0/iste_architecture_diagram_1024.jpg",
+          "thumb_1024_w": 1024,
+          "thumb_1024_h": 929,
+          "original_w": 1830,
+          "original_h": 1660,
+          "thumb_tiny": "AwAsADDT70jDcpGSMjGR1FNkXJVggdh0ycYpHZ1b5Rnj0NMVx6jaoG4nHc9aWmEkKGxlsdOabuJjIAYEH39aVh3JaKjUu6uD8pxgEAinLvz823HtTsK42YSEDy3CnIz8ucimToGcEnGB6j/Gp6hmQMwyCfz/AMKEDHhA0agjIAoMS+WUXgGnKMKB7UtFwsRRoIc5br61IGBOARmggHqAfrQFAOQBmgAJwR70tFFIYUx2CHcckHjFPooAjE6lgADn6VJRRSQ2f//Z",
+          "permalink": "https://devpixeled.slack.com/files/UM3V8V1NK/F09A88GS77Z/iste_architecture_diagram.jpeg",
+          "permalink_public": "https://slack-files.com/T355R0RT3-F09A88GS77Z-b6a6311838",
+          "is_starred": false,
+          "skipped_shares": true,
+          "has_rich_preview": false,
+          "file_access": "visible"
+        }
+      ],
+      "upload": false,
+      "user": "UM3V8V1NK",
+      "display_as_bot": false,
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "N2Jtv",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U02JFCNHKHB"
+                },
+                {
+                  "type": "text",
+                  "text": " Not sure which of these might prove to be useful, but here you go.\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "link",
+                      "url": "https://docs.google.com/document/d/1ItcR7nVRJnZpBSTGO42j4XRsFo6WDZX7/edit",
+                      "text": "D2L to Salesforce_Technical Documentation"
+                    },
+                    {
+                      "type": "text",
+                      "text": " - Old document (might be slightly outdated)"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "link",
+                      "url": "https://docs.google.com/document/d/1-wz8UqNYyV99uFYxIKlDbddGO0C08YhO/edit",
+                      "text": "D2L API - Salesforce Configurations"
+                    },
+                    {
+                      "type": "text",
+                      "text": " - Might be useful to give a background on initial setup"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "link",
+                      "url": "https://docs.google.com/document/d/1h5ZU10WdQxodIIlsFRyDitC9JiGmEdfFwIzefHvgedw/edit?tab=t.0#heading=h.hhevn0icya3z",
+                      "text": "D2L API Calls"
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "link",
+                      "url": "https://docs.google.com/document/d/1esJ3NZidBroFc4CX2nIyin-tFcvjnXkiNrlj96veB6k/edit?tab=t.c55whhv7h2r",
+                      "text": "D2L Functionality Document"
+                    },
+                    {
+                      "type": "text",
+                      "text": " - A more latest document outlining D2L functionality"
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "\n"
+                },
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " Could you please review these to confirm accuracy."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "message",
+      "ts": "1755278232.099759",
+      "client_msg_id": "a1a44cf1-6682-4ab9-a763-84325852c298"
+    },
+    {
+      "text": "<@U02JFCNHKHB> Please find the document that covers the key aspects of the D2L implementation.",
+      "files": [
+        {
+          "id": "F09AKKEKBA7",
+          "created": 1755453290,
+          "timestamp": 1755453290,
+          "name": "Salesforce - D2L - A high level summary.pdf",
+          "title": "Salesforce - D2L - A high level summary.pdf",
+          "mimetype": "application/pdf",
+          "filetype": "pdf",
+          "pretty_type": "PDF",
+          "user": "UM3V8V1NK",
+          "user_team": "T355R0RT3",
+          "editable": false,
+          "size": 90129,
+          "mode": "hosted",
+          "is_external": false,
+          "external_type": "",
+          "is_public": false,
+          "public_url_shared": false,
+          "display_as_bot": false,
+          "username": "",
+          "url_private": "https://files.slack.com/files-pri/T355R0RT3-F09AKKEKBA7/salesforce_-_d2l_-_a_high_level_summary.pdf",
+          "url_private_download": "https://files.slack.com/files-pri/T355R0RT3-F09AKKEKBA7/download/salesforce_-_d2l_-_a_high_level_summary.pdf",
+          "media_display_type": "unknown",
+          "thumb_pdf": "https://files.slack.com/files-tmb/T355R0RT3-F09AKKEKBA7-62007c5ea8/salesforce_-_d2l_-_a_high_level_summary_thumb_pdf.png",
+          "thumb_pdf_w": 1210,
+          "thumb_pdf_h": 935,
+          "permalink": "https://devpixeled.slack.com/files/UM3V8V1NK/F09AKKEKBA7/salesforce_-_d2l_-_a_high_level_summary.pdf",
+          "permalink_public": "https://slack-files.com/T355R0RT3-F09AKKEKBA7-ba3ec60924",
+          "is_starred": false,
+          "skipped_shares": true,
+          "has_rich_preview": false,
+          "file_access": "visible"
+        }
+      ],
+      "upload": false,
+      "user": "UM3V8V1NK",
+      "display_as_bot": false,
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "93qHh",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U02JFCNHKHB"
+                },
+                {
+                  "type": "text",
+                  "text": " Please find the document that covers the key aspects of the D2L implementation."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "message",
+      "ts": "1755453301.651499",
+      "client_msg_id": "6246b832-4e15-4e54-a2e4-41c5d20f6654"
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1755453401.136479",
+      "client_msg_id": "30953375-5a42-4a3a-ab3c-991609d3e591",
+      "text": "`TL;DR`\n*Salesforce - D2L Brightspace : Functional Overview*\n\n*Functional Pieces in Salesforce*\n• System of record for *students, courses, and enrollments*\n• *EDA data model* (Contacts, Courses, Offerings, Connections)\n• *Contacts* = Users in D2L\n• *Course Connections* = Enrollments\n• *Program Plans &amp; Sequences* = Auto progression\n• *Custom objects* for exceptions &amp; detailed grading\n*Functional Pieces in D2L Brightspace*\n• System of delivery for *learning &amp; teaching*\n• *Course Offerings* = live course runs per term\n• *Enrollments &amp; Roles* = students, instructors, TAs\n• *Dropbox* = submissions &amp; grading\n• *Grades* = central gradebook + rubrics\n• *Awards* = certificates/badges\n• *Special Access* = exceptions for learners\n*Integration Touchpoints*\n• *Salesforce —&gt; D2L*\n    ◦ Provision Users\n    ◦ Sync Course Offerings\n    ◦ Enroll learners (Course Connections)\n    ◦ Push Special Access\n• *D2L —&gt; Salesforce*\n    ◦ Course completions\n    ◦ Grades &amp; rubrics\n    ◦ Awards / certificates\n    ◦ Enrollment/classlist reconciliation\n*User Journeys*\n1. *Enrollment* – Contact created in Salesforce → provisioned in D2L → enrolled in correct course.\n2. *During Course* – Learner engages in D2L; exceptions pushed from Salesforce.\n3. *Completion* – D2L sends completions, awards, grades → Salesforce updates records.\n4. *Progression* – Salesforce auto-enrolls learner into next course in sequence.\n",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "QS/o+",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "TL;DR",
+                  "style": {
+                    "code": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\n"
+                },
+                {
+                  "type": "text",
+                  "text": "Salesforce - D2L Brightspace : Functional Overview",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\n\n"
+                },
+                {
+                  "type": "text",
+                  "text": "Functional Pieces in Salesforce",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "System of record for "
+                    },
+                    {
+                      "type": "text",
+                      "text": "students, courses, and enrollments",
+                      "style": {
+                        "bold": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "EDA data model",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " (Contacts, Courses, Offerings, Connections)"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Contacts",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " = Users in D2L"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Course Connections",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " = Enrollments"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Program Plans & Sequences",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " = Auto progression"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Custom objects",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " for exceptions & detailed grading"
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "\n"
+                },
+                {
+                  "type": "text",
+                  "text": "Functional Pieces in D2L Brightspace",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "System of delivery for "
+                    },
+                    {
+                      "type": "text",
+                      "text": "learning & teaching",
+                      "style": {
+                        "bold": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Course Offerings",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " = live course runs per term"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Enrollments & Roles",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " = students, instructors, TAs"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Dropbox",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " = submissions & grading"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Grades",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " = central gradebook + rubrics"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Awards",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " = certificates/badges"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Special Access",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " = exceptions for learners"
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "\n"
+                },
+                {
+                  "type": "text",
+                  "text": "Integration Touchpoints",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Salesforce —> D2L",
+                      "style": {
+                        "bold": true
+                      }
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Provision Users"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Sync Course Offerings"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Enroll learners (Course Connections)"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Push Special Access"
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 1,
+              "border": 0
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "D2L —> Salesforce",
+                      "style": {
+                        "bold": true
+                      }
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Course completions"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Grades & rubrics"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Awards / certificates"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Enrollment/classlist reconciliation"
+                    }
+                  ]
+                }
+              ],
+              "style": "bullet",
+              "indent": 1,
+              "border": 0
+            },
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "\n"
+                },
+                {
+                  "type": "text",
+                  "text": "User Journeys",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Enrollment",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " – Contact created in Salesforce → provisioned in D2L → enrolled in correct course."
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "During Course",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " – Learner engages in D2L; exceptions pushed from Salesforce."
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Completion",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " – D2L sends completions, awards, grades → Salesforce updates records."
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Progression",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " – Salesforce auto-enrolls learner into next course in sequence."
+                    }
+                  ]
+                }
+              ],
+              "style": "ordered",
+              "indent": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_section",
+              "elements": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1755458582.589139",
+      "client_msg_id": "79053dec-1456-44e3-a0c9-59fbcad62316",
+      "text": "Awesome. The TL;DR is perfect :+1:",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "fH44v",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Awesome. The TL;DR is perfect "
+                },
+                {
+                  "type": "emoji",
+                  "name": "+1",
+                  "unicode": "1f44d"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "UM3V8V1NK"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1757503709.451069",
+      "client_msg_id": "df427a4f-855d-4ee7-8489-6e18df560482",
+      "text": "No replacement",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "xvly/",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "No replacement"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "UM3V8V1NK"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1757504259.039689",
+      "client_msg_id": "4f558abc-57be-4711-9b84-02a51c6b1949",
+      "text": "But, we will be doing a full rebuild. Most of what we did was just reinventing the wheel because ISTE didn't want to change their ways. We are going to reshape it to use as much as D2L as possible.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "gvq24",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "But, we will be doing a full rebuild. Most of what we did was just reinventing the wheel because ISTE didn't want to change their ways. We are going to reshape it to use as much as D2L as possible."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U35PLGF3M",
+      "text": "<@U35PLGF3M> has joined the channel",
+      "inviter": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770032150.494599"
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770032388.809579",
+      "client_msg_id": "15011b2d-d451-4ad2-8f5a-7ae73dee7db3",
+      "text": "<https://docs.valence.desire2learn.com/reference.html>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "yKeZh",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "link",
+                  "url": "https://docs.valence.desire2learn.com/reference.html"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subtype": "channel_name",
+      "user": "UM3V8V1NK",
+      "old_name": "d2l-replacement",
+      "name": "d2l-learning-academy",
+      "text": "has renamed the channel from \"d2l-replacement\" to \"d2l-learning-academy\"",
+      "type": "message",
+      "ts": "1770054520.082039"
+    },
+    {
+      "text": "This is a working document and will continue to evolve as discussions progress.\nPlease find the attached draft document prepared by the business outlining the requirements.",
+      "files": [
+        {
+          "id": "F0ACL6N9C3E",
+          "created": 1770054647,
+          "timestamp": 1770054647,
+          "name": "Learning Academy Business Requirements for DevPixel.docx",
+          "title": "Learning Academy Business Requirements for DevPixel.docx",
+          "mimetype": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "filetype": "docx",
+          "pretty_type": "Word Document",
+          "user": "UM3V8V1NK",
+          "user_team": "T355R0RT3",
+          "editable": false,
+          "size": 269672,
+          "mode": "hosted",
+          "is_external": false,
+          "external_type": "",
+          "is_public": false,
+          "public_url_shared": false,
+          "display_as_bot": false,
+          "username": "",
+          "url_private": "https://files.slack.com/files-pri/T355R0RT3-F0ACL6N9C3E/learning_academy_business_requirements_for_devpixel.docx",
+          "url_private_download": "https://files.slack.com/files-pri/T355R0RT3-F0ACL6N9C3E/download/learning_academy_business_requirements_for_devpixel.docx",
+          "media_display_type": "unknown",
+          "converted_pdf": "https://files.slack.com/files-tmb/T355R0RT3-F0ACL6N9C3E-e90fff51a3/learning_academy_business_requirements_for_devpixel_converted.pdf",
+          "thumb_pdf": "https://files.slack.com/files-tmb/T355R0RT3-F0ACL6N9C3E-e90fff51a3/learning_academy_business_requirements_for_devpixel_thumb_pdf.png",
+          "thumb_pdf_w": 935,
+          "thumb_pdf_h": 1210,
+          "permalink": "https://devpixeled.slack.com/files/UM3V8V1NK/F0ACL6N9C3E/learning_academy_business_requirements_for_devpixel.docx",
+          "permalink_public": "https://slack-files.com/T355R0RT3-F0ACL6N9C3E-60369bf0e9",
+          "is_starred": false,
+          "skipped_shares": true,
+          "has_rich_preview": false,
+          "file_access": "visible"
+        }
+      ],
+      "upload": false,
+      "user": "UM3V8V1NK",
+      "display_as_bot": false,
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "bMSNr",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "This is a working document and will continue to evolve as discussions progress.\nPlease find the attached draft document prepared by the business outlining the requirements."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "message",
+      "ts": "1770054665.567329",
+      "client_msg_id": "c90edd6e-4ccd-4e99-a9a6-afc8ef86e917",
+      "thread_ts": "1770054665.567329",
+      "reply_count": 1,
+      "reply_users_count": 1,
+      "latest_reply": "1770056214.349989",
+      "reply_users": [
+        "UM3V8V1NK"
+      ],
+      "is_locked": false,
+      "subscribed": true,
+      "last_read": "1770056214.349989"
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1770054980.006519",
+      "client_msg_id": "bd163a95-183a-46bb-b15b-5a0e2ab0b3e9",
+      "text": "We need the API review to complete asap",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "igz4m",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "We need the API review to complete asap"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1770055039.145129",
+      "client_msg_id": "909d2b4a-14e4-49ba-af05-baaf55a4ddee",
+      "text": "We need to know the options we have for implementing each feature, as well as where the potential issues are for what ISTE is about to ask D2L",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "++FH3",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "We need to know the options we have for implementing each feature, as well as where the potential issues are for what ISTE is about to ask D2L"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1770055142.695509",
+      "client_msg_id": "44e74f39-afe5-449a-aa32-674b463f3d5d",
+      "text": "Those 3 should be done with their reviews soon, right? At the very least, they should already have a good idea of where everything is and how to quickly get answers to questions they don't already know the answers to.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ThGVS",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Those 3 should be done with their reviews soon, right? At the very least, they should already have a good idea of where everything is and how to quickly get answers to questions they don't already know the answers to."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770055771.793109",
+      "client_msg_id": "c11cf7ae-a22a-429b-82f0-7c47b327d71b",
+      "text": "Yes, Aris.\nDay 1: Shared mental model of the platform and how major components fit together - *Done*\nDay 2: Inventory of available capabilities and exposed APIs - *Done*\nDay 3: Identified constraints, limits, and non-negotiable boundaries - *Done*\nDay 4: Mapped capability patterns and common integration approaches - *To Do*\nDay 5: Synthesized findings into summary and recommendations - *To Do*",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Cj1Fq",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Yes, Aris.\nDay 1: Shared mental model of the platform and how major components fit together - "
+                },
+                {
+                  "type": "text",
+                  "text": "Done",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\nDay 2: Inventory of available capabilities and exposed APIs - "
+                },
+                {
+                  "type": "text",
+                  "text": "Done",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\nDay 3: Identified constraints, limits, and non-negotiable boundaries - "
+                },
+                {
+                  "type": "text",
+                  "text": "Done",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\nDay 4: Mapped capability patterns and common integration approaches - "
+                },
+                {
+                  "type": "text",
+                  "text": "To Do",
+                  "style": {
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": "\nDay 5: Synthesized findings into summary and recommendations - "
+                },
+                {
+                  "type": "text",
+                  "text": "To Do",
+                  "style": {
+                    "bold": true
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U08FS8VDFSR",
+      "text": "<@U08FS8VDFSR> has joined the channel",
+      "inviter": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770056007.506189"
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U08SA26H4LT",
+      "text": "<@U08SA26H4LT> has joined the channel",
+      "inviter": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770056014.835109"
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U0A0LLMHPKP",
+      "text": "<@U0A0LLMHPKP> has joined the channel",
+      "inviter": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770056019.293809"
+    },
+    {
+      "subtype": "thread_broadcast",
+      "user": "UM3V8V1NK",
+      "thread_ts": "1770054665.567329",
+      "root": {
+        "text": "This is a working document and will continue to evolve as discussions progress.\nPlease find the attached draft document prepared by the business outlining the requirements.",
+        "files": [
+          {
+            "id": "F0ACL6N9C3E",
+            "created": 1770054647,
+            "timestamp": 1770054647,
+            "name": "Learning Academy Business Requirements for DevPixel.docx",
+            "title": "Learning Academy Business Requirements for DevPixel.docx",
+            "mimetype": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "filetype": "docx",
+            "pretty_type": "Word Document",
+            "user": "UM3V8V1NK",
+            "user_team": "T355R0RT3",
+            "editable": false,
+            "size": 269672,
+            "mode": "hosted",
+            "is_external": false,
+            "external_type": "",
+            "is_public": false,
+            "public_url_shared": false,
+            "display_as_bot": false,
+            "username": "",
+            "url_private": "https://files.slack.com/files-pri/T355R0RT3-F0ACL6N9C3E/learning_academy_business_requirements_for_devpixel.docx",
+            "url_private_download": "https://files.slack.com/files-pri/T355R0RT3-F0ACL6N9C3E/download/learning_academy_business_requirements_for_devpixel.docx",
+            "media_display_type": "unknown",
+            "converted_pdf": "https://files.slack.com/files-tmb/T355R0RT3-F0ACL6N9C3E-e90fff51a3/learning_academy_business_requirements_for_devpixel_converted.pdf",
+            "thumb_pdf": "https://files.slack.com/files-tmb/T355R0RT3-F0ACL6N9C3E-e90fff51a3/learning_academy_business_requirements_for_devpixel_thumb_pdf.png",
+            "thumb_pdf_w": 935,
+            "thumb_pdf_h": 1210,
+            "permalink": "https://devpixeled.slack.com/files/UM3V8V1NK/F0ACL6N9C3E/learning_academy_business_requirements_for_devpixel.docx",
+            "permalink_public": "https://slack-files.com/T355R0RT3-F0ACL6N9C3E-60369bf0e9",
+            "is_starred": false,
+            "skipped_shares": true,
+            "has_rich_preview": false,
+            "file_access": "visible"
+          }
+        ],
+        "upload": false,
+        "user": "UM3V8V1NK",
+        "display_as_bot": false,
+        "blocks": [
+          {
+            "type": "rich_text",
+            "block_id": "bMSNr",
+            "elements": [
+              {
+                "type": "rich_text_section",
+                "elements": [
+                  {
+                    "type": "text",
+                    "text": "This is a working document and will continue to evolve as discussions progress.\nPlease find the attached draft document prepared by the business outlining the requirements."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "type": "message",
+        "ts": "1770054665.567329",
+        "client_msg_id": "c90edd6e-4ccd-4e99-a9a6-afc8ef86e917",
+        "thread_ts": "1770054665.567329",
+        "reply_count": 1,
+        "reply_users_count": 1,
+        "latest_reply": "1770056214.349989",
+        "reply_users": [
+          "UM3V8V1NK"
+        ],
+        "is_locked": false,
+        "subscribed": true,
+        "last_read": "1770056214.349989"
+      },
+      "type": "message",
+      "ts": "1770056214.349989",
+      "client_msg_id": "cd4e42e5-43f3-4ce6-824f-562225ee77d0",
+      "text": "<@U08FS8VDFSR> <@U08SA26H4LT> <@U0A0LLMHPKP> please go through this document first thing tomorrow and we will catch up post lunch.",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Wwklw",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U08FS8VDFSR"
+                },
+                {
+                  "type": "text",
+                  "text": " "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U08SA26H4LT"
+                },
+                {
+                  "type": "text",
+                  "text": " "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U0A0LLMHPKP"
+                },
+                {
+                  "type": "text",
+                  "text": " please go through this document first thing tomorrow and we will catch up post lunch."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U0A0LLMHPKP",
+            "U08FS8VDFSR"
+          ],
+          "count": 2
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770105640.995179",
+      "client_msg_id": "b16a217c-72a9-46fb-8276-35b1be4ac938",
+      "text": "@team This is a living document and will be kept up to date.\n<https://docs.google.com/document/d/1ZiKD5tndLiZqM8LiTUZuhIgqj-OpuIAK/edit#heading=h.fyz4s7f3xnna|Learning Academy Business Requirements for DevPixel>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "JAgno",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "@team This is a living document and will be kept up to date.\n"
+                },
+                {
+                  "type": "link",
+                  "url": "https://docs.google.com/document/d/1ZiKD5tndLiZqM8LiTUZuhIgqj-OpuIAK/edit#heading=h.fyz4s7f3xnna",
+                  "text": "Learning Academy Business Requirements for DevPixel"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "pinned_to": [
+        "C09BCA59P4G"
+      ],
+      "pinned_info": {
+        "channel": "C09BCA59P4G",
+        "pinned_by": "UM3V8V1NK",
+        "pinned_ts": 1770105653
+      },
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U08FS8VDFSR"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1770136576.983879",
+      "client_msg_id": "d104f671-96e7-4d21-ac58-b430b76ad8a6",
+      "text": "Where are we with this?",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ST64F",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Where are we with this?"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770136929.392609",
+      "client_msg_id": "79d8324a-7e65-4be9-8cba-53f070a2860d",
+      "text": "<@U02JFCNHKHB> Day 4: Mapped capability patterns and common integration approaches - deliverables have been included into this folder: <https://drive.google.com/drive/folders/1bFBTkEWNESe-84OIPPddUIlwqagzVBbg|D2L 2026>\n\nThe ISTE business requirements will be reviewed on priority tomorrow now that the consolidation of D2L capabilities and the limitations is complete.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "B01xw",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U02JFCNHKHB"
+                },
+                {
+                  "type": "text",
+                  "text": " Day 4: Mapped capability patterns and common integration approaches - deliverables have been included into this folder: "
+                },
+                {
+                  "type": "link",
+                  "url": "https://drive.google.com/drive/folders/1bFBTkEWNESe-84OIPPddUIlwqagzVBbg",
+                  "text": "D2L 2026"
+                },
+                {
+                  "type": "text",
+                  "text": "\n\nThe ISTE business requirements will be reviewed on priority tomorrow now that the consolidation of D2L capabilities and the limitations is complete."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U02JFCNHKHB"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1770137604.928959",
+      "client_msg_id": "47702cf2-7a83-41be-b8f0-cf22d4541bb1",
+      "text": "For tomorrow, focus on listing out all the integration options: \n\n1. What must be passed between D2L and SF\n2. What could be passed from D2L to SF, but not absolutely necessary \n3. What cannot be passed between the two, or can be passed but not recommended\nThis will give us a good picture on how to divide the LA responsibilities between D2L and SF. \n\nDo this in the morning, so we can review and selectively dive deeper later in the day. We need to decide if we want to attend the meeting with D2L by the end of tomorrow, so I can inform Brian in his early afternoon.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ZJSuc",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "For tomorrow, focus on listing out all the integration options: \n\n"
+                }
+              ]
+            },
+            {
+              "type": "rich_text_list",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "What must be passed between D2L and SF"
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "What could be passed from D2L to SF, but not absolutely necessary "
+                    }
+                  ]
+                },
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "What cannot be passed between the two, or can be passed but not recommended"
+                    }
+                  ]
+                }
+              ],
+              "style": "ordered",
+              "indent": 0,
+              "offset": 0,
+              "border": 0
+            },
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "\nThis will give us a good picture on how to divide the LA responsibilities between D2L and SF. \n\nDo this in the morning, so we can review and selectively dive deeper later in the day. We need to decide if we want to attend the meeting with D2L by the end of tomorrow, so I can inform Brian in his early afternoon."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1770137711.070069",
+      "client_msg_id": "27daec46-07b6-44fb-889e-e60380e96e18",
+      "text": "<@U37KPJ30D> please work directly on this with them. We need to be very accurate.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Lo7DX",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": " please work directly on this with them. We need to be very accurate."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U37KPJ30D",
+            "UM3V8V1NK"
+          ],
+          "count": 2
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1770197800.381689",
+      "client_msg_id": "aee7dfe3-db86-4969-ac26-e3d8cc5b1930",
+      "text": "Where are we on this?",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "LXdfv",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Where are we on this?"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770198031.884659",
+      "client_msg_id": "0193ec9f-b657-451d-aaf8-ce4e58dc9d06",
+      "text": "Checking in on the ARA Salesforce documentation and will meet with the team immediately after, Aris.\nWill update here asap.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "eeTgd",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Checking in on the ARA Salesforce documentation and will meet with the team immediately after, Aris.\nWill update here asap."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770198074.449909",
+      "client_msg_id": "3d498884-7310-47f2-8d7c-0e1c138506de",
+      "text": "<@U08SA26H4LT> <@U08FS8VDFSR> and <@U0A0LLMHPKP> have gone through the requirement document.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Ifm9k",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U08SA26H4LT"
+                },
+                {
+                  "type": "text",
+                  "text": " "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U08FS8VDFSR"
+                },
+                {
+                  "type": "text",
+                  "text": " and "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U0A0LLMHPKP"
+                },
+                {
+                  "type": "text",
+                  "text": " have gone through the requirement document."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1770198198.025029",
+      "client_msg_id": "82074949-d65e-4b7b-aa73-f3b1c5c75e3c",
+      "text": "And what have you all concluded for the 3 questions above?",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "PVKYQ",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "And what have you all concluded for the 3 questions above?"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U08FS8VDFSR",
+      "type": "message",
+      "ts": "1770199245.200069",
+      "client_msg_id": "3b37fbdb-4c0c-475b-a494-5049328c52dc",
+      "text": "<@U02JFCNHKHB>, We have completed the analysis for the three questions mentioned above, and the findings have been documented in the ‘Integration Analysis’ folder on the drive. Kindly review the document for detailed insights.\n<https://drive.google.com/drive/folders/1tTTK4trmd7DSVbKTA7srhSogIcyIHqJO|D2L-Salesforce Integration Analysis>",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "1qb+W",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "user",
+                  "user_id": "U02JFCNHKHB"
+                },
+                {
+                  "type": "text",
+                  "text": ", We have completed the analysis for the three questions mentioned above, and the findings have been documented in the ‘Integration Analysis’ folder on the drive. Kindly review the document for detailed insights.\n"
+                },
+                {
+                  "type": "link",
+                  "url": "https://drive.google.com/drive/folders/1tTTK4trmd7DSVbKTA7srhSogIcyIHqJO",
+                  "text": "D2L-Salesforce Integration Analysis"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1770201569.019909",
+      "client_msg_id": "cd24e072-3098-4181-8b25-ca8c858134d5",
+      "text": "Thank you",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "VoJ9i",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Thank you"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Looks like the redirection after login is not setup. We might have to take that up <@U37KPJ30D>?\nCurrently it displays as a blank page and traversing to the URL again gets us in.",
+      "files": [
+        {
+          "id": "F0ACV1C28KY",
+          "created": 1770202522,
+          "timestamp": 1770202522,
+          "name": "Screenshot 2026-02-04 at 4.23.54 PM.png",
+          "title": "Screenshot 2026-02-04 at 4.23.54 PM.png",
+          "mimetype": "image/png",
+          "filetype": "png",
+          "pretty_type": "PNG",
+          "user": "UM3V8V1NK",
+          "user_team": "T355R0RT3",
+          "editable": false,
+          "size": 107906,
+          "mode": "hosted",
+          "is_external": false,
+          "external_type": "",
+          "is_public": false,
+          "public_url_shared": false,
+          "display_as_bot": false,
+          "username": "",
+          "url_private": "https://files.slack.com/files-pri/T355R0RT3-F0ACV1C28KY/screenshot_2026-02-04_at_4.23.54___pm.png",
+          "url_private_download": "https://files.slack.com/files-pri/T355R0RT3-F0ACV1C28KY/download/screenshot_2026-02-04_at_4.23.54___pm.png",
+          "media_display_type": "unknown",
+          "thumb_64": "https://files.slack.com/files-tmb/T355R0RT3-F0ACV1C28KY-554a4627fe/screenshot_2026-02-04_at_4.23.54___pm_64.png",
+          "thumb_80": "https://files.slack.com/files-tmb/T355R0RT3-F0ACV1C28KY-554a4627fe/screenshot_2026-02-04_at_4.23.54___pm_80.png",
+          "thumb_360": "https://files.slack.com/files-tmb/T355R0RT3-F0ACV1C28KY-554a4627fe/screenshot_2026-02-04_at_4.23.54___pm_360.png",
+          "thumb_360_w": 360,
+          "thumb_360_h": 189,
+          "thumb_480": "https://files.slack.com/files-tmb/T355R0RT3-F0ACV1C28KY-554a4627fe/screenshot_2026-02-04_at_4.23.54___pm_480.png",
+          "thumb_480_w": 480,
+          "thumb_480_h": 252,
+          "thumb_160": "https://files.slack.com/files-tmb/T355R0RT3-F0ACV1C28KY-554a4627fe/screenshot_2026-02-04_at_4.23.54___pm_160.png",
+          "thumb_720": "https://files.slack.com/files-tmb/T355R0RT3-F0ACV1C28KY-554a4627fe/screenshot_2026-02-04_at_4.23.54___pm_720.png",
+          "thumb_720_w": 720,
+          "thumb_720_h": 378,
+          "thumb_800": "https://files.slack.com/files-tmb/T355R0RT3-F0ACV1C28KY-554a4627fe/screenshot_2026-02-04_at_4.23.54___pm_800.png",
+          "thumb_800_w": 800,
+          "thumb_800_h": 420,
+          "thumb_960": "https://files.slack.com/files-tmb/T355R0RT3-F0ACV1C28KY-554a4627fe/screenshot_2026-02-04_at_4.23.54___pm_960.png",
+          "thumb_960_w": 960,
+          "thumb_960_h": 505,
+          "thumb_1024": "https://files.slack.com/files-tmb/T355R0RT3-F0ACV1C28KY-554a4627fe/screenshot_2026-02-04_at_4.23.54___pm_1024.png",
+          "thumb_1024_w": 1024,
+          "thumb_1024_h": 538,
+          "original_w": 2858,
+          "original_h": 1502,
+          "thumb_tiny": "AwAaADDT60hUHqAfrS0UAHSiiigAooooAKKKKACiiigAooooA//Z",
+          "permalink": "https://devpixeled.slack.com/files/UM3V8V1NK/F0ACV1C28KY/screenshot_2026-02-04_at_4.23.54___pm.png",
+          "permalink_public": "https://slack-files.com/T355R0RT3-F0ACV1C28KY-96d044aca8",
+          "is_starred": false,
+          "skipped_shares": true,
+          "has_rich_preview": false,
+          "file_access": "visible"
+        },
+        {
+          "id": "F0ACX4GF95Y",
+          "created": 1770203036,
+          "timestamp": 1770203036,
+          "name": "D2L ISTE Test.mov",
+          "title": "D2L ISTE Test.mov",
+          "mimetype": "video/quicktime",
+          "filetype": "mov",
+          "pretty_type": "QuickTime Movie",
+          "user": "UM3V8V1NK",
+          "user_team": "T355R0RT3",
+          "editable": false,
+          "size": 9423970,
+          "mode": "hosted",
+          "is_external": false,
+          "external_type": "",
+          "is_public": false,
+          "public_url_shared": false,
+          "display_as_bot": false,
+          "username": "",
+          "is_transcription_region_supported": true,
+          "transcription": {
+            "status": "fatal"
+          },
+          "mp4": "https://files.slack.com/files-tmb/T355R0RT3-F0ACX4GF95Y-a2a1ace1ab/d2l_iste_test.mp4",
+          "url_private": "https://files.slack.com/files-tmb/T355R0RT3-F0ACX4GF95Y-a2a1ace1ab/d2l_iste_test.mp4",
+          "url_private_download": "https://files.slack.com/files-pri/T355R0RT3-F0ACX4GF95Y/download/d2l_iste_test.mov",
+          "hls": "https://files.slack.com/files-tmb/T355R0RT3-F0ACX4GF95Y-a2a1ace1ab/file.m3u8?_xcb=dd95e",
+          "hls_embed": "data:application/vnd.apple.mpegurl;base64,I0VYVE0zVQojRVhULVgtVkVSU0lPTjozCiNFWFQtWC1JTkRFUEVOREVOVC1TRUdNRU5UUwojRVhULVgtU1RSRUFNLUlORjpCQU5EV0lEVEg9NTk3NzQzLEFWRVJBR0UtQkFORFdJRFRIPTM1NjYyNixDT0RFQ1M9ImF2YzEuNjQwMDI4LG1wNGEuNDAuNSIsUkVTT0xVVElPTj0xOTAyeDEwODAsRlJBTUUtUkFURT0yOS45NzAKZGF0YTphcHBsaWNhdGlvbi92bmQuYXBwbGUubXBlZ3VybDtiYXNlNjQsSTBWWVZFMHpWUW9qUlZoVUxWZ3RWa1ZTVTBsUFRqb3pDaU5GV0ZRdFdDMVVRVkpIUlZSRVZWSkJWRWxQVGpvM0NpTkZXRlF0V0MxTlJVUkpRUzFUUlZGVlJVNURSVG94Q2lORldGUXRXQzFRVEVGWlRFbFRWQzFVV1ZCRk9sWlBSQW9qUlZoVVNVNUdPall1TURBMkxBcG9kSFJ3Y3pvdkwyWnBiR1Z6TG5Oc1lXTnJMbU52YlM5bWFXeGxjeTEwYldJdlZETTFOVkl3VWxRekxVWXdRVU5ZTkVkR09UVlpMV0V5WVRGaFkyVXhZV0l2Wm1sc1pWOUlYekkyTkY4eE9USXdlREV3T0RCZk5qVXdNRXRDVUZOZk4xRldRbEpmTURBd01ERXVkSE1LSTBWWVZFbE9Sam8yTGpBd05pd0thSFIwY0hNNkx5OW1hV3hsY3k1emJHRmpheTVqYjIwdlptbHNaWE10ZEcxaUwxUXpOVFZTTUZKVU15MUdNRUZEV0RSSFJqazFXUzFoTW1FeFlXTmxNV0ZpTDJacGJHVmZTRjh5TmpSZk1Ua3lNSGd4TURnd1h6WTFNREJMUWxCVFh6ZFJWa0pTWHpBd01EQXlMblJ6Q2lORldGUkpUa1k2Tmk0d01EWXNDbWgwZEhCek9pOHZabWxzWlhNdWMyeGhZMnN1WTI5dEwyWnBiR1Z6TFhSdFlpOVVNelUxVWpCU1ZETXRSakJCUTFnMFIwWTVOVmt0WVRKaE1XRmpaVEZoWWk5bWFXeGxYMGhmTWpZMFh6RTVNakI0TVRBNE1GODJOVEF3UzBKUVUxODNVVlpDVWw4d01EQXdNeTUwY3dvalJWaFVTVTVHT2pZdU1EQTJMQXBvZEhSd2N6b3ZMMlpwYkdWekxuTnNZV05yTG1OdmJTOW1hV3hsY3kxMGJXSXZWRE0xTlZJd1VsUXpMVVl3UVVOWU5FZEdPVFZaTFdFeVlURmhZMlV4WVdJdlptbHNaVjlJWHpJMk5GOHhPVEl3ZURFd09EQmZOalV3TUV0Q1VGTmZOMUZXUWxKZk1EQXdNRFF1ZEhNS0kwVllWRWxPUmpvMkxqQXdOaXdLYUhSMGNITTZMeTltYVd4bGN5NXpiR0ZqYXk1amIyMHZabWxzWlhNdGRHMWlMMVF6TlRWU01GSlVNeTFHTUVGRFdEUkhSamsxV1MxaE1tRXhZV05sTVdGaUwyWnBiR1ZmU0Y4eU5qUmZNVGt5TUhneE1EZ3dYelkxTURCTFFsQlRYemRSVmtKU1h6QXdNREExTG5SekNpTkZXRlJKVGtZNk5pNHdNRFlzQ21oMGRIQnpPaTh2Wm1sc1pYTXVjMnhoWTJzdVkyOXRMMlpwYkdWekxYUnRZaTlVTXpVMVVqQlNWRE10UmpCQlExZzBSMFk1TlZrdFlUSmhNV0ZqWlRGaFlpOW1hV3hsWDBoZk1qWTBYekU1TWpCNE1UQTRNRjgyTlRBd1MwSlFVMTgzVVZaQ1VsOHdNREF3Tmk1MGN3b2pSVmhVU1U1R09qWXVNREEyTEFwb2RIUndjem92TDJacGJHVnpMbk5zWVdOckxtTnZiUzltYVd4bGN5MTBiV0l2VkRNMU5WSXdVbFF6TFVZd1FVTllORWRHT1RWWkxXRXlZVEZoWTJVeFlXSXZabWxzWlY5SVh6STJORjh4T1RJd2VERXdPREJmTmpVd01FdENVRk5mTjFGV1FsSmZNREF3TURjdWRITUtJMFZZVkVsT1JqbzJMakF3Tml3S2FIUjBjSE02THk5bWFXeGxjeTV6YkdGamF5NWpiMjB2Wm1sc1pYTXRkRzFpTDFRek5UVlNNRkpVTXkxR01FRkRXRFJIUmprMVdTMWhNbUV4WVdObE1XRmlMMlpwYkdWZlNGOHlOalJmTVRreU1IZ3hNRGd3WHpZMU1EQkxRbEJUWHpkUlZrSlNYekF3TURBNExuUnpDaU5GV0ZSSlRrWTZOaTR3TURZc0NtaDBkSEJ6T2k4dlptbHNaWE11YzJ4aFkyc3VZMjl0TDJacGJHVnpMWFJ0WWk5VU16VTFVakJTVkRNdFJqQkJRMWcwUjBZNU5Wa3RZVEpoTVdGalpURmhZaTltYVd4bFgwaGZNalkwWHpFNU1qQjRNVEE0TUY4Mk5UQXdTMEpRVTE4M1VWWkNVbDh3TURBd09TNTBjd29qUlZoVVNVNUdPall1TURBMkxBcG9kSFJ3Y3pvdkwyWnBiR1Z6TG5Oc1lXTnJMbU52YlM5bWFXeGxjeTEwYldJdlZETTFOVkl3VWxRekxVWXdRVU5ZTkVkR09UVlpMV0V5WVRGaFkyVXhZV0l2Wm1sc1pWOUlYekkyTkY4eE9USXdlREV3T0RCZk5qVXdNRXRDVUZOZk4xRldRbEpmTURBd01UQXVkSE1LSTBWWVZFbE9Sam8yTGpBd05pd0thSFIwY0hNNkx5OW1hV3hsY3k1emJHRmpheTVqYjIwdlptbHNaWE10ZEcxaUwxUXpOVFZTTUZKVU15MUdNRUZEV0RSSFJqazFXUzFoTW1FeFlXTmxNV0ZpTDJacGJHVmZTRjh5TmpSZk1Ua3lNSGd4TURnd1h6WTFNREJMUWxCVFh6ZFJWa0pTWHpBd01ERXhMblJ6Q2lORldGUkpUa1k2Tmk0d01EWXNDbWgwZEhCek9pOHZabWxzWlhNdWMyeGhZMnN1WTI5dEwyWnBiR1Z6TFhSdFlpOVVNelUxVWpCU1ZETXRSakJCUTFnMFIwWTVOVmt0WVRKaE1XRmpaVEZoWWk5bWFXeGxYMGhmTWpZMFh6RTVNakI0TVRBNE1GODJOVEF3UzBKUVUxODNVVlpDVWw4d01EQXhNaTUwY3dvalJWaFVTVTVHT2pZdU1EQTJMQXBvZEhSd2N6b3ZMMlpwYkdWekxuTnNZV05yTG1OdmJTOW1hV3hsY3kxMGJXSXZWRE0xTlZJd1VsUXpMVVl3UVVOWU5FZEdPVFZaTFdFeVlURmhZMlV4WVdJdlptbHNaVjlJWHpJMk5GOHhPVEl3ZURFd09EQmZOalV3TUV0Q1VGTmZOMUZXUWxKZk1EQXdNVE11ZEhNS0kwVllWRWxPUmpvMkxqQXdOaXdLYUhSMGNITTZMeTltYVd4bGN5NXpiR0ZqYXk1amIyMHZabWxzWlhNdGRHMWlMMVF6TlRWU01GSlVNeTFHTUVGRFdEUkhSamsxV1MxaE1tRXhZV05sTVdGaUwyWnBiR1ZmU0Y4eU5qUmZNVGt5TUhneE1EZ3dYelkxTURCTFFsQlRYemRSVmtKU1h6QXdNREUwTG5SekNpTkZXRlJKVGtZNk5pNHdNRFlzQ21oMGRIQnpPaTh2Wm1sc1pYTXVjMnhoWTJzdVkyOXRMMlpwYkdWekxYUnRZaTlVTXpVMVVqQlNWRE10UmpCQlExZzBSMFk1TlZrdFlUSmhNV0ZqWlRGaFlpOW1hV3hsWDBoZk1qWTBYekU1TWpCNE1UQTRNRjgyTlRBd1MwSlFVMTgzVVZaQ1VsOHdNREF4TlM1MGN3b2pSVmhVU1U1R09qRXVNRFk0TEFwb2RIUndjem92TDJacGJHVnpMbk5zWVdOckxtTnZiUzltYVd4bGN5MTBiV0l2VkRNMU5WSXdVbFF6TFVZd1FVTllORWRHT1RWWkxXRXlZVEZoWTJVeFlXSXZabWxzWlY5SVh6STJORjh4T1RJd2VERXdPREJmTmpVd01FdENVRk5mTjFGV1FsSmZNREF3TVRZdWRITUtJMFZZVkMxWUxVVk9SRXhKVTFRSwo=",
+          "mp4_low": "https://files.slack.com/files-tmb/T355R0RT3-F0ACX4GF95Y-a2a1ace1ab/d2l_iste_test_trans.mp4",
+          "duration_ms": 91157,
+          "media_display_type": "video",
+          "thumb_video": "https://files.slack.com/files-tmb/T355R0RT3-F0ACX4GF95Y-a2a1ace1ab/d2l_iste_test_thumb_video.jpeg",
+          "thumb_video_w": 1482,
+          "thumb_video_h": 842,
+          "permalink": "https://devpixeled.slack.com/files/UM3V8V1NK/F0ACX4GF95Y/d2l_iste_test.mov",
+          "permalink_public": "https://slack-files.com/T355R0RT3-F0ACX4GF95Y-056ddcfc00",
+          "is_starred": false,
+          "skipped_shares": true,
+          "has_rich_preview": false,
+          "file_access": "visible"
+        }
+      ],
+      "upload": false,
+      "user": "UM3V8V1NK",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "y/rIl",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Looks like the redirection after login is not setup. We might have to take that up "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U37KPJ30D"
+                },
+                {
+                  "type": "text",
+                  "text": "?\nCurrently it displays as a blank page and traversing to the URL again gets us in."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "message",
+      "ts": "1770203090.433919",
+      "client_msg_id": "d5476466-ce63-4d42-a39d-c73352b5ffe4"
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770211743.486109",
+      "text": "",
+      "team": "T355R0RT3",
+      "attachments": [
+        {
+          "ts": "1770198199.015799",
+          "author_id": "UM3V8V1NK",
+          "channel_id": "GL17B6QLT",
+          "channel_team": "T355R0RT3",
+          "is_msg_unfurl": true,
+          "message_blocks": [
+            {
+              "team": "T355R0RT3",
+              "channel": "GL17B6QLT",
+              "ts": "1770198199.015799",
+              "message": {
+                "blocks": [
+                  {
+                    "type": "rich_text",
+                    "block_id": "4Wpss",
+                    "elements": [
+                      {
+                        "type": "rich_text_section",
+                        "elements": [
+                          {
+                            "type": "text",
+                            "text": "I am logged in to D2L."
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "files": [
+            {
+              "id": "F0ACF5WQCMD",
+              "created": 1770198183,
+              "timestamp": 1770198183,
+              "name": "Screenshot 2026-02-04 at 3.12.59 PM.png",
+              "title": "Screenshot 2026-02-04 at 3.12.59 PM.png",
+              "mimetype": "image/png",
+              "filetype": "png",
+              "pretty_type": "PNG",
+              "user": "UM3V8V1NK",
+              "user_team": "T355R0RT3",
+              "editable": false,
+              "size": 1133454,
+              "mode": "hosted",
+              "is_external": false,
+              "external_type": "",
+              "is_public": false,
+              "public_url_shared": false,
+              "display_as_bot": false,
+              "username": "",
+              "url_private": "https://files.slack.com/files-pri/T355R0RT3-F0ACF5WQCMD/screenshot_2026-02-04_at_3.12.59___pm.png",
+              "url_private_download": "https://files.slack.com/files-pri/T355R0RT3-F0ACF5WQCMD/download/screenshot_2026-02-04_at_3.12.59___pm.png",
+              "media_display_type": "unknown",
+              "thumb_64": "https://files.slack.com/files-tmb/T355R0RT3-F0ACF5WQCMD-0b4ecf4a51/screenshot_2026-02-04_at_3.12.59___pm_64.png",
+              "thumb_80": "https://files.slack.com/files-tmb/T355R0RT3-F0ACF5WQCMD-0b4ecf4a51/screenshot_2026-02-04_at_3.12.59___pm_80.png",
+              "thumb_360": "https://files.slack.com/files-tmb/T355R0RT3-F0ACF5WQCMD-0b4ecf4a51/screenshot_2026-02-04_at_3.12.59___pm_360.png",
+              "thumb_360_w": 360,
+              "thumb_360_h": 221,
+              "thumb_480": "https://files.slack.com/files-tmb/T355R0RT3-F0ACF5WQCMD-0b4ecf4a51/screenshot_2026-02-04_at_3.12.59___pm_480.png",
+              "thumb_480_w": 480,
+              "thumb_480_h": 294,
+              "thumb_160": "https://files.slack.com/files-tmb/T355R0RT3-F0ACF5WQCMD-0b4ecf4a51/screenshot_2026-02-04_at_3.12.59___pm_160.png",
+              "thumb_720": "https://files.slack.com/files-tmb/T355R0RT3-F0ACF5WQCMD-0b4ecf4a51/screenshot_2026-02-04_at_3.12.59___pm_720.png",
+              "thumb_720_w": 720,
+              "thumb_720_h": 442,
+              "thumb_800": "https://files.slack.com/files-tmb/T355R0RT3-F0ACF5WQCMD-0b4ecf4a51/screenshot_2026-02-04_at_3.12.59___pm_800.png",
+              "thumb_800_w": 800,
+              "thumb_800_h": 491,
+              "thumb_960": "https://files.slack.com/files-tmb/T355R0RT3-F0ACF5WQCMD-0b4ecf4a51/screenshot_2026-02-04_at_3.12.59___pm_960.png",
+              "thumb_960_w": 960,
+              "thumb_960_h": 589,
+              "thumb_1024": "https://files.slack.com/files-tmb/T355R0RT3-F0ACF5WQCMD-0b4ecf4a51/screenshot_2026-02-04_at_3.12.59___pm_1024.png",
+              "thumb_1024_w": 1024,
+              "thumb_1024_h": 628,
+              "original_w": 2898,
+              "original_h": 1778,
+              "thumb_tiny": "AwAeADDSYEj5SAfcZoAOPmIJ9himSyeVEzkZx2qvFfeaceVjHvmjoBbyM4yM+lLxUHnjcRsP1pyybmxtxn3qeZAPYMSMMAMjtS4Gc4GaYJQzFQPm5wCeuOO2e9PBBAI6GqAbJjy2BYKCMZPamIUSLZvUnHRTj8uakdQ6lT3qNbaNCW2njn7xoAcREEI3AAjBOf8AGiPylyEYFjyeeTTBF5gIZQOBjDHr+ntTkgRG3KOexyTQvMCXNJRRQB//2Q==",
+              "permalink": "https://devpixeled.slack.com/files/UM3V8V1NK/F0ACF5WQCMD/screenshot_2026-02-04_at_3.12.59___pm.png",
+              "permalink_public": "https://slack-files.com/T355R0RT3-F0ACF5WQCMD-07bc336645",
+              "comments_count": 0,
+              "is_starred": false,
+              "skipped_shares": true,
+              "has_rich_preview": false,
+              "file_access": "visible"
+            }
+          ],
+          "color": "D0D0D0",
+          "from_url": "https://devpixeled.slack.com/archives/GL17B6QLT/p1770198199015799",
+          "is_share": true,
+          "fallback": "[February 4th, 2026 3:13 PM] himabindu: I am logged in to D2L.",
+          "text": "I am logged in to D2L.",
+          "author_name": "Bindu Guduru",
+          "author_link": "https://devpixeled.slack.com/team/UM3V8V1NK",
+          "author_icon": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_48.jpg",
+          "author_subname": "Bindu Guduru",
+          "mrkdwn_in": [
+            "text"
+          ],
+          "footer": "Slack Conversation"
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770211755.653359",
+      "text": "",
+      "team": "T355R0RT3",
+      "attachments": [
+        {
+          "ts": "1770201500.098289",
+          "author_id": "UM3V8V1NK",
+          "channel_id": "GL17B6QLT",
+          "channel_team": "T355R0RT3",
+          "is_msg_unfurl": true,
+          "message_blocks": [
+            {
+              "team": "T355R0RT3",
+              "channel": "GL17B6QLT",
+              "ts": "1770201500.098289",
+              "message": {
+                "blocks": [
+                  {
+                    "type": "rich_text",
+                    "block_id": "04Upc",
+                    "elements": [
+                      {
+                        "type": "rich_text_section",
+                        "elements": [
+                          {
+                            "type": "link",
+                            "url": "https://istetest.brightspace.com/"
+                          },
+                          {
+                            "type": "text",
+                            "text": "\nUsername: "
+                          },
+                          {
+                            "type": "link",
+                            "url": "mailto:d2lapi@iste.org",
+                            "text": "d2lapi@iste.org"
+                          },
+                          {
+                            "type": "text",
+                            "text": "\nSharing password individually."
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "color": "D0D0D0",
+          "from_url": "https://devpixeled.slack.com/archives/GL17B6QLT/p1770201500098289",
+          "is_share": true,
+          "fallback": "[February 4th, 2026 4:08 PM] himabindu: <https://istetest.brightspace.com/>\nUsername: <mailto:d2lapi@iste.org|d2lapi@iste.org>\nSharing password individually.",
+          "text": "<https://istetest.brightspace.com/>\nUsername: <mailto:d2lapi@iste.org|d2lapi@iste.org>\nSharing password individually.",
+          "author_name": "Bindu Guduru",
+          "author_link": "https://devpixeled.slack.com/team/UM3V8V1NK",
+          "author_icon": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_48.jpg",
+          "author_subname": "Bindu Guduru",
+          "mrkdwn_in": [
+            "text"
+          ],
+          "footer": "Slack Conversation"
+        }
+      ]
+    },
+    {
+      "user": "UM3V8V1NK",
+      "type": "message",
+      "ts": "1770276898.232679",
+      "client_msg_id": "90c892ee-b1a5-4dc6-b56d-b5a0d8488e02",
+      "text": "The '<https://docs.google.com/document/d/1_4sipL3lkdpIVK3oSoAfOp_IAjOd_d8a0q3mm2Syd7c/edit?tab=t.0|Internal - d2l_followup_questions_ben>' is pretty elaborate. As mentioned, please go through this also for background and clarity <@U08SA26H4LT> <@U08FS8VDFSR> <@U0A0LLMHPKP>. Feel free to raise any questions you might have for additional conversations.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "QwI0F",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "The '"
+                },
+                {
+                  "type": "link",
+                  "url": "https://docs.google.com/document/d/1_4sipL3lkdpIVK3oSoAfOp_IAjOd_d8a0q3mm2Syd7c/edit?tab=t.0",
+                  "text": "Internal - d2l_followup_questions_ben"
+                },
+                {
+                  "type": "text",
+                  "text": "' is pretty elaborate. As mentioned, please go through this also for background and clarity "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U08SA26H4LT"
+                },
+                {
+                  "type": "text",
+                  "text": " "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U08FS8VDFSR"
+                },
+                {
+                  "type": "text",
+                  "text": " "
+                },
+                {
+                  "type": "user",
+                  "user_id": "U0A0LLMHPKP"
+                },
+                {
+                  "type": "text",
+                  "text": ". Feel free to raise any questions you might have for additional conversations."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U08FS8VDFSR",
+            "U0A0LLMHPKP",
+            "U08SA26H4LT"
+          ],
+          "count": 3
+        }
+      ]
+    },
+    {
+      "user": "U02JFCNHKHB",
+      "type": "message",
+      "ts": "1770384052.534159",
+      "client_msg_id": "af83d1c1-86ad-46f3-ae86-e7a5cec278ba",
+      "text": "Discover will be disabled in D2L. Course browsing will be handled in Salesforce.",
+      "team": "T355R0RT3",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "ymq4o",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Discover will be disabled in D2L. Course browsing will be handled in Salesforce."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U08SA26H4LT",
+            "U08FS8VDFSR"
+          ],
+          "count": 2
+        }
+      ]
+    },
+    {
+      "text": "Here are the operations: <https://docs.google.com/presentation/d/18gDLb3wB8ZjTSS-T1E6pwatr4SOEyZ362F4wIECBZRA/edit?usp=sharing>",
+      "files": [
+        {
+          "id": "F0ADNKAQU7N",
+          "created": 1770414359,
+          "timestamp": 1770414359,
+          "name": "Learning Academy - Operations Setup",
+          "title": "Learning Academy - Operations Setup",
+          "mimetype": "application/vnd.google-apps.presentation",
+          "filetype": "gpres",
+          "pretty_type": "Google Slides",
+          "user": "U02JFCNHKHB",
+          "user_team": "T355R0RT3",
+          "editable": false,
+          "size": 37957,
+          "mode": "external",
+          "is_external": true,
+          "external_type": "gdrive",
+          "is_public": false,
+          "public_url_shared": false,
+          "display_as_bot": false,
+          "username": "",
+          "external_id": "18gDLb3wB8ZjTSS-T1E6pwatr4SOEyZ362F4wIECBZRA",
+          "external_url": "https://docs.google.com/presentation/d/18gDLb3wB8ZjTSS-T1E6pwatr4SOEyZ362F4wIECBZRA/edit?usp=sharing",
+          "url_private": "https://docs.google.com/presentation/d/18gDLb3wB8ZjTSS-T1E6pwatr4SOEyZ362F4wIECBZRA/edit?usp=sharing",
+          "media_display_type": "unknown",
+          "thumb_64": "https://files.slack.com/files-tmb/T355R0RT3-F0ADNKAQU7N-fc3dbf9e70/learning_academy_-_operations_setup_64.png",
+          "thumb_80": "https://files.slack.com/files-tmb/T355R0RT3-F0ADNKAQU7N-fc3dbf9e70/learning_academy_-_operations_setup_80.png",
+          "thumb_360": "https://files.slack.com/files-tmb/T355R0RT3-F0ADNKAQU7N-fc3dbf9e70/learning_academy_-_operations_setup_360.png",
+          "thumb_360_w": 360,
+          "thumb_360_h": 203,
+          "thumb_480": "https://files.slack.com/files-tmb/T355R0RT3-F0ADNKAQU7N-fc3dbf9e70/learning_academy_-_operations_setup_480.png",
+          "thumb_480_w": 480,
+          "thumb_480_h": 270,
+          "thumb_160": "https://files.slack.com/files-tmb/T355R0RT3-F0ADNKAQU7N-fc3dbf9e70/learning_academy_-_operations_setup_160.png",
+          "thumb_720": "https://files.slack.com/files-tmb/T355R0RT3-F0ADNKAQU7N-fc3dbf9e70/learning_academy_-_operations_setup_720.png",
+          "thumb_720_w": 720,
+          "thumb_720_h": 405,
+          "thumb_800": "https://files.slack.com/files-tmb/T355R0RT3-F0ADNKAQU7N-fc3dbf9e70/learning_academy_-_operations_setup_800.png",
+          "thumb_800_w": 800,
+          "thumb_800_h": 450,
+          "original_w": 800,
+          "original_h": 450,
+          "thumb_tiny": "AwAbADDQZwpI3c/TpR50f979KjkjLOzDoKQRvzjbx7f/AFqycpX2LtEm3g+v5GjePf8AI1D5wKhWQEUolDbVC4GRT9ou4cjJ6KgM5ycbSOxp0UhdsEDpV3M7jXlZJGAA/wAim+c3tU7RoxyRzSeTH/d/Ws3Gd9Gapx7EXkoygFiCw9acItvJ6hhjnNSbAPX8zS7B7/mafIuwuZkLwsWJBHJp0URRiTjpUtFXYzsf/9k=",
+          "permalink": "https://devpixeled.slack.com/files/UM3V8V1NK/F0ADNKAQU7N/learning_academy_-_operations_setup",
+          "is_starred": false,
+          "skipped_shares": true,
+          "app_id": "A6NL8MJ6Q",
+          "has_rich_preview": true,
+          "file_access": "visible",
+          "entity_id": "W:A6NL8MJ6Q:18gDLb3wB8ZjTSS-T1E6pwatr4SOEyZ362F4wIECBZRA",
+          "full_size_preview_supported": true
+        }
+      ],
+      "upload": false,
+      "user": "U02JFCNHKHB",
+      "display_as_bot": false,
+      "x_files": [
+        "F0ADNKAQU7N"
+      ],
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "BPE3c",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Here are the operations: "
+                },
+                {
+                  "type": "link",
+                  "url": "https://docs.google.com/presentation/d/18gDLb3wB8ZjTSS-T1E6pwatr4SOEyZ362F4wIECBZRA/edit?usp=sharing"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "message",
+      "ts": "1770414357.998659",
+      "client_msg_id": "f2acd8a4-87e0-414c-925c-b9b4ff21b318",
+      "attachments": [
+        {
+          "from_url": "https://docs.google.com/presentation/d/18gDLb3wB8ZjTSS-T1E6pwatr4SOEyZ362F4wIECBZRA/edit?usp=sharing",
+          "work_object_entity": {
+            "work_object_type": "external",
+            "external_url": "https://docs.google.com/presentation/d/18gDLb3wB8ZjTSS-T1E6pwatr4SOEyZ362F4wIECBZRA/edit?usp=sharing",
+            "entity_id": "W:A6NL8MJ6Q:18gDLb3wB8ZjTSS-T1E6pwatr4SOEyZ362F4wIECBZRA",
+            "app_id": "A6NL8MJ6Q",
+            "app_name": "Google Drive",
+            "product_name": "Google Slides",
+            "display_type": "Presentation",
+            "layouts": {
+              "expanded": {
+                "title": {
+                  "text": "Learning Academy - Operations Setup"
+                },
+                "subtitle": {
+                  "text": "Presentation in Google Slides"
+                },
+                "header_title": {
+                  "text": "Google Slides"
+                },
+                "hover_subtitle": {
+                  "text": "Open in Google Slides"
+                },
+                "product_icon": {
+                  "type": "image",
+                  "block_id": "8IwsQ",
+                  "image_url": "https://a.slack-edge.com/95aff15/img/app-gdrive/icon_presentation.png",
+                  "alt_text": "Google Slides Logo",
+                  "image_width": 512,
+                  "image_height": 512,
+                  "image_bytes": 533,
+                  "fallback": "512x512px image",
+                  "is_animated": true
+                },
+                "layout_type": "expanded",
+                "fields": {
+                  "type": "fields",
+                  "elements": [
+                    {
+                      "type": "field",
+                      "label": "Preview",
+                      "field_type": "image",
+                      "image": [
+                        {
+                          "type": "image",
+                          "block_id": "aAkDo",
+                          "image_url": "https://files.slack.com/files-pri/T355R0RT3-F0ADNKAQU7N/learning_academy_-_operations_setup",
+                          "alt_text": "Learning Academy - Operations Setup",
+                          "image_width": 800,
+                          "image_height": 450,
+                          "image_bytes": 37957,
+                          "fallback": "800x450px image",
+                          "is_animated": true,
+                          "slack_file": {
+                            "id": "F0ADNKAQU7N"
+                          }
+                        }
+                      ],
+                      "field_name": "preview"
+                    }
+                  ]
+                },
+                "actions": {
+                  "primary_actions": [],
+                  "overflow_actions": {
+                    "app_actions": [],
+                    "slack_actions": [
+                      {
+                        "type": "share-link"
+                      },
+                      {
+                        "type": "copy-link"
+                      },
+                      {
+                        "type": "add-to-todo"
+                      },
+                      {
+                        "type": "add-to-list"
+                      },
+                      {
+                        "type": "save-for-later"
+                      },
+                      {
+                        "type": "remind-me"
+                      },
+                      {
+                        "type": "open-in-app",
+                        "style": "primary"
+                      },
+                      {
+                        "type": "add-to-folder"
+                      }
+                    ]
+                  },
+                  "block_payload": {
+                    "service_id": "B85QN2WKW",
+                    "service_team_id": "T355R0RT3",
+                    "container": {
+                      "type": "message_attachment"
+                    }
+                  }
+                }
+              }
+            },
+            "work_object_entity_type": "slack#/entities/file",
+            "full_size_preview": {
+              "is_supported": true,
+              "error": {
+                "code": "file_size_exceeded"
+              }
+            },
+            "app_icons": {
+              "image_36": {
+                "type": "image",
+                "block_id": "j+LW9",
+                "image_url": "https://avatars.slack-edge.com/2020-10-15/1431340572002_5b33ac427113b206abee_36.png",
+                "alt_text": "Google Drive",
+                "image_width": 36,
+                "image_height": 36,
+                "image_bytes": 1843,
+                "fallback": "36x36px image",
+                "is_animated": true
+              },
+              "image_128": {
+                "type": "image",
+                "block_id": "j+LW9",
+                "image_url": "https://avatars.slack-edge.com/2020-10-15/1431340572002_5b33ac427113b206abee_128.png",
+                "alt_text": "Google Drive",
+                "image_width": 128,
+                "image_height": 128,
+                "image_bytes": 6251,
+                "fallback": "128x128px image",
+                "is_animated": true
+              }
+            },
+            "slack_file_id": "F0ADNKAQU7N"
+          },
+          "id": 265629778,
+          "bot_id": "B85QN2WKW",
+          "is_app_unfurl": true
+        }
+      ],
+      "reactions": [
+        {
+          "name": "+1",
+          "users": [
+            "U08FS8VDFSR"
+          ],
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "U02JFCNHKHB",
+      "name": "aris",
+      "is_bot": false,
+      "updated": 1768129777,
+      "is_app_user": false,
+      "team_id": "T355R0RT3",
+      "deleted": false,
+      "color": "4d5e26",
+      "is_email_confirmed": true,
+      "real_name": "Aris Lancrescent",
+      "tz": "Europe/Amsterdam",
+      "tz_label": "Central European Time",
+      "tz_offset": 3600,
+      "is_admin": true,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "has_2fa": false,
+      "who_can_share_contact_card": "EVERYONE",
+      "profile": {
+        "real_name": "Aris Lancrescent",
+        "display_name": "Aris",
+        "avatar_hash": "238c335916ca",
+        "real_name_normalized": "Aris Lancrescent",
+        "display_name_normalized": "Aris",
+        "image_24": "https://avatars.slack-edge.com/2025-12-07/10083765225585_238c335916caeed7dba8_24.jpg",
+        "image_32": "https://avatars.slack-edge.com/2025-12-07/10083765225585_238c335916caeed7dba8_32.jpg",
+        "image_48": "https://avatars.slack-edge.com/2025-12-07/10083765225585_238c335916caeed7dba8_48.jpg",
+        "image_72": "https://avatars.slack-edge.com/2025-12-07/10083765225585_238c335916caeed7dba8_72.jpg",
+        "image_192": "https://avatars.slack-edge.com/2025-12-07/10083765225585_238c335916caeed7dba8_192.jpg",
+        "image_512": "https://avatars.slack-edge.com/2025-12-07/10083765225585_238c335916caeed7dba8_512.jpg",
+        "image_1024": "https://avatars.slack-edge.com/2025-12-07/10083765225585_238c335916caeed7dba8_1024.jpg",
+        "image_original": "https://avatars.slack-edge.com/2025-12-07/10083765225585_238c335916caeed7dba8_original.jpg",
+        "is_custom_image": true,
+        "first_name": "Aris",
+        "last_name": "Lancrescent",
+        "team": "T355R0RT3",
+        "email": "aris@devpixel.com",
+        "title": "",
+        "phone": "",
+        "skype": "",
+        "fields": {},
+        "status_text": "",
+        "status_text_canonical": "",
+        "status_emoji": "",
+        "status_emoji_display_info": [],
+        "status_expiration": 0,
+        "huddle_state": "default_unset",
+        "huddle_state_expiration_ts": 0
+      }
+    },
+    {
+      "id": "UM3V8V1NK",
+      "name": "himabindu",
+      "is_bot": false,
+      "updated": 1769529965,
+      "is_app_user": false,
+      "team_id": "T355R0RT3",
+      "deleted": false,
+      "color": "dc7dbb",
+      "is_email_confirmed": true,
+      "real_name": "Bindu Guduru",
+      "tz": "Asia/Kolkata",
+      "tz_label": "India Standard Time",
+      "tz_offset": 19800,
+      "is_admin": true,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "has_2fa": true,
+      "two_factor_type": "app",
+      "who_can_share_contact_card": "EVERYONE",
+      "profile": {
+        "real_name": "Bindu Guduru",
+        "display_name": "Bindu Guduru",
+        "avatar_hash": "1e45391b7f7a",
+        "real_name_normalized": "Bindu Guduru",
+        "display_name_normalized": "Bindu Guduru",
+        "image_24": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_24.jpg",
+        "image_32": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_32.jpg",
+        "image_48": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_48.jpg",
+        "image_72": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_72.jpg",
+        "image_192": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_192.jpg",
+        "image_512": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_512.jpg",
+        "image_1024": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_1024.jpg",
+        "image_original": "https://avatars.slack-edge.com/2021-06-01/2116082181142_1e45391b7f7a202c4458_original.jpg",
+        "is_custom_image": true,
+        "first_name": "Bindu",
+        "last_name": "Guduru",
+        "team": "T355R0RT3",
+        "email": "bindu@devpixel.com",
+        "title": "Director of Operations",
+        "phone": "9000800106",
+        "skype": "",
+        "fields": {
+          "Xf0402NHB2M6": {
+            "value": "Director of Operations",
+            "alt": ""
+          },
+          "Xf03KM0ZFFSQ": {
+            "value": "9000800106",
+            "alt": ""
+          }
+        },
+        "status_text": "",
+        "status_text_canonical": "",
+        "status_emoji": "",
+        "status_emoji_display_info": [],
+        "status_expiration": 0,
+        "huddle_state": "default_unset",
+        "huddle_state_expiration_ts": 0
+      }
+    },
+    {
+      "id": "U08FS8VDFSR",
+      "name": "vaishnavi.mangali",
+      "is_bot": false,
+      "updated": 1757436341,
+      "is_app_user": false,
+      "team_id": "T355R0RT3",
+      "deleted": false,
+      "color": "ea2977",
+      "is_email_confirmed": true,
+      "real_name": "Vaishnavi Mangali",
+      "tz": "Asia/Kolkata",
+      "tz_label": "India Standard Time",
+      "tz_offset": 19800,
+      "is_admin": false,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "has_2fa": false,
+      "who_can_share_contact_card": "EVERYONE",
+      "profile": {
+        "real_name": "Vaishnavi Mangali",
+        "display_name": "Vaishnavi Mangali",
+        "avatar_hash": "ge71501c91de",
+        "real_name_normalized": "Vaishnavi Mangali",
+        "display_name_normalized": "Vaishnavi Mangali",
+        "image_24": "https://secure.gravatar.com/avatar/e71501c91de1ffd41eed968efcbc19e8.jpg?s=24&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0016-24.png",
+        "image_32": "https://secure.gravatar.com/avatar/e71501c91de1ffd41eed968efcbc19e8.jpg?s=32&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0016-32.png",
+        "image_48": "https://secure.gravatar.com/avatar/e71501c91de1ffd41eed968efcbc19e8.jpg?s=48&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0016-48.png",
+        "image_72": "https://secure.gravatar.com/avatar/e71501c91de1ffd41eed968efcbc19e8.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0016-72.png",
+        "image_192": "https://secure.gravatar.com/avatar/e71501c91de1ffd41eed968efcbc19e8.jpg?s=192&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0016-192.png",
+        "image_512": "https://secure.gravatar.com/avatar/e71501c91de1ffd41eed968efcbc19e8.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0016-512.png",
+        "first_name": "Vaishnavi",
+        "last_name": "Mangali",
+        "team": "T355R0RT3",
+        "email": "vaishnavi.mangali@devpixel.com",
+        "title": "",
+        "phone": "",
+        "skype": "",
+        "fields": {},
+        "status_text": "",
+        "status_text_canonical": "",
+        "status_emoji": "",
+        "status_emoji_display_info": [],
+        "status_expiration": 0,
+        "huddle_state": "default_unset",
+        "huddle_state_expiration_ts": 0
+      }
+    },
+    {
+      "id": "U0A0LLMHPKP",
+      "name": "surya.bedadala",
+      "is_bot": false,
+      "updated": 1765956012,
+      "is_app_user": false,
+      "team_id": "T355R0RT3",
+      "deleted": false,
+      "color": "d1707d",
+      "is_email_confirmed": true,
+      "real_name": "Surya",
+      "tz": "Asia/Kolkata",
+      "tz_label": "India Standard Time",
+      "tz_offset": 19800,
+      "is_admin": false,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "has_2fa": false,
+      "who_can_share_contact_card": "EVERYONE",
+      "profile": {
+        "real_name": "Surya",
+        "display_name": "Surya",
+        "avatar_hash": "e0c5174b10c2",
+        "real_name_normalized": "Surya",
+        "display_name_normalized": "Surya",
+        "image_24": "https://avatars.slack-edge.com/2025-12-01/10028109397876_e0c5174b10c28c506561_24.jpg",
+        "image_32": "https://avatars.slack-edge.com/2025-12-01/10028109397876_e0c5174b10c28c506561_32.jpg",
+        "image_48": "https://avatars.slack-edge.com/2025-12-01/10028109397876_e0c5174b10c28c506561_48.jpg",
+        "image_72": "https://avatars.slack-edge.com/2025-12-01/10028109397876_e0c5174b10c28c506561_72.jpg",
+        "image_192": "https://avatars.slack-edge.com/2025-12-01/10028109397876_e0c5174b10c28c506561_192.jpg",
+        "image_512": "https://avatars.slack-edge.com/2025-12-01/10028109397876_e0c5174b10c28c506561_512.jpg",
+        "image_1024": "https://avatars.slack-edge.com/2025-12-01/10028109397876_e0c5174b10c28c506561_1024.jpg",
+        "image_original": "https://avatars.slack-edge.com/2025-12-01/10028109397876_e0c5174b10c28c506561_original.jpg",
+        "is_custom_image": true,
+        "first_name": "Surya",
+        "last_name": "",
+        "team": "T355R0RT3",
+        "email": "surya.bedadala@devpixel.com",
+        "title": "",
+        "phone": "",
+        "skype": "",
+        "fields": {},
+        "status_text": "",
+        "status_text_canonical": "",
+        "status_emoji": "",
+        "status_emoji_display_info": [],
+        "status_expiration": 0,
+        "huddle_state": "default_unset",
+        "huddle_state_expiration_ts": 0
+      }
+    },
+    {
+      "id": "U08SA26H4LT",
+      "name": "yashmit.mykala",
+      "is_bot": false,
+      "updated": 1768309008,
+      "is_app_user": false,
+      "team_id": "T355R0RT3",
+      "deleted": false,
+      "color": "4ec0d6",
+      "is_email_confirmed": true,
+      "real_name": "Yashmit Mykala",
+      "tz": "Asia/Kolkata",
+      "tz_label": "India Standard Time",
+      "tz_offset": 19800,
+      "is_admin": false,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "has_2fa": false,
+      "who_can_share_contact_card": "EVERYONE",
+      "profile": {
+        "real_name": "Yashmit Mykala",
+        "display_name": "Yashmit Mykala",
+        "avatar_hash": "0f044bc5cbd5",
+        "real_name_normalized": "Yashmit Mykala",
+        "display_name_normalized": "Yashmit Mykala",
+        "image_24": "https://avatars.slack-edge.com/2025-05-15/8905844369380_0f044bc5cbd59d349a50_24.png",
+        "image_32": "https://avatars.slack-edge.com/2025-05-15/8905844369380_0f044bc5cbd59d349a50_32.png",
+        "image_48": "https://avatars.slack-edge.com/2025-05-15/8905844369380_0f044bc5cbd59d349a50_48.png",
+        "image_72": "https://avatars.slack-edge.com/2025-05-15/8905844369380_0f044bc5cbd59d349a50_72.png",
+        "image_192": "https://avatars.slack-edge.com/2025-05-15/8905844369380_0f044bc5cbd59d349a50_192.png",
+        "image_512": "https://avatars.slack-edge.com/2025-05-15/8905844369380_0f044bc5cbd59d349a50_512.png",
+        "image_1024": "https://avatars.slack-edge.com/2025-05-15/8905844369380_0f044bc5cbd59d349a50_1024.png",
+        "image_original": "https://avatars.slack-edge.com/2025-05-15/8905844369380_0f044bc5cbd59d349a50_original.png",
+        "is_custom_image": true,
+        "first_name": "Yashmit",
+        "last_name": "Mykala",
+        "team": "T355R0RT3",
+        "email": "yashmit.mykala@devpixel.com",
+        "title": "",
+        "phone": "",
+        "skype": "",
+        "fields": {},
+        "status_text": "",
+        "status_text_canonical": "",
+        "status_emoji": "",
+        "status_emoji_display_info": [],
+        "status_expiration": 0,
+        "huddle_state": "default_unset",
+        "huddle_state_expiration_ts": 0
+      }
+    },
+    {
+      "id": "U35PLGF3M",
+      "name": "abhi",
+      "is_bot": false,
+      "updated": 1737978803,
+      "is_app_user": false,
+      "team_id": "T355R0RT3",
+      "deleted": false,
+      "color": "9f69e7",
+      "is_email_confirmed": true,
+      "real_name": "abhishek reddy",
+      "tz": "Asia/Kolkata",
+      "tz_label": "India Standard Time",
+      "tz_offset": 19800,
+      "is_admin": true,
+      "is_owner": true,
+      "is_primary_owner": true,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "has_2fa": true,
+      "two_factor_type": "sms",
+      "who_can_share_contact_card": "EVERYONE",
+      "profile": {
+        "real_name": "abhishek reddy",
+        "display_name": "abhi",
+        "avatar_hash": "9c75c851c3f6",
+        "real_name_normalized": "abhishek reddy",
+        "display_name_normalized": "abhi",
+        "image_24": "https://avatars.slack-edge.com/2016-12-05/112636576261_9c75c851c3f68710d1f7_24.jpg",
+        "image_32": "https://avatars.slack-edge.com/2016-12-05/112636576261_9c75c851c3f68710d1f7_32.jpg",
+        "image_48": "https://avatars.slack-edge.com/2016-12-05/112636576261_9c75c851c3f68710d1f7_48.jpg",
+        "image_72": "https://avatars.slack-edge.com/2016-12-05/112636576261_9c75c851c3f68710d1f7_72.jpg",
+        "image_192": "https://avatars.slack-edge.com/2016-12-05/112636576261_9c75c851c3f68710d1f7_192.jpg",
+        "image_512": "https://avatars.slack-edge.com/2016-12-05/112636576261_9c75c851c3f68710d1f7_192.jpg",
+        "image_1024": "https://avatars.slack-edge.com/2016-12-05/112636576261_9c75c851c3f68710d1f7_192.jpg",
+        "image_original": "https://avatars.slack-edge.com/2016-12-05/112636576261_9c75c851c3f68710d1f7_original.jpg",
+        "is_custom_image": true,
+        "first_name": "abhishek",
+        "last_name": "reddy",
+        "team": "T355R0RT3",
+        "email": "abhi@devpixel.com",
+        "title": "",
+        "phone": "9866081410",
+        "skype": "",
+        "fields": {
+          "Xf03KM0ZFFSQ": {
+            "value": "9866081410",
+            "alt": ""
+          }
+        },
+        "status_text": "",
+        "status_text_canonical": "",
+        "status_emoji": "",
+        "status_emoji_display_info": [],
+        "status_expiration": 0
+      }
+    },
+    {
+      "id": "U37KPJ30D",
+      "name": "srinivas.rao",
+      "is_bot": false,
+      "updated": 1770389063,
+      "is_app_user": false,
+      "team_id": "T355R0RT3",
+      "deleted": false,
+      "color": "e7392d",
+      "is_email_confirmed": true,
+      "real_name": "Srini Chinta",
+      "tz": "Asia/Kolkata",
+      "tz_label": "India Standard Time",
+      "tz_offset": 19800,
+      "is_admin": false,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "has_2fa": false,
+      "who_can_share_contact_card": "EVERYONE",
+      "profile": {
+        "real_name": "Srini Chinta",
+        "display_name": "Srini Chinta",
+        "avatar_hash": "561456c1628a",
+        "real_name_normalized": "Srini Chinta",
+        "display_name_normalized": "Srini Chinta",
+        "image_24": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_24.jpg",
+        "image_32": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_32.jpg",
+        "image_48": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_48.jpg",
+        "image_72": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_72.jpg",
+        "image_192": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_192.jpg",
+        "image_512": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_512.jpg",
+        "image_1024": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_1024.jpg",
+        "image_original": "https://avatars.slack-edge.com/2026-02-06/10458213799842_561456c1628a35094df5_original.jpg",
+        "is_custom_image": true,
+        "first_name": "Srini",
+        "last_name": "Chinta",
+        "team": "T355R0RT3",
+        "email": "srini@devpixel.com",
+        "title": "Director of Technology",
+        "phone": "7331129130",
+        "skype": "",
+        "fields": {
+          "Xf0402NHB2M6": {
+            "value": "Director of Technology",
+            "alt": ""
+          },
+          "Xf03KM0ZFFSQ": {
+            "value": "7331129130",
+            "alt": ""
+          }
+        },
+        "status_text": "",
+        "status_text_canonical": "",
+        "status_emoji": "",
+        "status_emoji_display_info": [],
+        "status_expiration": 0,
+        "huddle_state": "default_unset",
+        "huddle_state_expiration_ts": 0
+      }
+    }
+  ],
+  "threads": {}
+}
