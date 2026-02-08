@@ -1,0 +1,330 @@
+"""
+PDF export service for reports.
+
+Renders report specifications to HTML via Jinja2 templates and
+converts to PDF using WeasyPrint. Includes page numbers, headers,
+footers, and YENSI branding. Falls back gracefully if WeasyPrint
+system dependencies are not available.
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+import tempfile
+from datetime import datetime, timezone
+from typing import Any
+
+from motor.motor_asyncio import AsyncIOMotorDatabase
+
+from app.core.exceptions import NotFoundException
+
+logger = logging.getLogger(__name__)
+
+# Report HTML template (embedded for reliability)
+_REPORT_HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<style>
+  @page {
+    size: A4;
+    margin: 2cm 2.5cm;
+    @top-center {
+      content: "{{ title }}";
+      font-size: 9pt;
+      color: #666;
+    }
+    @bottom-left {
+      content: "YENSI ChiefOps";
+      font-size: 8pt;
+      color: #999;
+    }
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 8pt;
+      color: #999;
+    }
+  }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 2em;
+    padding-bottom: 1em;
+    border-bottom: 2px solid #2563EB;
+  }
+  .header h1 {
+    color: #1E40AF;
+    font-size: 24pt;
+    margin: 0 0 0.3em 0;
+  }
+  .header .subtitle {
+    color: #666;
+    font-size: 10pt;
+  }
+  .header .brand {
+    color: #2563EB;
+    font-weight: bold;
+    font-size: 12pt;
+    margin-bottom: 0.5em;
+  }
+  .summary {
+    background: #F0F4FF;
+    padding: 1em 1.5em;
+    border-radius: 8px;
+    margin-bottom: 2em;
+    border-left: 4px solid #2563EB;
+  }
+  .summary h2 {
+    color: #1E40AF;
+    font-size: 14pt;
+    margin-top: 0;
+  }
+  .metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+    margin-bottom: 2em;
+  }
+  .metric-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 1em;
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+  }
+  .metric-card .label {
+    font-size: 9pt;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .metric-card .value {
+    font-size: 20pt;
+    font-weight: bold;
+    color: #1E40AF;
+    margin: 0.2em 0;
+  }
+  .metric-card .trend {
+    font-size: 9pt;
+    color: #10B981;
+  }
+  .metric-card .trend.down { color: #EF4444; }
+  .metric-card .trend.stable { color: #6B7280; }
+  h2 {
+    color: #1E40AF;
+    font-size: 16pt;
+    border-bottom: 1px solid #E2E8F0;
+    padding-bottom: 0.3em;
+    margin-top: 1.5em;
+  }
+  h3 { color: #374151; font-size: 13pt; }
+  ul { padding-left: 1.5em; }
+  li { margin-bottom: 0.3em; }
+  .section { margin-bottom: 1.5em; }
+  .recommendations {
+    background: #FEF3C7;
+    padding: 1em 1.5em;
+    border-radius: 8px;
+    border-left: 4px solid #F59E0B;
+    margin-top: 2em;
+  }
+  .recommendations h2 {
+    color: #92400E;
+    border-bottom: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+  }
+  th, td {
+    border: 1px solid #E2E8F0;
+    padding: 0.5em 0.8em;
+    text-align: left;
+    font-size: 10pt;
+  }
+  th {
+    background: #F1F5F9;
+    font-weight: 600;
+    color: #374151;
+  }
+  .footer-note {
+    margin-top: 3em;
+    padding-top: 1em;
+    border-top: 1px solid #E2E8F0;
+    font-size: 8pt;
+    color: #9CA3AF;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">YENSI ChiefOps</div>
+    <h1>{{ title }}</h1>
+    <div class="subtitle">Generated on {{ generated_date }} | {{ report_type }}</div>
+  </div>
+
+  {% if summary %}
+  <div class="summary">
+    <h2>Executive Summary</h2>
+    <p>{{ summary }}</p>
+  </div>
+  {% endif %}
+
+  {% if key_metrics %}
+  <div class="metrics">
+    {% for metric in key_metrics %}
+    <div class="metric-card">
+      <div class="label">{{ metric.label }}</div>
+      <div class="value">{{ metric.value }}</div>
+      {% if metric.trend %}
+      <div class="trend {{ metric.trend }}">{{ metric.trend }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% for section in sections %}
+  <div class="section">
+    <h2>{{ section.heading }}</h2>
+    {% if section.type == 'list' %}
+    <ul>
+      {% for item in section.content.split('\\n') %}
+      {% if item.strip() %}
+      <li>{{ item.strip().lstrip('- ') }}</li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+    {% else %}
+    {% for paragraph in section.content.split('\\n') %}
+    {% if paragraph.strip() %}
+    <p>{{ paragraph }}</p>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  {% if recommendations %}
+  <div class="recommendations">
+    <h2>Recommendations</h2>
+    <ul>
+      {% for rec in recommendations %}
+      <li>{{ rec }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="footer-note">
+    This report was generated by YENSI ChiefOps AI Assistant.
+    Data is based on information available at time of generation.
+  </div>
+</body>
+</html>"""
+
+
+async def export_pdf(
+    report_id: str,
+    db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
+) -> str:
+    """Export a report to PDF.
+
+    Renders the report spec to HTML and converts to PDF using
+    WeasyPrint. Falls back to returning HTML if WeasyPrint system
+    dependencies are not available.
+
+    Args:
+        report_id: UUID of the report to export.
+        db: Motor database handle.
+
+    Returns:
+        File path to the generated PDF (or HTML fallback).
+
+    Raises:
+        NotFoundException: If the report does not exist.
+    """
+    report = await db.reports.find_one({"report_id": report_id})
+    if not report:
+        raise NotFoundException(resource="Report", identifier=report_id)
+
+    # Render HTML
+    html_content = _render_html(report)
+
+    # Try PDF conversion with WeasyPrint
+    try:
+        return await _convert_to_pdf(html_content, report_id)
+    except ImportError:
+        logger.warning("WeasyPrint not available, falling back to HTML export")
+        return _save_html_fallback(html_content, report_id)
+    except Exception as exc:
+        logger.warning("PDF conversion failed: %s. Falling back to HTML.", exc)
+        return _save_html_fallback(html_content, report_id)
+
+
+def _render_html(report: dict[str, Any]) -> str:
+    """Render the report to HTML using Jinja2."""
+    from jinja2 import Template
+
+    template = Template(_REPORT_HTML_TEMPLATE)
+
+    generated_date = ""
+    gen_at = report.get("generated_at") or report.get("created_at")
+    if gen_at:
+        if isinstance(gen_at, datetime):
+            generated_date = gen_at.strftime("%B %d, %Y at %H:%M UTC")
+        else:
+            generated_date = str(gen_at)
+    else:
+        generated_date = datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC")
+
+    report_type = report.get("report_type", "custom").replace("_", " ").title()
+
+    html = template.render(
+        title=report.get("title", "Report"),
+        summary=report.get("summary", ""),
+        sections=report.get("sections", []),
+        key_metrics=report.get("key_metrics", []),
+        recommendations=report.get("recommendations", []),
+        generated_date=generated_date,
+        report_type=report_type,
+    )
+
+    return html
+
+
+async def _convert_to_pdf(html_content: str, report_id: str) -> str:
+    """Convert HTML to PDF using WeasyPrint."""
+    from weasyprint import HTML
+
+    output_dir = tempfile.mkdtemp(prefix="chiefops_reports_")
+    pdf_path = os.path.join(output_dir, f"report_{report_id[:8]}.pdf")
+
+    html_doc = HTML(string=html_content)
+    html_doc.write_pdf(pdf_path)
+
+    logger.info("PDF exported to %s", pdf_path)
+    return pdf_path
+
+
+def _save_html_fallback(html_content: str, report_id: str) -> str:
+    """Save HTML as fallback when PDF conversion is unavailable."""
+    output_dir = tempfile.mkdtemp(prefix="chiefops_reports_")
+    html_path = os.path.join(output_dir, f"report_{report_id[:8]}.html")
+
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(html_content)
+
+    logger.info("HTML fallback exported to %s", html_path)
+    return html_path
