@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import path from "path";
 
-const API_BASE = "http://localhost:23101";
+const API_BASE = "**/api";
 
 /**
  * Helper to set up common route mocks so the app reaches the Upload Data page
@@ -27,7 +27,7 @@ async function setupAppRoutes(page: import("@playwright/test").Page) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: [], total: 0 }),
+      body: JSON.stringify({ projects: [], total: 0 }),
     }),
   );
 
@@ -35,7 +35,7 @@ async function setupAppRoutes(page: import("@playwright/test").Page) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: [], total: 0 }),
+      body: JSON.stringify({ alerts: [], total: 0 }),
     }),
   );
 
@@ -43,7 +43,7 @@ async function setupAppRoutes(page: import("@playwright/test").Page) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: [], total: 0 }),
+      body: JSON.stringify({ dashboards: [], total: 0 }),
     }),
   );
 }
@@ -60,7 +60,7 @@ test.describe("File Upload", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ jobs: [], total: 0 }),
         }),
       );
 
@@ -99,7 +99,7 @@ test.describe("File Upload", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ jobs: [], total: 0 }),
         }),
       );
 
@@ -169,7 +169,7 @@ test.describe("File Upload", () => {
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({
-            data: [
+            jobs: [
               {
                 job_id: jobId,
                 status: "processing",
@@ -295,7 +295,7 @@ test.describe("File Upload", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [completedJob], total: 1 }),
+          body: JSON.stringify({ jobs: [completedJob], total: 1 }),
         }),
       );
 
@@ -380,7 +380,7 @@ test.describe("File Upload", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: pastJobs, total: 2 }),
+          body: JSON.stringify({ jobs: pastJobs, total: 2 }),
         }),
       );
 

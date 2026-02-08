@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const API_BASE = "http://localhost:23101";
+const API_BASE = "**/api";
 
 test.describe("Onboarding Wizard", () => {
   test.describe("First-run experience", () => {
@@ -26,7 +26,7 @@ test.describe("Onboarding Wizard", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ projects: [], total: 0 }),
         }),
       );
 
@@ -85,7 +85,7 @@ test.describe("Onboarding Wizard", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ projects: [], total: 0 }),
         }),
       );
 
@@ -154,7 +154,7 @@ test.describe("Onboarding Wizard", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ projects: [], total: 0 }),
         }),
       );
 
@@ -162,7 +162,7 @@ test.describe("Onboarding Wizard", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ alerts: [], total: 0 }),
         }),
       );
 
@@ -170,7 +170,7 @@ test.describe("Onboarding Wizard", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ dashboards: [], total: 0 }),
         }),
       );
 
@@ -222,7 +222,7 @@ test.describe("Onboarding Wizard", () => {
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({
-            data: [
+            projects: [
               {
                 project_id: "proj-1",
                 name: "Alpha Project",
@@ -255,7 +255,7 @@ test.describe("Onboarding Wizard", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ alerts: [], total: 0 }),
         }),
       );
 
@@ -263,7 +263,7 @@ test.describe("Onboarding Wizard", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ dashboards: [], total: 0 }),
         }),
       );
 

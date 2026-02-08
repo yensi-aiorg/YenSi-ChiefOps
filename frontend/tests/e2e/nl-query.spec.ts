@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const API_BASE = "http://localhost:23101";
+const API_BASE = "**/api";
 
 /**
  * Set up standard route mocks so the app loads without onboarding.
@@ -26,7 +26,7 @@ async function setupAppRoutes(page: import("@playwright/test").Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        data: [
+        projects: [
           {
             project_id: "proj-1",
             name: "Demo Project",
@@ -66,7 +66,7 @@ async function setupAppRoutes(page: import("@playwright/test").Page) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: [], total: 0 }),
+      body: JSON.stringify({ alerts: [], total: 0 }),
     }),
   );
 
@@ -74,7 +74,7 @@ async function setupAppRoutes(page: import("@playwright/test").Page) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: [], total: 0 }),
+      body: JSON.stringify({ dashboards: [], total: 0 }),
     }),
   );
 }

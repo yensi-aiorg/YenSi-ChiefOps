@@ -79,26 +79,29 @@ export const usePeopleStore = create<PeopleStore>()(
             params.project_id = mergedFilters.project_id;
 
           const { data } = await api.get<
-            Person[] | { items: Person[]; total: number }
+            Person[] | { people: Person[]; total: number }
           >("/v1/people", { params });
 
+          let people: Person[];
+          let total: number;
+
           if (Array.isArray(data)) {
-            set(
-              { people: data, total: data.length, isLoading: false },
-              false,
-              "fetchPeople/success",
-            );
+            people = data;
+            total = data.length;
           } else {
-            set(
-              {
-                people: data.items,
-                total: data.total,
-                isLoading: false,
-              },
-              false,
-              "fetchPeople/success",
-            );
+            const wrapper = data as Record<string, unknown>;
+            people =
+              (wrapper.people as Person[]) ??
+              (wrapper.items as Person[]) ??
+              [];
+            total = (wrapper.total as number) ?? people.length;
           }
+
+          set(
+            { people, total, isLoading: false },
+            false,
+            "fetchPeople/success",
+          );
         } catch (err) {
           const message =
             err instanceof Error ? err.message : "Failed to fetch people";

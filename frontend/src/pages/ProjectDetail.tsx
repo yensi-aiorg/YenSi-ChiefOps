@@ -26,7 +26,78 @@ import {
   getHealthScoreColor,
   getInitials,
 } from "@/lib/utils";
-import type { Project, ProjectMember } from "@/types";
+import type { Project } from "@/types";
+
+/* ================================================================== */
+/*  Adapter helpers (bridge backend ProjectDetail → frontend Project)  */
+/* ================================================================== */
+
+function healthToNumber(h: unknown): number | null {
+  if (typeof h === "number") return h;
+  const map: Record<string, number | null> = {
+    healthy: 80,
+    at_risk: 45,
+    critical: 20,
+    unknown: null,
+  };
+  return typeof h === "string" ? (map[h] ?? null) : null;
+}
+
+type AnyProject = Record<string, unknown>;
+
+function getCompletionPct(p: AnyProject): number {
+  if (typeof p.completion_percentage === "number") return p.completion_percentage;
+  const total = typeof p.total_tasks === "number" ? p.total_tasks : 0;
+  const completed = typeof p.completed_tasks === "number" ? p.completed_tasks : 0;
+  return total > 0 ? Math.round((completed / total) * 100) : 0;
+}
+
+function getTaskCounts(p: AnyProject): {
+  total: number;
+  completed: number;
+  in_progress: number;
+  blocked: number;
+  to_do: number;
+} {
+  if (p.task_summary && typeof p.task_summary === "object") {
+    const ts = p.task_summary as Record<string, number>;
+    return {
+      total: ts.total ?? 0,
+      completed: ts.completed ?? 0,
+      in_progress: ts.in_progress ?? 0,
+      blocked: ts.blocked ?? 0,
+      to_do: ts.to_do ?? 0,
+    };
+  }
+  const total = typeof p.total_tasks === "number" ? p.total_tasks : 0;
+  const completed = typeof p.completed_tasks === "number" ? p.completed_tasks : 0;
+  const open = typeof p.open_tasks === "number" ? p.open_tasks : 0;
+  return { total, completed, in_progress: 0, blocked: 0, to_do: open };
+}
+
+function getTeamMembers(
+  p: AnyProject,
+): { person_id: string; name: string; role: string }[] {
+  if (
+    Array.isArray(p.people_involved) &&
+    p.people_involved.length > 0 &&
+    typeof p.people_involved[0] === "object"
+  ) {
+    return p.people_involved;
+  }
+  if (Array.isArray(p.team_members)) {
+    return (p.team_members as string[]).map((id) => ({
+      person_id: id,
+      name: id,
+      role: "",
+    }));
+  }
+  return [];
+}
+
+function getLastAnalyzed(p: AnyProject): string | null {
+  return (p.last_analyzed_at ?? p.last_analysis_at ?? null) as string | null;
+}
 
 /* ================================================================== */
 /*  Status badge                                                       */
@@ -37,6 +108,9 @@ const statusColors: Record<string, string> = {
   at_risk: "badge-warm",
   behind: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
   completed: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  active: "badge-teal",
+  on_hold: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
+  cancelled: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
 };
 
 const statusLabels: Record<string, string> = {
@@ -44,15 +118,40 @@ const statusLabels: Record<string, string> = {
   at_risk: "At Risk",
   behind: "Behind",
   completed: "Completed",
+  active: "Active",
+  on_hold: "On Hold",
+  cancelled: "Cancelled",
 };
 
 /* ================================================================== */
 /*  Health Score Ring (compact)                                         */
 /* ================================================================== */
 
-function HealthScoreCompact({ score }: { score: number }) {
+function HealthScoreCompact({ score }: { score: number | null }) {
   const circumference = 2 * Math.PI * 20;
-  const offset = circumference - (score / 100) * circumference;
+  const safeScore = score ?? 0;
+  const offset = circumference - (safeScore / 100) * circumference;
+
+  if (score === null) {
+    return (
+      <div className="relative inline-flex">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle
+            cx="26"
+            cy="26"
+            r="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            className="text-slate-200 dark:text-slate-700"
+          />
+        </svg>
+        <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-slate-400">
+          --
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="relative inline-flex">
@@ -78,9 +177,9 @@ function HealthScoreCompact({ score }: { score: number }) {
           transform="rotate(-90 26 26)"
           className={cn(
             "transition-all duration-700",
-            score >= 70
+            safeScore >= 70
               ? "stroke-teal-500"
-              : score >= 40
+              : safeScore >= 40
                 ? "stroke-yellow-500"
                 : "stroke-red-500",
           )}
@@ -89,10 +188,10 @@ function HealthScoreCompact({ score }: { score: number }) {
       <span
         className={cn(
           "absolute inset-0 flex items-center justify-center text-sm font-bold",
-          getHealthScoreColor(score),
+          getHealthScoreColor(safeScore),
         )}
       >
-        {score}
+        {safeScore}
       </span>
     </div>
   );
@@ -223,24 +322,29 @@ function SprintHealthSection({ project }: { project: Project }) {
           </div>
 
           {/* Task breakdown */}
-          <div className="grid grid-cols-5 gap-2 text-center">
-            {(
-              [
-                ["Total", project.task_summary.total, "text-slate-700 dark:text-slate-300"],
-                ["Done", project.task_summary.completed, "text-green-600 dark:text-green-400"],
-                ["In Progress", project.task_summary.in_progress, "text-chief-600 dark:text-chief-400"],
-                ["Blocked", project.task_summary.blocked, "text-red-600 dark:text-red-400"],
-                ["To Do", project.task_summary.to_do, "text-slate-500 dark:text-slate-400"],
-              ] as [string, number, string][]
-            ).map(([label, count, color]) => (
-              <div key={label}>
-                <p className="text-2xs text-slate-400">{label}</p>
-                <p className={cn("text-lg font-bold tabular-nums", color)}>
-                  {count}
-                </p>
+          {(() => {
+            const tc = getTaskCounts(project as unknown as AnyProject);
+            return (
+              <div className="grid grid-cols-5 gap-2 text-center">
+                {(
+                  [
+                    ["Total", tc.total, "text-slate-700 dark:text-slate-300"],
+                    ["Done", tc.completed, "text-green-600 dark:text-green-400"],
+                    ["In Progress", tc.in_progress, "text-chief-600 dark:text-chief-400"],
+                    ["Blocked", tc.blocked, "text-red-600 dark:text-red-400"],
+                    ["To Do", tc.to_do, "text-slate-500 dark:text-slate-400"],
+                  ] as [string, number, string][]
+                ).map(([label, count, color]) => (
+                  <div key={label}>
+                    <p className="text-2xs text-slate-400">{label}</p>
+                    <p className={cn("text-lg font-bold tabular-nums", color)}>
+                      {count}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </>
       ) : (
         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -256,7 +360,11 @@ function SprintHealthSection({ project }: { project: Project }) {
 /*  People Section                                                     */
 /* ================================================================== */
 
-function PeopleSection({ members }: { members: ProjectMember[] }) {
+function PeopleSection({
+  members,
+}: {
+  members: { person_id: string; name: string; role: string }[];
+}) {
   return (
     <div className="card space-y-4">
       <div className="flex items-center justify-between">
@@ -288,9 +396,11 @@ function PeopleSection({ members }: { members: ProjectMember[] }) {
                 <p className="truncate text-sm font-medium text-slate-700 dark:text-slate-300">
                   {member.name}
                 </p>
-                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                  {member.role}
-                </p>
+                {member.role && (
+                  <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                    {member.role}
+                  </p>
+                )}
               </div>
               <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-300 dark:text-slate-600" />
             </Link>
@@ -656,11 +766,14 @@ export function ProjectDetail() {
         </div>
 
         <div className="flex items-center gap-4">
-          <HealthScoreCompact score={project.health_score} />
+          <HealthScoreCompact score={healthToNumber(project.health_score)} />
           <div className="flex flex-col gap-1">
             <DeadlineCountdown deadline={project.deadline} />
             <p className="text-xs text-slate-400 dark:text-slate-500">
-              Last analyzed: {formatRelativeTime(project.last_analyzed_at)}
+              Last analyzed:{" "}
+              {formatRelativeTime(
+                getLastAnalyzed(project as unknown as AnyProject),
+              )}
             </p>
           </div>
           <button
@@ -710,38 +823,43 @@ export function ProjectDetail() {
       {activeTab === "overview" && (
         <div className="space-y-6">
           {/* Completion bar */}
-          <div className="card p-5">
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-                Overall Completion
-              </h3>
-              <span className="text-lg font-bold tabular-nums text-slate-900 dark:text-white">
-                {project.completion_percentage.toFixed(0)}%
-              </span>
-            </div>
-            <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all duration-700",
-                  project.completion_percentage >= 80
-                    ? "bg-teal-500"
-                    : project.completion_percentage >= 50
-                      ? "bg-chief-500"
-                      : "bg-warm-500",
-                )}
-                style={{
-                  width: `${Math.min(project.completion_percentage, 100)}%`,
-                }}
-              />
-            </div>
-          </div>
+          {(() => {
+            const pct = getCompletionPct(project as unknown as AnyProject);
+            return (
+              <div className="card p-5">
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                    Overall Completion
+                  </h3>
+                  <span className="text-lg font-bold tabular-nums text-slate-900 dark:text-white">
+                    {pct}%
+                  </span>
+                </div>
+                <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all duration-700",
+                      pct >= 80
+                        ? "bg-teal-500"
+                        : pct >= 50
+                          ? "bg-chief-500"
+                          : "bg-warm-500",
+                    )}
+                    style={{ width: `${Math.min(pct, 100)}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Sprint Health */}
             <SprintHealthSection project={project} />
 
             {/* People */}
-            <PeopleSection members={project.people_involved} />
+            <PeopleSection
+              members={getTeamMembers(project as unknown as AnyProject)}
+            />
           </div>
 
           {/* Gap Analysis */}

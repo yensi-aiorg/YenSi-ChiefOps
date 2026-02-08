@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const API_BASE = "http://localhost:23101";
+const API_BASE = "**/api";
 
 /** Sample report for tests. */
 const SAMPLE_REPORT = {
@@ -81,7 +81,7 @@ async function setupAppRoutes(page: import("@playwright/test").Page) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: [], total: 0 }),
+      body: JSON.stringify({ projects: [], total: 0 }),
     }),
   );
 
@@ -89,7 +89,7 @@ async function setupAppRoutes(page: import("@playwright/test").Page) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: [], total: 0 }),
+      body: JSON.stringify({ alerts: [], total: 0 }),
     }),
   );
 
@@ -97,7 +97,7 @@ async function setupAppRoutes(page: import("@playwright/test").Page) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: [], total: 0 }),
+      body: JSON.stringify({ dashboards: [], total: 0 }),
     }),
   );
 }
@@ -114,7 +114,7 @@ test.describe("Report Generation", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ reports: [], total: 0 }),
         }),
       );
 
@@ -154,7 +154,7 @@ test.describe("Report Generation", () => {
         route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ data: [], total: 0 }),
+          body: JSON.stringify({ reports: [], total: 0 }),
         }),
       );
 
@@ -194,7 +194,7 @@ test.describe("Report Generation", () => {
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({
-            data: SAMPLE_REPORTS_LIST,
+            reports: SAMPLE_REPORTS_LIST,
             total: SAMPLE_REPORTS_LIST.length,
           }),
         }),
@@ -320,7 +320,7 @@ test.describe("Report Generation", () => {
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({
-            data: SAMPLE_REPORTS_LIST,
+            reports: SAMPLE_REPORTS_LIST,
             total: SAMPLE_REPORTS_LIST.length,
           }),
         }),

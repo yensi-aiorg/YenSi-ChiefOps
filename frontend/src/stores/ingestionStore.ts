@@ -131,12 +131,14 @@ export const useIngestionStore = create<IngestionStore>()(
         set({ error: null }, false, "fetchJobs/start");
         try {
           const { data } = await api.get<
-            IngestionJob[] | { items: IngestionJob[] }
+            IngestionJob[] | { jobs: IngestionJob[] }
           >("/v1/ingestion/jobs");
 
           const jobs = Array.isArray(data)
             ? data
-            : (data as { items: IngestionJob[] }).items ?? [];
+            : (data as Record<string, unknown>).jobs as IngestionJob[] ??
+              (data as Record<string, unknown>).items as IngestionJob[] ??
+              [];
 
           set({ jobs }, false, "fetchJobs/success");
         } catch (err) {

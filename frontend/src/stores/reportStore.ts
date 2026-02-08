@@ -99,14 +99,16 @@ export const useReportStore = create<ReportStore>()(
         set({ error: null }, false, "fetchReports/start");
         try {
           const { data } = await api.get<
-            ReportSpec[] | { items: ReportSpec[] }
+            ReportSpec[] | { reports: ReportSpec[] }
           >("/v1/reports", {
             params: { skip, limit },
           });
 
           const reports = Array.isArray(data)
             ? data
-            : (data as { items: ReportSpec[] }).items ?? [];
+            : (data as Record<string, unknown>).reports as ReportSpec[] ??
+              (data as Record<string, unknown>).items as ReportSpec[] ??
+              [];
 
           set({ reports }, false, "fetchReports/success");
         } catch (err) {

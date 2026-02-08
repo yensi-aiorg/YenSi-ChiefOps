@@ -242,11 +242,15 @@ export const useChatStore = create<ChatStore>()(
           const params: Record<string, string | number> = { skip, limit };
           if (projectId) params.project_id = projectId;
 
-          const { data } = await api.get<ConversationTurn[]>(
-            "/v1/conversation/history",
-            { params },
-          );
-          set({ messages: data }, false, "fetchHistory/success");
+          const { data } = await api.get<
+            ConversationTurn[] | { messages: ConversationTurn[] }
+          >("/v1/conversation/history", { params });
+
+          const messages = Array.isArray(data)
+            ? data
+            : (data as Record<string, unknown>).messages as ConversationTurn[] ??
+              [];
+          set({ messages }, false, "fetchHistory/success");
         } catch (err) {
           const message =
             err instanceof Error ? err.message : "Failed to load conversation history";

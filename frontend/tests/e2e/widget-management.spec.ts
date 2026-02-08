@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const API_BASE = "http://localhost:23101";
+const API_BASE = "**/api";
 
 /** Reusable project data for widget tests. */
 const PROJECT = {
@@ -117,7 +117,7 @@ async function setupWidgetRoutes(
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: [PROJECT], total: 1 }),
+      body: JSON.stringify({ projects: [PROJECT], total: 1 }),
     }),
   );
 
@@ -133,7 +133,7 @@ async function setupWidgetRoutes(
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: [], total: 0 }),
+      body: JSON.stringify({ alerts: [], total: 0 }),
     }),
   );
 
@@ -147,7 +147,7 @@ async function setupWidgetRoutes(
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        data: [dashboard],
+        dashboards: [dashboard],
         total: 1,
         widgets: dashboardHasWidgets
           ? [SAMPLE_WIDGET_BAR, SAMPLE_WIDGET_KPI]
