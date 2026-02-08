@@ -9,12 +9,13 @@ delete, and dismiss alerts.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
-from motor.motor_asyncio import AsyncIOMotorDatabase
-
-from app.core.exceptions import NotFoundException, ValidationException
+from app.core.exceptions import NotFoundException
 from app.models.base import utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +117,7 @@ class AlertService:
 
     async def list_alerts(
         self,
-        filters: Optional[dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         skip: int = 0,
         limit: int = 50,
     ) -> dict[str, Any]:
@@ -133,10 +134,7 @@ class AlertService:
         query = filters or {}
         total = await self._collection.count_documents(query)
         cursor = (
-            self._collection.find(query, {"_id": 0})
-            .sort("created_at", -1)
-            .skip(skip)
-            .limit(limit)
+            self._collection.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
         )
         docs = await cursor.to_list(length=limit)
 
@@ -205,9 +203,7 @@ class AlertService:
             {"$set": updates},
         )
 
-        updated = await self._collection.find_one(
-            {"alert_id": alert_id}, {"_id": 0}
-        )
+        updated = await self._collection.find_one({"alert_id": alert_id}, {"_id": 0})
         return updated or {}
 
     async def delete_alert(self, alert_id: str) -> dict[str, Any]:
@@ -263,8 +259,6 @@ class AlertService:
             {"$set": {"status": "dismissed", "updated_at": utc_now()}},
         )
 
-        updated = await self._collection.find_one(
-            {"alert_id": trigger_id}, {"_id": 0}
-        )
+        updated = await self._collection.find_one({"alert_id": trigger_id}, {"_id": 0})
         logger.info("Dismissed trigger for alert %s", trigger_id)
         return updated or result

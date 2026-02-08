@@ -7,7 +7,7 @@ with the Citex REST API for document ingestion, querying, and deletion.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -49,7 +49,7 @@ class CitexQueryRequest(BaseModel):
         min_length=1,
         description="Natural-language query text.",
     )
-    filters: Optional[dict[str, Any]] = Field(
+    filters: dict[str, Any] | None = Field(
         default=None,
         description="Optional metadata filters to narrow the search.",
     )

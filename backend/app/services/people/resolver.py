@@ -10,11 +10,10 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
-from motor.motor_asyncio import AsyncIOMotorDatabase
-
-from app.models.base import utc_now
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +23,12 @@ class RawPerson:
     """A person identity discovered in a single source."""
 
     name: str
-    email: Optional[str] = None
-    slack_user_id: Optional[str] = None
-    jira_username: Optional[str] = None
+    email: str | None = None
+    slack_user_id: str | None = None
+    jira_username: str | None = None
     source: str = ""
     source_id: str = ""
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
 
@@ -38,10 +37,10 @@ class MergedPerson:
     """A person identity merged from multiple sources."""
 
     name: str
-    email: Optional[str] = None
-    slack_user_id: Optional[str] = None
-    jira_username: Optional[str] = None
-    avatar_url: Optional[str] = None
+    email: str | None = None
+    slack_user_id: str | None = None
+    jira_username: str | None = None
+    avatar_url: str | None = None
     source_ids: list[dict[str, str]] = field(default_factory=list)
     raw_records: list[RawPerson] = field(default_factory=list)
 
@@ -151,7 +150,9 @@ async def resolve_entities(
                 slack_user_id=raw.slack_user_id,
                 jira_username=raw.jira_username,
                 avatar_url=raw.avatar_url,
-                source_ids=[{"source": raw.source, "source_id": raw.source_id}] if raw.source else [],
+                source_ids=[{"source": raw.source, "source_id": raw.source_id}]
+                if raw.source
+                else [],
                 raw_records=[raw],
             )
             idx = len(merged)

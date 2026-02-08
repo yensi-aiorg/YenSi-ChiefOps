@@ -10,11 +10,10 @@ Classifies incoming messages into action categories:
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -33,32 +32,54 @@ class Intent:
 # Keyword patterns for fast intent detection (before AI fallback)
 _COMMAND_PATTERNS: dict[str, list[re.Pattern[str]]] = {
     "widget": [
-        re.compile(r"\b(?:create|make|add|build|show)\b.*\b(?:widget|chart|graph|metric|gauge|kpi)\b", re.IGNORECASE),
+        re.compile(
+            r"\b(?:create|make|add|build|show)\b.*\b(?:widget|chart|graph|metric|gauge|kpi)\b",
+            re.IGNORECASE,
+        ),
         re.compile(r"\b(?:widget|chart|graph)\b.*\b(?:for|showing|with|of)\b", re.IGNORECASE),
     ],
     "report": [
-        re.compile(r"\b(?:generate|create|make|build|prepare|write)\b.*\b(?:report|summary|overview|status update)\b", re.IGNORECASE),
+        re.compile(
+            r"\b(?:generate|create|make|build|prepare|write)\b.*\b(?:report|summary|overview|status update)\b",
+            re.IGNORECASE,
+        ),
         re.compile(r"\b(?:report|summary)\b.*\b(?:on|about|for)\b", re.IGNORECASE),
     ],
     "alert": [
-        re.compile(r"\b(?:set|create|add|configure)\b.*\b(?:alert|notification|warning|threshold|trigger)\b", re.IGNORECASE),
+        re.compile(
+            r"\b(?:set|create|add|configure)\b.*\b(?:alert|notification|warning|threshold|trigger)\b",
+            re.IGNORECASE,
+        ),
         re.compile(r"\b(?:alert|notify|warn)\b.*\b(?:when|if|once)\b", re.IGNORECASE),
     ],
     "dashboard": [
-        re.compile(r"\b(?:create|make|build|setup|configure)\b.*\b(?:dashboard|board|view)\b", re.IGNORECASE),
+        re.compile(
+            r"\b(?:create|make|build|setup|configure)\b.*\b(?:dashboard|board|view)\b",
+            re.IGNORECASE,
+        ),
         re.compile(r"\b(?:add|put)\b.*\b(?:to|on|in)\b.*\b(?:dashboard|board)\b", re.IGNORECASE),
     ],
 }
 
 _CORRECTION_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"\b(?:actually|no|wrong|incorrect|correct|fix)\b.*\b(?:is|role|title|department)\b", re.IGNORECASE),
-    re.compile(r"\b(?:he|she|they)\b.*\b(?:is|are)\b.*\b(?:a|an|the)\b.*\b(?:manager|lead|developer|engineer|designer|analyst)\b", re.IGNORECASE),
-    re.compile(r"\b(?:change|update|set|assign)\b.*\b(?:role|title|department|position)\b", re.IGNORECASE),
+    re.compile(
+        r"\b(?:actually|no|wrong|incorrect|correct|fix)\b.*\b(?:is|role|title|department)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\b(?:he|she|they)\b.*\b(?:is|are)\b.*\b(?:a|an|the)\b.*\b(?:manager|lead|developer|engineer|designer|analyst)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\b(?:change|update|set|assign)\b.*\b(?:role|title|department|position)\b", re.IGNORECASE
+    ),
     re.compile(r"\bactually\b.*\b(?:works|working)\b.*\b(?:as|in)\b", re.IGNORECASE),
 ]
 
 _QUERY_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"\b(?:who|what|when|where|how|why|which|tell me|show me|list|find)\b", re.IGNORECASE),
+    re.compile(
+        r"\b(?:who|what|when|where|how|why|which|tell me|show me|list|find)\b", re.IGNORECASE
+    ),
     re.compile(r"\b(?:status|health|progress|velocity|blockers|risks|gaps)\b", re.IGNORECASE),
     re.compile(r"\b(?:how many|how much|count|total|average|percentage)\b", re.IGNORECASE),
     re.compile(r"\?$"),
@@ -152,8 +173,12 @@ def _extract_correction_params(message: str) -> dict[str, Any]:
 
     # Try to extract person name
     name_patterns = [
-        re.compile(r"(\w+(?:\s+\w+)?)\s+(?:is|works as|is actually)\s+(?:a\s+)?(.+)", re.IGNORECASE),
-        re.compile(r"(?:change|update|set)\s+(\w+(?:\s+\w+)?)'?s?\s+role\s+to\s+(.+)", re.IGNORECASE),
+        re.compile(
+            r"(\w+(?:\s+\w+)?)\s+(?:is|works as|is actually)\s+(?:a\s+)?(.+)", re.IGNORECASE
+        ),
+        re.compile(
+            r"(?:change|update|set)\s+(\w+(?:\s+\w+)?)'?s?\s+role\s+to\s+(.+)", re.IGNORECASE
+        ),
     ]
     for pattern in name_patterns:
         match = pattern.search(message)

@@ -12,12 +12,13 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
-from datetime import datetime, timezone
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from app.core.exceptions import NotFoundException
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -287,11 +288,11 @@ def _render_html(report: dict[str, Any]) -> str:
         else:
             generated_date = str(gen_at)
     else:
-        generated_date = datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC")
+        generated_date = datetime.now(UTC).strftime("%B %d, %Y at %H:%M UTC")
 
     report_type = report.get("report_type", "custom").replace("_", " ").title()
 
-    html = template.render(
+    return template.render(
         title=report.get("title", "Report"),
         summary=report.get("summary", ""),
         sections=report.get("sections", []),
@@ -300,8 +301,6 @@ def _render_html(report: dict[str, Any]) -> str:
         generated_date=generated_date,
         report_type=report_type,
     )
-
-    return html
 
 
 async def _convert_to_pdf(html_content: str, report_id: str) -> str:

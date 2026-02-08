@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from app.redis_client import get_redis_sync
 
@@ -44,7 +44,7 @@ def compute_query_hash(data_query: dict[str, Any]) -> str:
     return hashlib.sha256(serialised.encode("utf-8")).hexdigest()
 
 
-async def get_cached(query_hash: str) -> Optional[dict[str, Any]]:
+async def get_cached(query_hash: str) -> dict[str, Any] | None:
     """Retrieve a cached query result.
 
     Args:

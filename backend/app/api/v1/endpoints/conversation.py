@@ -10,16 +10,19 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, Field
 
 from app.database import get_database
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +57,9 @@ class MessageResponse(BaseModel):
     content: str = Field(..., description="Message content.")
     project_id: str | None = Field(default=None, description="Associated project ID.")
     created_at: datetime = Field(..., description="Message creation timestamp.")
-    metadata: dict | None = Field(default=None, description="Additional metadata (sources, widget refs, etc.).")
+    metadata: dict | None = Field(
+        default=None, description="Additional metadata (sources, widget refs, etc.)."
+    )
 
 
 class ConversationHistoryResponse(BaseModel):
@@ -157,7 +162,9 @@ async def send_message(
             message=body.content,
             project_id=body.project_id,
         )
-        response_content = result.get("content", "I understand your request. Let me look into that.")
+        response_content = result.get(
+            "content", "I understand your request. Let me look into that."
+        )
         response_metadata = result.get("metadata")
     except ImportError:
         logger.warning("Conversation service not yet implemented; returning placeholder response.")
@@ -167,9 +174,7 @@ async def send_message(
         )
     except Exception as exc:
         logger.error("Conversation service error", exc_info=exc)
-        response_content = (
-            "I encountered an issue processing your request. Please try again."
-        )
+        response_content = "I encountered an issue processing your request. Please try again."
         response_metadata = {"error": str(exc)}
 
     # Persist the assistant message
@@ -203,7 +208,7 @@ async def send_message(
 async def get_history(
     skip: int = Query(default=0, ge=0, description="Number of messages to skip."),
     limit: int = Query(default=50, ge=1, le=200, description="Maximum messages to return."),
-    project_id: Optional[str] = Query(default=None, description="Filter by project ID."),
+    project_id: str | None = Query(default=None, description="Filter by project ID."),
     db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
 ) -> ConversationHistoryResponse:
     collection = _get_collection(db)
@@ -213,12 +218,7 @@ async def get_history(
         query["project_id"] = project_id
 
     total = await collection.count_documents(query)
-    cursor = (
-        collection.find(query, {"_id": 0})
-        .sort("created_at", -1)
-        .skip(skip)
-        .limit(limit)
-    )
+    cursor = collection.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
     docs = await cursor.to_list(length=limit)
 
     messages = [MessageResponse(**doc) for doc in docs]
@@ -239,7 +239,7 @@ async def get_history(
     "are preserved in the memory store.",
 )
 async def clear_history(
-    project_id: Optional[str] = Query(
+    project_id: str | None = Query(
         default=None,
         description="If provided, only clear history for this project. Otherwise clear all.",
     ),

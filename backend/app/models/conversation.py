@@ -8,12 +8,10 @@ that gives ChiefOps persistent context across conversations.
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from app.models.base import MongoBaseModel, generate_uuid, utc_now
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -84,7 +82,7 @@ class SourceUsed(BaseModel):
         ge=0,
         description="Number of items retrieved from this source.",
     )
-    date_range: Optional[str] = Field(
+    date_range: str | None = Field(
         default=None,
         description="Human-readable date range of the data consulted (e.g. '2024-01-01 to 2024-03-15').",
     )
@@ -110,7 +108,7 @@ class ConversationTurn(MongoBaseModel):
         default_factory=generate_uuid,
         description="Unique turn identifier (UUID v4).",
     )
-    project_id: Optional[str] = Field(
+    project_id: str | None = Field(
         default=None,
         description="Project this turn relates to (None for global stream).",
     )
@@ -160,7 +158,7 @@ class MemoryStream(MongoBaseModel):
         default_factory=generate_uuid,
         description="Unique stream identifier (UUID v4).",
     )
-    project_id: Optional[str] = Field(
+    project_id: str | None = Field(
         default=None,
         description="Linked project (None for the global stream).",
     )
@@ -180,7 +178,7 @@ class MemoryStream(MongoBaseModel):
         default_factory=list,
         description="List of recent turn_id values kept in working memory.",
     )
-    last_compacted_at: Optional[datetime] = Field(
+    last_compacted_at: datetime | None = Field(
         default=None,
         description="When the stream's summary was last compacted.",
     )
@@ -209,7 +207,7 @@ class HardFact(MongoBaseModel):
         default_factory=generate_uuid,
         description="Unique fact identifier (UUID v4).",
     )
-    project_id: Optional[str] = Field(
+    project_id: str | None = Field(
         default=None,
         description="Linked project (None for global facts).",
     )
@@ -240,7 +238,7 @@ class HardFact(MongoBaseModel):
         le=1.0,
         description="Confidence score of the extraction (0.0 to 1.0).",
     )
-    supersedes: Optional[str] = Field(
+    supersedes: str | None = Field(
         default=None,
         description="fact_id of the fact this one replaces (if any).",
     )
@@ -270,7 +268,7 @@ class CompactedSummary(MongoBaseModel):
         default_factory=generate_uuid,
         description="Unique compacted summary identifier (UUID v4).",
     )
-    project_id: Optional[str] = Field(
+    project_id: str | None = Field(
         default=None,
         description="Linked project (None for global stream summaries).",
     )

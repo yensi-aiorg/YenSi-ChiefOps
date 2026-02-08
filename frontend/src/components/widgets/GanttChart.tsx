@@ -105,7 +105,7 @@ export function GanttChart({ data, config = {} }: GanttChartProps) {
 
     // Render items
     const renderItem = (
-      params: { coordSys: { x: number; y: number; width: number; height: number } },
+      _params: { coordSys: { x: number; y: number; width: number; height: number } },
       api: {
         value: (dim: number) => number;
         coord: (val: [number, number]) => [number, number];

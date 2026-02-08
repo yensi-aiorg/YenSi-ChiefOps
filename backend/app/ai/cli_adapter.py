@@ -24,8 +24,10 @@ def _build_claude_args(request: AIRequest) -> list[str]:
     """Build command-line arguments for the Claude CLI."""
     args: list[str] = [
         "--print",
-        "--output-format", "text",
-        "--max-tokens", str(request.max_tokens),
+        "--output-format",
+        "text",
+        "--max-tokens",
+        str(request.max_tokens),
     ]
     if request.system_prompt:
         args.extend(["--system-prompt", request.system_prompt])
@@ -94,9 +96,7 @@ class CLIAdapter(AIAdapter):
     async def generate(self, request: AIRequest) -> AIResponse:
         """Run the CLI tool and return the raw text response."""
         full_prompt = request.build_full_prompt()
-        stdout, stderr, elapsed_ms = await self._run_subprocess(
-            request, full_prompt
-        )
+        stdout, stderr, elapsed_ms = await self._run_subprocess(request, full_prompt)
 
         if stderr:
             logger.debug(
@@ -115,9 +115,7 @@ class CLIAdapter(AIAdapter):
     async def generate_structured(self, request: AIRequest) -> AIResponse:
         """Run the CLI tool and parse the response as JSON."""
         if request.response_schema is None:
-            request = request.model_copy(
-                update={"response_schema": {"type": "object"}}
-            )
+            request = request.model_copy(update={"response_schema": {"type": "object"}})
 
         response = await self.generate(request)
 
@@ -147,9 +145,7 @@ class CLIAdapter(AIAdapter):
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
-            stdout, stderr = await asyncio.wait_for(
-                proc.communicate(), timeout=10.0
-            )
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=10.0)
             if proc.returncode == 0:
                 version_str = stdout.decode().strip().split("\n")[0]
                 logger.info(
@@ -168,15 +164,11 @@ class CLIAdapter(AIAdapter):
         except FileNotFoundError:
             logger.warning("CLI tool '%s' not found on PATH", self._tool_name)
             return False
-        except asyncio.TimeoutError:
-            logger.warning(
-                "CLI tool '%s' version check timed out", self._tool_name
-            )
+        except TimeoutError:
+            logger.warning("CLI tool '%s' version check timed out", self._tool_name)
             return False
         except Exception:
-            logger.exception(
-                "Unexpected error checking CLI tool '%s'", self._tool_name
-            )
+            logger.exception("Unexpected error checking CLI tool '%s'", self._tool_name)
             return False
 
     async def _run_subprocess(
@@ -197,7 +189,7 @@ class CLIAdapter(AIAdapter):
         cli_args: list[str] = args_builder(request)
 
         # Build the full command
-        full_cmd: list[str] = [cmd] + cli_args
+        full_cmd: list[str] = [cmd, *cli_args]
 
         if self._config["prompt_via"] == "positional":
             full_cmd.append(prompt)
@@ -222,7 +214,7 @@ class CLIAdapter(AIAdapter):
                 timeout=float(self._timeout),
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             elapsed_ms = (time.perf_counter() - start) * 1000
             logger.error(
                 "CLI tool '%s' timed out after %ds",

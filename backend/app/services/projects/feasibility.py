@@ -8,11 +8,12 @@ and generates architect questions for unresolved technical concerns.
 from __future__ import annotations
 
 import logging
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.models.project import ReadinessItem, RiskItem, TechnicalFeasibility
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +69,16 @@ async def _gather_technical_context(
     if jira_keys:
         async for task in db.jira_tasks.find(
             {"project_key": {"$in": jira_keys}},
-            {"_id": 0, "task_key": 1, "summary": 1, "description": 1,
-             "status": 1, "issue_type": 1, "labels": 1, "components": 1},
+            {
+                "_id": 0,
+                "task_key": 1,
+                "summary": 1,
+                "description": 1,
+                "status": 1,
+                "issue_type": 1,
+                "labels": 1,
+                "components": 1,
+            },
         ).limit(100):
             tasks.append(task)
 
@@ -78,10 +87,14 @@ async def _gather_technical_context(
     # Gather technical discussions from Slack
     tech_messages: list[str] = []
     if slack_channels:
-        async for msg in db.slack_messages.find(
-            {"channel": {"$in": slack_channels}},
-            {"text": 1, "_id": 0},
-        ).sort("timestamp", -1).limit(50):
+        async for msg in (
+            db.slack_messages.find(
+                {"channel": {"$in": slack_channels}},
+                {"text": 1, "_id": 0},
+            )
+            .sort("timestamp", -1)
+            .limit(50)
+        ):
             text = msg.get("text", "")
             if text:
                 tech_messages.append(text)
@@ -160,7 +173,10 @@ async def _ai_feasibility(
                     "type": "object",
                     "properties": {
                         "area": {"type": "string"},
-                        "status": {"type": "string", "enum": ["ready", "partial", "not_ready", "unknown"]},
+                        "status": {
+                            "type": "string",
+                            "enum": ["ready", "partial", "not_ready", "unknown"],
+                        },
                         "details": {"type": "string"},
                     },
                     "required": ["area", "status", "details"],
@@ -172,7 +188,10 @@ async def _ai_feasibility(
                     "type": "object",
                     "properties": {
                         "risk": {"type": "string"},
-                        "severity": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
+                        "severity": {
+                            "type": "string",
+                            "enum": ["critical", "high", "medium", "low"],
+                        },
                         "mitigation": {"type": "string"},
                     },
                     "required": ["risk", "severity", "mitigation"],
@@ -234,13 +253,16 @@ def _heuristic_feasibility(
 
     # Check common readiness areas
     standard_areas = [
-        "infrastructure", "api_design", "data_model",
-        "testing", "deployment", "security",
+        "infrastructure",
+        "api_design",
+        "data_model",
+        "testing",
+        "deployment",
+        "security",
     ]
 
     task_summaries_lower = " ".join(
-        t.get("summary", "").lower() + " " + " ".join(t.get("labels", []))
-        for t in tasks
+        t.get("summary", "").lower() + " " + " ".join(t.get("labels", [])) for t in tasks
     )
 
     for area in standard_areas:
@@ -258,48 +280,62 @@ def _heuristic_feasibility(
         has_component = any(area.replace("_", "") in c.lower().replace("_", "") for c in components)
 
         if has_coverage or has_component:
-            readiness_items.append(ReadinessItem(
-                area=area,
-                status="partial",
-                details=f"Some tasks and components reference {area}",
-            ))
+            readiness_items.append(
+                ReadinessItem(
+                    area=area,
+                    status="partial",
+                    details=f"Some tasks and components reference {area}",
+                )
+            )
         else:
-            readiness_items.append(ReadinessItem(
-                area=area,
-                status="unknown",
-                details=f"No explicit {area} tasks or components found",
-            ))
-            architect_questions.append(f"What is the {area.replace('_', ' ')} plan for this project?")
+            readiness_items.append(
+                ReadinessItem(
+                    area=area,
+                    status="unknown",
+                    details=f"No explicit {area} tasks or components found",
+                )
+            )
+            architect_questions.append(
+                f"What is the {area.replace('_', ' ')} plan for this project?"
+            )
 
     # Team size risk
     if team_size == 0:
-        risk_items.append(RiskItem(
-            risk="No team members assigned to the project",
-            severity="critical",
-            mitigation="Assign team members with appropriate skills",
-        ))
+        risk_items.append(
+            RiskItem(
+                risk="No team members assigned to the project",
+                severity="critical",
+                mitigation="Assign team members with appropriate skills",
+            )
+        )
     elif team_size == 1:
-        risk_items.append(RiskItem(
-            risk="Single person dependency -- bus factor of 1",
-            severity="high",
-            mitigation="Assign at least one additional team member for knowledge sharing",
-        ))
+        risk_items.append(
+            RiskItem(
+                risk="Single person dependency -- bus factor of 1",
+                severity="high",
+                mitigation="Assign at least one additional team member for knowledge sharing",
+            )
+        )
 
     # Task coverage risks
     if len(tasks) == 0:
-        risk_items.append(RiskItem(
-            risk="No tasks created for the project",
-            severity="critical",
-            mitigation="Create and prioritize project tasks in Jira",
-        ))
+        risk_items.append(
+            RiskItem(
+                risk="No tasks created for the project",
+                severity="critical",
+                mitigation="Create and prioritize project tasks in Jira",
+            )
+        )
 
     unassigned = sum(1 for t in tasks if not t.get("assignee"))
     if unassigned > len(tasks) * 0.5 and len(tasks) > 5:
-        risk_items.append(RiskItem(
-            risk=f"{unassigned} out of {len(tasks)} tasks are unassigned",
-            severity="high",
-            mitigation="Assign owners to all priority tasks",
-        ))
+        risk_items.append(
+            RiskItem(
+                risk=f"{unassigned} out of {len(tasks)} tasks are unassigned",
+                severity="high",
+                mitigation="Assign owners to all priority tasks",
+            )
+        )
 
     return TechnicalFeasibility(
         readiness_items=readiness_items,

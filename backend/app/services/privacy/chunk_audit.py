@@ -9,12 +9,14 @@ were used in. This creates an audit trail for data access compliance.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +26,8 @@ async def log_chunk_access(
     chunks: list[dict[str, Any]],
     purpose: str,
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
-    project_id: Optional[str] = None,
-    user_context: Optional[str] = None,
+    project_id: str | None = None,
+    user_context: str | None = None,
 ) -> str:
     """Log the access of data chunks during AI processing.
 
@@ -92,7 +94,7 @@ async def log_ai_interaction(
     response_token_count: int,
     purpose: str,
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
-    project_id: Optional[str] = None,
+    project_id: str | None = None,
     had_pii: bool = False,
 ) -> str:
     """Log an AI model interaction for audit purposes.
@@ -143,10 +145,10 @@ async def log_ai_interaction(
 
 async def get_audit_trail(
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
-    request_id: Optional[str] = None,
-    project_id: Optional[str] = None,
-    action: Optional[str] = None,
-    since: Optional[datetime] = None,
+    request_id: str | None = None,
+    project_id: str | None = None,
+    action: str | None = None,
+    since: datetime | None = None,
     limit: int = 100,
 ) -> list[dict[str, Any]]:
     """Retrieve audit trail entries with optional filters.
@@ -184,7 +186,7 @@ async def get_audit_trail(
 
 async def get_access_summary(
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
-    since: Optional[datetime] = None,
+    since: datetime | None = None,
 ) -> dict[str, Any]:
     """Get a summary of data access patterns for compliance reporting.
 
@@ -206,13 +208,17 @@ async def get_access_summary(
     else:
         chunk_pipeline.append({"$match": {"action": "chunk_access"}})
 
-    chunk_pipeline.extend([
-        {"$group": {
-            "_id": None,
-            "total_accesses": {"$sum": 1},
-            "total_chunks": {"$sum": "$chunk_count"},
-        }},
-    ])
+    chunk_pipeline.extend(
+        [
+            {
+                "$group": {
+                    "_id": None,
+                    "total_accesses": {"$sum": 1},
+                    "total_chunks": {"$sum": "$chunk_count"},
+                }
+            },
+        ]
+    )
 
     chunk_summary: dict[str, int] = {"total_accesses": 0, "total_chunks": 0}
     async for doc in db.audit_log.aggregate(chunk_pipeline):
@@ -228,14 +234,18 @@ async def get_access_summary(
     else:
         ai_pipeline.append({"$match": {"action": "ai_interaction"}})
 
-    ai_pipeline.extend([
-        {"$group": {
-            "_id": None,
-            "total_interactions": {"$sum": 1},
-            "total_tokens": {"$sum": "$total_tokens"},
-            "pii_interactions": {"$sum": {"$cond": ["$had_pii_input", 1, 0]}},
-        }},
-    ])
+    ai_pipeline.extend(
+        [
+            {
+                "$group": {
+                    "_id": None,
+                    "total_interactions": {"$sum": 1},
+                    "total_tokens": {"$sum": "$total_tokens"},
+                    "pii_interactions": {"$sum": {"$cond": ["$had_pii_input", 1, 0]}},
+                }
+            },
+        ]
+    )
 
     ai_summary: dict[str, int] = {
         "total_interactions": 0,

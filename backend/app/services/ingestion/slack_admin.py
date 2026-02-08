@@ -17,13 +17,14 @@ import io
 import json
 import logging
 import zipfile
-from datetime import datetime, timezone
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
-from app.services.ingestion.hasher import compute_hash, check_duplicate, record_hash
+from app.services.ingestion.hasher import check_duplicate, compute_hash, record_hash
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -32,12 +33,12 @@ class IngestionFileResult:
     """Outcome of processing a single file during ingestion."""
 
     __slots__ = (
-        "filename",
+        "errors",
         "file_type",
-        "status",
+        "filename",
         "records_created",
         "records_skipped",
-        "errors",
+        "status",
     )
 
     def __init__(self, filename: str, file_type: str) -> None:
@@ -143,11 +144,7 @@ async def _process_users(
             or user.get("name", "Unknown")
         )
         email = profile.get("email")
-        avatar_url = (
-            profile.get("image_192")
-            or profile.get("image_72")
-            or profile.get("image_48")
-        )
+        avatar_url = profile.get("image_192") or profile.get("image_72") or profile.get("image_48")
 
         person_doc = {
             "name": name,
@@ -173,12 +170,14 @@ async def _process_users(
         if existing:
             await db.people.update_one(
                 {"slack_user_id": user_id},
-                {"$set": {
-                    "name": name,
-                    "email": email or existing.get("email"),
-                    "avatar_url": avatar_url or existing.get("avatar_url"),
-                    "updated_at": utc_now(),
-                }},
+                {
+                    "$set": {
+                        "name": name,
+                        "email": email or existing.get("email"),
+                        "avatar_url": avatar_url or existing.get("avatar_url"),
+                        "updated_at": utc_now(),
+                    }
+                },
             )
             result.records_skipped += 1
         else:
@@ -217,8 +216,12 @@ async def _process_channels(
         channel_doc = {
             "channel_id": channel_id,
             "name": ch.get("name", ""),
-            "purpose": ch.get("purpose", {}).get("value", "") if isinstance(ch.get("purpose"), dict) else "",
-            "topic": ch.get("topic", {}).get("value", "") if isinstance(ch.get("topic"), dict) else "",
+            "purpose": ch.get("purpose", {}).get("value", "")
+            if isinstance(ch.get("purpose"), dict)
+            else "",
+            "topic": ch.get("topic", {}).get("value", "")
+            if isinstance(ch.get("topic"), dict)
+            else "",
             "is_archived": ch.get("is_archived", False),
             "members": ch.get("members", []),
             "num_members": len(ch.get("members", [])),
@@ -300,7 +303,7 @@ async def _process_messages(
             # Parse timestamp
             try:
                 ts_float = float(ts)
-                timestamp = datetime.fromtimestamp(ts_float, tz=timezone.utc)
+                timestamp = datetime.fromtimestamp(ts_float, tz=UTC)
             except (ValueError, TypeError, OSError):
                 timestamp = utc_now()
 
@@ -313,12 +316,20 @@ async def _process_messages(
                 "thread_ts": msg.get("thread_ts"),
                 "reply_count": msg.get("reply_count", 0),
                 "reactions": [
-                    {"name": r.get("name", ""), "count": r.get("count", 0), "users": r.get("users", [])}
+                    {
+                        "name": r.get("name", ""),
+                        "count": r.get("count", 0),
+                        "users": r.get("users", []),
+                    }
                     for r in msg.get("reactions", [])
                     if isinstance(r, dict)
                 ],
                 "files": [
-                    {"name": f.get("name", ""), "mimetype": f.get("mimetype", ""), "url": f.get("url_private", "")}
+                    {
+                        "name": f.get("name", ""),
+                        "mimetype": f.get("mimetype", ""),
+                        "url": f.get("url_private", ""),
+                    }
                     for f in msg.get("files", [])
                     if isinstance(f, dict)
                 ],
@@ -326,9 +337,7 @@ async def _process_messages(
             }
 
             # Deduplicate by channel + ts
-            existing = await db.slack_messages.find_one(
-                {"channel": channel_name, "ts": ts}
-            )
+            existing = await db.slack_messages.find_one({"channel": channel_name, "ts": ts})
             if existing:
                 result.records_skipped += 1
                 continue
@@ -339,11 +348,13 @@ async def _process_messages(
             # Collect for Citex text document building
             if channel_name not in channel_messages:
                 channel_messages[channel_name] = []
-            channel_messages[channel_name].append({
-                "user": user,
-                "text": text,
-                "timestamp": timestamp.isoformat(),
-            })
+            channel_messages[channel_name].append(
+                {
+                    "user": user,
+                    "text": text,
+                    "timestamp": timestamp.isoformat(),
+                }
+            )
 
     # Update engagement metrics for users
     await _update_engagement_metrics(db)
@@ -357,12 +368,14 @@ async def _update_engagement_metrics(
 ) -> None:
     """Recalculate engagement metrics for all people based on Slack messages."""
     pipeline = [
-        {"$group": {
-            "_id": "$user_id",
-            "messages_sent": {"$sum": 1},
-            "threads_replied": {"$sum": {"$cond": [{"$ifNull": ["$thread_ts", False]}, 1, 0]}},
-            "reactions_given": {"$sum": {"$size": {"$ifNull": ["$reactions", []]}}},
-        }},
+        {
+            "$group": {
+                "_id": "$user_id",
+                "messages_sent": {"$sum": 1},
+                "threads_replied": {"$sum": {"$cond": [{"$ifNull": ["$thread_ts", False]}, 1, 0]}},
+                "reactions_given": {"$sum": {"$size": {"$ifNull": ["$reactions", []]}}},
+            }
+        },
     ]
     async for agg in db.slack_messages.aggregate(pipeline):
         user_id = agg["_id"]
@@ -370,12 +383,14 @@ async def _update_engagement_metrics(
             continue
         await db.people.update_one(
             {"slack_user_id": user_id},
-            {"$set": {
-                "engagement_metrics.messages_sent": agg["messages_sent"],
-                "engagement_metrics.threads_replied": agg["threads_replied"],
-                "engagement_metrics.reactions_given": agg["reactions_given"],
-                "updated_at": utc_now(),
-            }},
+            {
+                "$set": {
+                    "engagement_metrics.messages_sent": agg["messages_sent"],
+                    "engagement_metrics.threads_replied": agg["threads_replied"],
+                    "engagement_metrics.reactions_given": agg["reactions_given"],
+                    "updated_at": utc_now(),
+                }
+            },
         )
 
 

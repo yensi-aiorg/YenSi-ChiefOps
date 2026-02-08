@@ -12,14 +12,15 @@ from __future__ import annotations
 import csv
 import io
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
-from app.services.ingestion.hasher import compute_hash, check_duplicate, record_hash
+from app.services.ingestion.hasher import check_duplicate, compute_hash, record_hash
 from app.services.ingestion.slack_admin import IngestionFileResult
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +96,7 @@ async def parse_jira_csv(
     result = IngestionFileResult(filename=file_path, file_type="jira_csv")
 
     try:
-        with open(file_path, "r", encoding="utf-8-sig", errors="replace") as f:
+        with open(file_path, encoding="utf-8-sig", errors="replace") as f:
             content = f.read()
     except OSError as exc:
         result.status = "failed"
@@ -199,7 +200,7 @@ def _get_cell(row: list[str], col_map: dict[str, int], field: str) -> str:
     return row[idx].strip()
 
 
-def _parse_date(value: str) -> Optional[datetime]:
+def _parse_date(value: str) -> datetime | None:
     """Parse various Jira date formats into a UTC datetime."""
     if not value:
         return None
@@ -225,7 +226,7 @@ def _parse_date(value: str) -> Optional[datetime]:
         try:
             dt = datetime.strptime(value.strip(), fmt)
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
+                dt = dt.replace(tzinfo=UTC)
             return dt
         except ValueError:
             continue
@@ -233,7 +234,7 @@ def _parse_date(value: str) -> Optional[datetime]:
     return None
 
 
-def _parse_story_points(value: str) -> Optional[float]:
+def _parse_story_points(value: str) -> float | None:
     """Parse story points, handling empty strings and various formats."""
     if not value:
         return None
@@ -254,7 +255,7 @@ def _parse_row(
     col_map: dict[str, int],
     row_number: int,
     result: IngestionFileResult,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Parse a single CSV row into a Jira task document."""
     issue_key = _get_cell(row, col_map, "issue_key")
     summary = _get_cell(row, col_map, "summary")
@@ -275,15 +276,27 @@ def _parse_row(
 
     # Parse labels and components from semicolon or comma separated values
     raw_labels = _get_cell(row, col_map, "labels")
-    labels = [l.strip() for l in raw_labels.replace(";", ",").split(",") if l.strip()] if raw_labels else []
+    labels = (
+        [l.strip() for l in raw_labels.replace(";", ",").split(",") if l.strip()]
+        if raw_labels
+        else []
+    )
 
     raw_components = _get_cell(row, col_map, "components")
-    components = [c.strip() for c in raw_components.replace(";", ",").split(",") if c.strip()] if raw_components else []
+    components = (
+        [c.strip() for c in raw_components.replace(";", ",").split(",") if c.strip()]
+        if raw_components
+        else []
+    )
 
     raw_fix_versions = _get_cell(row, col_map, "fix_versions")
-    fix_versions = [v.strip() for v in raw_fix_versions.replace(";", ",").split(",") if v.strip()] if raw_fix_versions else []
+    fix_versions = (
+        [v.strip() for v in raw_fix_versions.replace(";", ",").split(",") if v.strip()]
+        if raw_fix_versions
+        else []
+    )
 
-    task = {
+    return {
         "task_key": issue_key,
         "issue_id": _get_cell(row, col_map, "issue_id"),
         "summary": summary,
@@ -311,11 +324,9 @@ def _parse_row(
         "parent": _get_cell(row, col_map, "parent"),
     }
 
-    return task
-
 
 async def _ensure_person_exists(
-    name: Optional[str],
+    name: str | None,
     source: str,
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
 ) -> None:
@@ -326,12 +337,14 @@ async def _ensure_person_exists(
     name = name.strip()
 
     # Check if person already exists by jira_username or name
-    existing = await db.people.find_one({
-        "$or": [
-            {"jira_username": name},
-            {"name": name},
-        ]
-    })
+    existing = await db.people.find_one(
+        {
+            "$or": [
+                {"jira_username": name},
+                {"name": name},
+            ]
+        }
+    )
     if existing:
         # Ensure jira source_id is present
         source_ids = existing.get("source_ids", [])

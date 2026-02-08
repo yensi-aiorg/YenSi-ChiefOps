@@ -10,12 +10,13 @@ updates, and AI-powered analysis.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.core.exceptions import NotFoundException
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ class ProjectService:
 
     async def list_projects(
         self,
-        filters: Optional[dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         skip: int = 0,
         limit: int = 20,
     ) -> dict[str, Any]:
@@ -75,10 +76,7 @@ class ProjectService:
         query = filters or {}
         total = await self._collection.count_documents(query)
         cursor = (
-            self._collection.find(query, {"_id": 0})
-            .sort("updated_at", -1)
-            .skip(skip)
-            .limit(limit)
+            self._collection.find(query, {"_id": 0}).sort("updated_at", -1).skip(skip).limit(limit)
         )
         docs = await cursor.to_list(length=limit)
 
@@ -101,13 +99,9 @@ class ProjectService:
         Raises:
             NotFoundException: If *project_id* does not exist.
         """
-        doc = await self._collection.find_one(
-            {"project_id": project_id}, {"_id": 0}
-        )
+        doc = await self._collection.find_one({"project_id": project_id}, {"_id": 0})
         if doc is None:
-            raise NotFoundException(
-                resource="Project", identifier=project_id
-            )
+            raise NotFoundException(resource="Project", identifier=project_id)
         return doc
 
     async def create_project(self, data: dict[str, Any]) -> dict[str, Any]:
@@ -168,9 +162,7 @@ class ProjectService:
         """
         doc = await self._collection.find_one({"project_id": project_id})
         if doc is None:
-            raise NotFoundException(
-                resource="Project", identifier=project_id
-            )
+            raise NotFoundException(resource="Project", identifier=project_id)
 
         data["updated_at"] = utc_now()
         await self._collection.update_one(
@@ -178,9 +170,7 @@ class ProjectService:
             {"$set": data},
         )
 
-        updated = await self._collection.find_one(
-            {"project_id": project_id}, {"_id": 0}
-        )
+        updated = await self._collection.find_one({"project_id": project_id}, {"_id": 0})
         return updated or {}
 
     async def get_analysis(self, project_id: str) -> dict[str, Any]:
@@ -196,13 +186,9 @@ class ProjectService:
             NotFoundException: If the project or its analysis does not
                 exist.
         """
-        project = await self._collection.find_one(
-            {"project_id": project_id}
-        )
+        project = await self._collection.find_one({"project_id": project_id})
         if project is None:
-            raise NotFoundException(
-                resource="Project", identifier=project_id
-            )
+            raise NotFoundException(resource="Project", identifier=project_id)
 
         analysis = await self._analysis_collection.find_one(
             {"project_id": project_id},
@@ -234,13 +220,9 @@ class ProjectService:
         """
         from app.services.projects.analyzer import analyze_project
 
-        project = await self._collection.find_one(
-            {"project_id": project_id}
-        )
+        project = await self._collection.find_one({"project_id": project_id})
         if project is None:
-            raise NotFoundException(
-                resource="Project", identifier=project_id
-            )
+            raise NotFoundException(resource="Project", identifier=project_id)
 
         ai_adapter = self._get_ai_adapter()
 
@@ -258,9 +240,7 @@ class ProjectService:
                 "health_score": result.get("health", {}).get("score", "unknown"),
                 "summary": result.get("health", {}).get("summary", ""),
                 "risks": result.get("feasibility", {}).get("risk_items", []),
-                "recommendations": result.get("gap_analysis", {}).get(
-                    "missing_tasks", []
-                ),
+                "recommendations": result.get("gap_analysis", {}).get("missing_tasks", []),
                 "team_dynamics": {},
                 "velocity_trend": "stable",
                 "analyzed_at": utc_now(),
@@ -270,9 +250,7 @@ class ProjectService:
             logger.info("Analysis complete for project %s", project_id)
             return result
         except Exception as exc:
-            logger.error(
-                "Analysis failed for project %s: %s", project_id, exc
-            )
+            logger.error("Analysis failed for project %s: %s", project_id, exc)
             raise
 
     async def trigger_analysis(self, project_id: str) -> dict[str, Any]:

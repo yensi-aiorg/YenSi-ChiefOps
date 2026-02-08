@@ -10,13 +10,16 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Any, AsyncIterator
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
 from app.config import get_settings
 
 from .adapter import AIAdapter, AIRequest, AIResponse
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +37,7 @@ class OpenRouterAdapter(AIAdapter):
         self._model: str = settings.OPENROUTER_MODEL
 
         if not self._api_key:
-            logger.warning(
-                "OPENROUTER_API_KEY is not set; OpenRouter calls will fail."
-            )
+            logger.warning("OPENROUTER_API_KEY is not set; OpenRouter calls will fail.")
 
         self._client: httpx.AsyncClient = httpx.AsyncClient(
             timeout=httpx.Timeout(connect=10.0, read=120.0, write=10.0, pool=10.0),
@@ -61,11 +62,7 @@ class OpenRouterAdapter(AIAdapter):
         system_content = request.system_prompt
         if request.context:
             context_str = json.dumps(request.context, indent=2, default=str)
-            system_content += (
-                "\n\n<context>\n"
-                f"{context_str}\n"
-                "</context>"
-            )
+            system_content += "\n\n<context>\n" f"{context_str}\n" "</context>"
         messages.append({"role": "system", "content": system_content})
 
         # User message
@@ -131,9 +128,7 @@ class OpenRouterAdapter(AIAdapter):
                 elapsed_ms,
                 str(exc),
             )
-            raise RuntimeError(
-                f"OpenRouter connection error: {exc}"
-            ) from exc
+            raise RuntimeError(f"OpenRouter connection error: {exc}") from exc
 
         elapsed_ms = (time.perf_counter() - start) * 1000
         data = http_response.json()
@@ -171,9 +166,7 @@ class OpenRouterAdapter(AIAdapter):
     async def generate_structured(self, request: AIRequest) -> AIResponse:
         """Send a request and enforce JSON output format."""
         if request.response_schema is None:
-            request = request.model_copy(
-                update={"response_schema": {"type": "object"}}
-            )
+            request = request.model_copy(update={"response_schema": {"type": "object"}})
 
         response = await self.generate(request)
 
@@ -185,15 +178,11 @@ class OpenRouterAdapter(AIAdapter):
                 "OpenRouter response is not valid JSON: %s",
                 response.content[:200],
             )
-            raise ValueError(
-                f"OpenRouter did not return valid JSON: {exc}"
-            ) from exc
+            raise ValueError(f"OpenRouter did not return valid JSON: {exc}") from exc
 
         return response
 
-    async def generate_stream(
-        self, request: AIRequest
-    ) -> AsyncIterator[str]:
+    async def generate_stream(self, request: AIRequest) -> AsyncIterator[str]:
         """Stream tokens from OpenRouter using server-sent events.
 
         Yields:
@@ -246,9 +235,7 @@ class OpenRouterAdapter(AIAdapter):
             ) from exc
         except httpx.RequestError as exc:
             logger.error("OpenRouter streaming connection error: %s", str(exc))
-            raise RuntimeError(
-                f"OpenRouter streaming connection error: {exc}"
-            ) from exc
+            raise RuntimeError(f"OpenRouter streaming connection error: {exc}") from exc
 
     async def health_check(self) -> bool:
         """Check OpenRouter connectivity by listing available models."""

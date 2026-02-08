@@ -28,7 +28,7 @@ from app.models.conversation import (
 class TestHardFactExtraction:
     """Test extraction and storage of hard facts from conversation turns."""
 
-    async def test_hard_fact_extraction(self, test_db, mock_ai_adapter):
+    async def test_hard_fact_extraction(self, mock_ai_adapter):
         """Mock AI should extract facts from a conversation prompt."""
         request = AIRequest(
             system_prompt="You are a fact extraction assistant. Extract key facts from the conversation.",
@@ -47,6 +47,7 @@ class TestHardFactExtraction:
             assert "predicate" in fact
             assert "confidence" in fact
 
+    @pytest.mark.integration
     async def test_hard_fact_storage(self, test_db):
         """Hard facts should be persistable and retrievable from MongoDB."""
         collection = test_db["hard_facts"]
@@ -72,6 +73,7 @@ class TestHardFactExtraction:
         assert doc["active"] is True
 
 
+@pytest.mark.integration
 class TestHardFactSupersession:
     """Test that new facts correctly supersede old ones."""
 
@@ -138,6 +140,7 @@ class TestHardFactSupersession:
         assert active_facts[0]["fact_id"] == new_fact_id
 
 
+@pytest.mark.integration
 class TestCompactionTriggerThreshold:
     """Test that compaction is triggered when turn count exceeds threshold."""
 
@@ -187,6 +190,7 @@ class TestCompactionTriggerThreshold:
         assert len(stream["recent_turns"]) == 25
 
 
+@pytest.mark.integration
 class TestContextAssembly:
     """Test assembly of conversation context from memory components."""
 

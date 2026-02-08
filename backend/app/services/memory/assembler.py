@@ -13,12 +13,13 @@ Manages a token budget of approximately 7000-17000 tokens total.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.services.memory.compactor import RECENT_WINDOW
 from app.services.memory.hard_facts import get_active_facts
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ async def assemble_context(
     project_id: str,
     query: str,
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
-    rag_chunks: Optional[list[str]] = None,
+    rag_chunks: list[str] | None = None,
 ) -> str:
     """Assemble the full context for the AI from all memory layers.
 
@@ -146,9 +147,11 @@ async def _build_recent_turns_section(
 
     # Get the last RECENT_WINDOW turns
     turns: list[dict[str, Any]] = []
-    cursor = db.conversation_turns.find(
-        {"project_id": project_id}
-    ).sort("turn_number", -1).limit(RECENT_WINDOW)
+    cursor = (
+        db.conversation_turns.find({"project_id": project_id})
+        .sort("turn_number", -1)
+        .limit(RECENT_WINDOW)
+    )
 
     async for turn in cursor:
         turns.append(turn)
@@ -178,7 +181,7 @@ async def _build_recent_turns_section(
     return _truncate_to_budget(section, RECENT_TURNS_BUDGET)
 
 
-def _build_rag_section(rag_chunks: Optional[list[str]]) -> str:
+def _build_rag_section(rag_chunks: list[str] | None) -> str:
     """Build the RAG chunks section from Citex results."""
     if not rag_chunks:
         return ""

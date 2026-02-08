@@ -8,21 +8,22 @@ triggers the people pipeline and project analysis.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import tempfile
-from datetime import datetime, timezone
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
 from app.services.ingestion.detector import FileType, detect_file_type
 from app.services.ingestion.drive import process_drive_files
-from app.services.ingestion.hasher import compute_hash, check_duplicate
 from app.services.ingestion.jira_csv import parse_jira_csv
 from app.services.ingestion.slack_admin import IngestionFileResult, parse_slack_admin_export
 from app.services.ingestion.slack_api import parse_slack_api_extract
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -31,14 +32,14 @@ class IngestionJob:
     """Tracks the overall status of a batch ingestion job."""
 
     __slots__ = (
+        "completed_at",
+        "errors",
+        "file_results",
         "job_id",
+        "processed_files",
+        "started_at",
         "status",
         "total_files",
-        "processed_files",
-        "file_results",
-        "errors",
-        "started_at",
-        "completed_at",
     )
 
     def __init__(self, total_files: int) -> None:
@@ -48,7 +49,7 @@ class IngestionJob:
         self.processed_files: int = 0
         self.file_results: list[dict[str, Any]] = []
         self.errors: list[str] = []
-        self.started_at: datetime = datetime.now(timezone.utc)
+        self.started_at: datetime = datetime.now(UTC)
         self.completed_at: datetime | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -87,18 +88,20 @@ async def process_upload(
     job = IngestionJob(total_files=len(files))
 
     # Persist job record to MongoDB
-    await db.ingestion_jobs.insert_one({
-        "job_id": job.job_id,
-        "status": "processing",
-        "total_files": job.total_files,
-        "processed_files": 0,
-        "file_results": [],
-        "errors": [],
-        "started_at": job.started_at,
-        "completed_at": None,
-        "created_at": utc_now(),
-        "updated_at": utc_now(),
-    })
+    await db.ingestion_jobs.insert_one(
+        {
+            "job_id": job.job_id,
+            "status": "processing",
+            "total_files": job.total_files,
+            "processed_files": 0,
+            "file_results": [],
+            "errors": [],
+            "started_at": job.started_at,
+            "completed_at": None,
+            "created_at": utc_now(),
+            "updated_at": utc_now(),
+        }
+    )
 
     logger.info("Starting ingestion job %s with %d files", job.job_id, len(files))
 
@@ -162,28 +165,28 @@ async def process_upload(
         finally:
             # Clean up temp files
             for fp in drive_files:
-                try:
+                with contextlib.suppress(OSError):
                     os.unlink(fp)
-                except OSError:
-                    pass
 
     # Trigger post-ingestion pipelines
     await _run_post_ingestion(db, job)
 
     # Finalise job status
-    job.completed_at = datetime.now(timezone.utc)
+    job.completed_at = datetime.now(UTC)
     job.status = "completed_with_errors" if has_failures else "completed"
 
     await db.ingestion_jobs.update_one(
         {"job_id": job.job_id},
-        {"$set": {
-            "status": job.status,
-            "processed_files": job.processed_files,
-            "file_results": job.file_results,
-            "errors": job.errors,
-            "completed_at": job.completed_at,
-            "updated_at": utc_now(),
-        }},
+        {
+            "$set": {
+                "status": job.status,
+                "processed_files": job.processed_files,
+                "file_results": job.file_results,
+                "errors": job.errors,
+                "completed_at": job.completed_at,
+                "updated_at": utc_now(),
+            }
+        },
     )
 
     logger.info(
@@ -288,12 +291,14 @@ async def _update_job_progress(
     """Persist current job progress to MongoDB."""
     await db.ingestion_jobs.update_one(
         {"job_id": job.job_id},
-        {"$set": {
-            "processed_files": job.processed_files,
-            "file_results": job.file_results,
-            "errors": job.errors,
-            "updated_at": utc_now(),
-        }},
+        {
+            "$set": {
+                "processed_files": job.processed_files,
+                "file_results": job.file_results,
+                "errors": job.errors,
+                "updated_at": utc_now(),
+            }
+        },
     )
 
 
@@ -309,7 +314,5 @@ def _write_temp_file(content: bytes, suffix: str = "") -> str:
 
 def _safe_unlink(path: str) -> None:
     """Delete a file, ignoring errors."""
-    try:
+    with contextlib.suppress(OSError):
         os.unlink(path)
-    except OSError:
-        pass

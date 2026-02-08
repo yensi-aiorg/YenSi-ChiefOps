@@ -6,10 +6,10 @@ import {
   ChevronDown,
   ChevronUp,
   X,
-  Bell,
 } from "lucide-react";
 import { useAlertStore } from "@/stores/alertStore";
 import { AlertSeverity } from "@/types";
+import type { AlertTriggered } from "@/types";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
@@ -76,26 +76,24 @@ function getMostSevereSeverity(
 }
 
 export function AlertBanner({ className }: AlertBannerProps) {
-  const { alerts, unreadCount, fetchAlerts, dismissAlert, dismissAll } =
+  const { triggeredAlerts, fetchTriggeredAlerts, dismissAlert } =
     useAlertStore();
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    fetchAlerts();
-  }, [fetchAlerts]);
+    fetchTriggeredAlerts();
+  }, [fetchTriggeredAlerts]);
 
-  // Filter to only non-dismissed / non-acknowledged alerts
-  const activeAlerts = alerts.filter((a) => {
-    // Support both 'dismissed' and 'acknowledged' fields
-    const dismissed = (a as Record<string, unknown>).dismissed ?? (a as Record<string, unknown>).acknowledged ?? false;
-    return !dismissed;
-  });
+  // Filter to only non-acknowledged alerts
+  const activeAlerts: AlertTriggered[] = triggeredAlerts.filter(
+    (a) => !a.acknowledged,
+  );
 
   if (activeAlerts.length === 0) {
     return null;
   }
 
-  const bannerSeverity = getMostSevereSeverity(activeAlerts);
+  const bannerSeverity = getMostSevereSeverity(activeAlerts as { severity: AlertSeverity | string }[]);
   const bannerConfig = getSeverityConfig(bannerSeverity);
   const BannerIcon = bannerConfig.icon;
 
@@ -122,7 +120,7 @@ export function AlertBanner({ className }: AlertBannerProps) {
         <div className="flex flex-1 items-center justify-end gap-2">
           {activeAlerts.length > 1 && (
             <button
-              onClick={() => dismissAll()}
+              onClick={() => activeAlerts.forEach((a) => dismissAlert(a.trigger_id))}
               className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
             >
               Dismiss all

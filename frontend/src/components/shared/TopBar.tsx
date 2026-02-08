@@ -29,7 +29,7 @@ export function TopBar({
 
   /** Count of non-dismissed triggered alerts */
   const unreadCount = useMemo(
-    () => triggeredAlerts.filter((a) => !a.dismissed).length,
+    () => triggeredAlerts.filter((a) => !a.acknowledged).length,
     [triggeredAlerts],
   );
 

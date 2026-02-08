@@ -10,11 +10,14 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import AsyncGenerator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sse_starlette.sse import EventSourceResponse
-from starlette.requests import Request
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +62,12 @@ async def stream_response(
             logger.exception("Error during response streaming")
             yield {
                 "event": "error",
-                "data": json.dumps({
-                    "type": "error",
-                    "content": f"Stream error: {exc}",
-                }),
+                "data": json.dumps(
+                    {
+                        "type": "error",
+                        "content": f"Stream error: {exc}",
+                    }
+                ),
             }
 
     return EventSourceResponse(

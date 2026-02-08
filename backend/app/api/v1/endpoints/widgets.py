@@ -9,16 +9,19 @@ Supports natural-language widget generation and editing via AI.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, Field
 
 from app.database import get_database
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +120,12 @@ class WidgetAddRequest(BaseModel):
 class WidgetUpdateRequest(BaseModel):
     """Request to update widget properties."""
 
-    title: str | None = Field(default=None, min_length=1, max_length=200, description="Updated title.")
-    description: str | None = Field(default=None, max_length=1000, description="Updated description.")
+    title: str | None = Field(
+        default=None, min_length=1, max_length=200, description="Updated title."
+    )
+    description: str | None = Field(
+        default=None, max_length=1000, description="Updated description."
+    )
     widget_type: WidgetType | None = Field(default=None, description="Updated type.")
     data_query: DataQuery | None = Field(default=None, description="Updated data query.")
     config: dict[str, Any] | None = Field(default=None, description="Updated config.")
@@ -172,7 +179,7 @@ async def _execute_widget_query(
         # Add $limit if not already present to prevent unbounded queries
         has_limit = any("$limit" in stage for stage in pipeline)
         if not has_limit:
-            pipeline = pipeline + [{"$limit": 1000}]
+            pipeline = [*pipeline, {"$limit": 1000}]
 
         # Remove _id from projection if $project is present
         safe_pipeline = []
@@ -267,11 +274,10 @@ async def generate_widget(
         from app.services.widgets.service import WidgetService
 
         service = WidgetService(db)
-        spec = await service.generate_from_nl(
+        return await service.generate_from_nl(
             description=body.description,
             dashboard_id=body.dashboard_id,
         )
-        return spec
     except ImportError:
         logger.warning("Widget service not yet implemented; returning placeholder spec.")
         now = utc_now()
@@ -448,10 +454,12 @@ async def nl_edit_widget(
         now = utc_now()
         await collection.update_one(
             {"widget_id": widget_id},
-            {"$set": {
-                "description": f"{current_spec.description} [NL edit requested: {body.message}]",
-                "updated_at": now,
-            }},
+            {
+                "$set": {
+                    "description": f"{current_spec.description} [NL edit requested: {body.message}]",
+                    "updated_at": now,
+                }
+            },
         )
 
         updated_doc = await collection.find_one({"widget_id": widget_id}, {"_id": 0})

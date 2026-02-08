@@ -10,12 +10,12 @@ reprocessing of the people identity pipeline.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from app.core.exceptions import NotFoundException
 
-from app.core.exceptions import NotFoundException, ValidationException
-from app.models.base import utc_now
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ class PeopleService:
 
     async def list_people(
         self,
-        filters: Optional[dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         skip: int = 0,
         limit: int = 50,
     ) -> dict[str, Any]:
@@ -73,12 +73,7 @@ class PeopleService:
         """
         query = filters or {}
         total = await self._collection.count_documents(query)
-        cursor = (
-            self._collection.find(query, {"_id": 0})
-            .sort("name", 1)
-            .skip(skip)
-            .limit(limit)
-        )
+        cursor = self._collection.find(query, {"_id": 0}).sort("name", 1).skip(skip).limit(limit)
         docs = await cursor.to_list(length=limit)
 
         return {
@@ -100,9 +95,7 @@ class PeopleService:
         Raises:
             NotFoundException: If *person_id* does not exist.
         """
-        doc = await self._collection.find_one(
-            {"person_id": person_id}, {"_id": 0}
-        )
+        doc = await self._collection.find_one({"person_id": person_id}, {"_id": 0})
         if doc is None:
             raise NotFoundException(resource="Person", identifier=person_id)
         return doc

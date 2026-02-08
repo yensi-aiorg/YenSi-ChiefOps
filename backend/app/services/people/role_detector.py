@@ -8,10 +8,9 @@ to produce consistent role labels.
 
 from __future__ import annotations
 
-import json
 import logging
-from dataclasses import dataclass, field
-from typing import Any, Optional
+from dataclasses import dataclass
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,7 @@ class PersonWithRole:
     person_id: str
     name: str
     role: str
-    department: Optional[str] = None
+    department: str | None = None
     confidence: float = 0.0
     reasoning: str = ""
 
@@ -119,17 +118,19 @@ def _build_role_detection_prompt(
         for msg in sample_messages[:5]:
             prompt_parts.append(f'  - "{msg}"')
 
-    prompt_parts.extend([
-        "",
-        f"Available roles: {', '.join(ROLE_LABELS)}",
-        f"Available departments: {', '.join(DEPARTMENT_LABELS)}",
-        "",
-        "Respond with a JSON object containing:",
-        '  "role": one of the available roles',
-        '  "department": one of the available departments',
-        '  "confidence": a float between 0.0 and 1.0',
-        '  "reasoning": a brief explanation of why you chose this role',
-    ])
+    prompt_parts.extend(
+        [
+            "",
+            f"Available roles: {', '.join(ROLE_LABELS)}",
+            f"Available departments: {', '.join(DEPARTMENT_LABELS)}",
+            "",
+            "Respond with a JSON object containing:",
+            '  "role": one of the available roles',
+            '  "department": one of the available departments',
+            '  "confidence": a float between 0.0 and 1.0',
+            '  "reasoning": a brief explanation of why you chose this role',
+        ]
+    )
 
     return "\n".join(prompt_parts)
 
@@ -229,35 +230,91 @@ def _heuristic_role_detection(
 
     # Channel-based heuristics
     if any(kw in ch for ch in channel_set for kw in ("devops", "infra", "deploy", "sre")):
-        return PersonWithRole(person_id=person_id, name=person_name, role="devops_engineer", department="DevOps", confidence=0.4, reasoning="Active in DevOps-related channels")
+        return PersonWithRole(
+            person_id=person_id,
+            name=person_name,
+            role="devops_engineer",
+            department="DevOps",
+            confidence=0.4,
+            reasoning="Active in DevOps-related channels",
+        )
 
     if any(kw in ch for ch in channel_set for kw in ("design", "ux", "figma", "ui")):
-        return PersonWithRole(person_id=person_id, name=person_name, role="designer", department="Design", confidence=0.4, reasoning="Active in design-related channels")
+        return PersonWithRole(
+            person_id=person_id,
+            name=person_name,
+            role="designer",
+            department="Design",
+            confidence=0.4,
+            reasoning="Active in design-related channels",
+        )
 
     if any(kw in ch for ch in channel_set for kw in ("qa", "testing", "quality", "automation")):
-        return PersonWithRole(person_id=person_id, name=person_name, role="qa_engineer", department="QA", confidence=0.4, reasoning="Active in QA-related channels")
+        return PersonWithRole(
+            person_id=person_id,
+            name=person_name,
+            role="qa_engineer",
+            department="QA",
+            confidence=0.4,
+            reasoning="Active in QA-related channels",
+        )
 
     if any(kw in ch for ch in channel_set for kw in ("product", "roadmap", "prd", "spec")):
-        return PersonWithRole(person_id=person_id, name=person_name, role="product_manager", department="Product", confidence=0.4, reasoning="Active in product-related channels")
+        return PersonWithRole(
+            person_id=person_id,
+            name=person_name,
+            role="product_manager",
+            department="Product",
+            confidence=0.4,
+            reasoning="Active in product-related channels",
+        )
 
     if any(kw in ch for ch in channel_set for kw in ("data", "analytics", "ml", "pipeline")):
-        return PersonWithRole(person_id=person_id, name=person_name, role="data_analyst", department="Data", confidence=0.4, reasoning="Active in data-related channels")
+        return PersonWithRole(
+            person_id=person_id,
+            name=person_name,
+            role="data_analyst",
+            department="Data",
+            confidence=0.4,
+            reasoning="Active in data-related channels",
+        )
 
     # Jira task type heuristics
     if "bug" in task_types:
         tasks_assigned = jira.get("tasks_assigned", 0)
         if tasks_assigned > 10:
-            return PersonWithRole(person_id=person_id, name=person_name, role="developer", department="Engineering", confidence=0.5, reasoning="Assigned many tasks including bugs")
+            return PersonWithRole(
+                person_id=person_id,
+                name=person_name,
+                role="developer",
+                department="Engineering",
+                confidence=0.5,
+                reasoning="Assigned many tasks including bugs",
+            )
 
     # High message volume heuristic
     messages_sent = slack.get("messages_sent", 0)
     tasks_assigned = jira.get("tasks_assigned", 0)
 
     if messages_sent > 100 and tasks_assigned == 0:
-        return PersonWithRole(person_id=person_id, name=person_name, role="project_manager", department="Management", confidence=0.3, reasoning="High Slack activity with no Jira tasks")
+        return PersonWithRole(
+            person_id=person_id,
+            name=person_name,
+            role="project_manager",
+            department="Management",
+            confidence=0.3,
+            reasoning="High Slack activity with no Jira tasks",
+        )
 
     if tasks_assigned > 0:
-        return PersonWithRole(person_id=person_id, name=person_name, role="developer", department="Engineering", confidence=0.3, reasoning="Has Jira tasks assigned")
+        return PersonWithRole(
+            person_id=person_id,
+            name=person_name,
+            role="developer",
+            department="Engineering",
+            confidence=0.3,
+            reasoning="Has Jira tasks assigned",
+        )
 
     return PersonWithRole(
         person_id=person_id,

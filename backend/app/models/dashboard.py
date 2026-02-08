@@ -6,14 +6,11 @@ conversation or as system defaults. Widgets define what data to fetch
 (DataQuery) and how to render it (display_config / widget_type).
 """
 
-from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.models.base import MongoBaseModel, generate_uuid, utc_now
-
+from app.models.base import MongoBaseModel, generate_uuid
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -104,11 +101,11 @@ class DataQuery(BaseModel):
         default_factory=dict,
         description="MongoDB match-stage filters as key-value pairs.",
     )
-    group_by: Optional[str] = Field(
+    group_by: str | None = Field(
         default=None,
         description="Field to group results by.",
     )
-    sort_by: Optional[str] = Field(
+    sort_by: str | None = Field(
         default=None,
         description="Field to sort results by.",
     )
@@ -122,15 +119,15 @@ class DataQuery(BaseModel):
         le=10000,
         description="Maximum number of results to return.",
     )
-    date_field: Optional[str] = Field(
+    date_field: str | None = Field(
         default=None,
         description="Field name to use for time-based queries.",
     )
-    date_bucket: Optional[str] = Field(
+    date_bucket: str | None = Field(
         default=None,
         description="Time bucket size for time-series queries (e.g. 'day', 'week', 'month').",
     )
-    aggregation: Optional[dict] = Field(
+    aggregation: dict | None = Field(
         default=None,
         description="Custom aggregation pipeline stages (for advanced queries).",
     )
@@ -156,7 +153,7 @@ class Dashboard(MongoBaseModel):
         default_factory=generate_uuid,
         description="Unique dashboard identifier (UUID v4).",
     )
-    project_id: Optional[str] = Field(
+    project_id: str | None = Field(
         default=None,
         description="Linked project (None for the main dashboard).",
     )

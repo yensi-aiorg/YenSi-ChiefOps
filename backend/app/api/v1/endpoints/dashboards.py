@@ -8,15 +8,18 @@ organizational data. Supports CRUD operations and project-scoped filtering.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, Field
 
 from app.database import get_database
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +53,12 @@ class DashboardCreateRequest(BaseModel):
 class DashboardUpdateRequest(BaseModel):
     """Request body for updating a dashboard."""
 
-    name: str | None = Field(default=None, min_length=1, max_length=200, description="Updated name.")
-    description: str | None = Field(default=None, max_length=2000, description="Updated description.")
+    name: str | None = Field(
+        default=None, min_length=1, max_length=200, description="Updated name."
+    )
+    description: str | None = Field(
+        default=None, max_length=2000, description="Updated description."
+    )
     layout: list[LayoutItem] | None = Field(default=None, description="Updated layout.")
 
 
@@ -74,7 +81,9 @@ class DashboardDetail(BaseModel):
     name: str = Field(..., description="Dashboard name.")
     description: str = Field(default="", description="Dashboard description.")
     project_id: str | None = Field(default=None, description="Associated project ID.")
-    layout: list[LayoutItem] = Field(default_factory=list, description="Widget positions and sizes.")
+    layout: list[LayoutItem] = Field(
+        default_factory=list, description="Widget positions and sizes."
+    )
     widget_ids: list[str] = Field(default_factory=list, description="Ordered list of widget IDs.")
     created_at: datetime = Field(..., description="Creation timestamp.")
     updated_at: datetime = Field(..., description="Last update timestamp.")
@@ -123,7 +132,7 @@ def _get_widgets_collection(db: AsyncIOMotorDatabase):  # type: ignore[type-arg]
 async def list_dashboards(
     skip: int = Query(default=0, ge=0, description="Records to skip."),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum records to return."),
-    project_id: Optional[str] = Query(default=None, description="Filter by project ID."),
+    project_id: str | None = Query(default=None, description="Filter by project ID."),
     db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
 ) -> DashboardListResponse:
     collection = _get_collection(db)
@@ -133,12 +142,7 @@ async def list_dashboards(
         query["project_id"] = project_id
 
     total = await collection.count_documents(query)
-    cursor = (
-        collection.find(query, {"_id": 0})
-        .sort("updated_at", -1)
-        .skip(skip)
-        .limit(limit)
-    )
+    cursor = collection.find(query, {"_id": 0}).sort("updated_at", -1).skip(skip).limit(limit)
     docs = await cursor.to_list(length=limit)
 
     dashboards = []

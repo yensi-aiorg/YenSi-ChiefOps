@@ -9,25 +9,26 @@ data query, layout, and styling parameters.
 from __future__ import annotations
 
 import logging
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
 # Available chart types
 CHART_TYPES = [
-    "metric",      # Single number KPI
-    "bar",         # Bar chart
-    "line",        # Line chart / time series
-    "pie",         # Pie / donut chart
-    "stacked_bar", # Stacked bar chart
-    "table",       # Data table
-    "heatmap",     # Heatmap grid
-    "gauge",       # Gauge / progress indicator
-    "list",        # Ranked list
+    "metric",  # Single number KPI
+    "bar",  # Bar chart
+    "line",  # Line chart / time series
+    "pie",  # Pie / donut chart
+    "stacked_bar",  # Stacked bar chart
+    "table",  # Data table
+    "heatmap",  # Heatmap grid
+    "gauge",  # Gauge / progress indicator
+    "list",  # Ranked list
 ]
 
 # Available data collections for widgets
@@ -88,7 +89,9 @@ async def generate_widget_spec(
 
     # Add widget reference to dashboard
     await db.dashboards.update_one(
-        {"_id": dashboard_id} if not isinstance(dashboard_id, str) else {"dashboard_id": dashboard_id},
+        {"_id": dashboard_id}
+        if not isinstance(dashboard_id, str)
+        else {"dashboard_id": dashboard_id},
         {"$push": {"widgets": widget_doc["widget_id"]}},
     )
 
@@ -106,7 +109,7 @@ async def _get_data_context(
     for coll_name in WIDGET_COLLECTIONS:
         sample = await db[coll_name].find_one()
         if sample:
-            fields = [k for k in sample.keys() if k != "_id"]
+            fields = [k for k in sample if k != "_id"]
             context[coll_name] = {
                 "fields": fields[:20],
                 "count": await db[coll_name].estimated_document_count(),
@@ -224,7 +227,10 @@ def _heuristic_generate_spec(description: str) -> dict[str, Any]:
     }
 
     # Detect chart type from description
-    if any(kw in desc_lower for kw in ("over time", "trend", "timeline", "per day", "per week", "per month")):
+    if any(
+        kw in desc_lower
+        for kw in ("over time", "trend", "timeline", "per day", "per week", "per month")
+    ):
         spec["chart_type"] = "line"
         spec["data_query"]["query_type"] = "time_series"
         spec["data_query"]["time_field"] = "created_at"

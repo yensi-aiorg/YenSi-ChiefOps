@@ -1,3 +1,4 @@
+import type React from "react";
 import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
@@ -14,10 +15,11 @@ export interface SkeletonLoaderProps {
 }
 
 /** Reusable shimmer bar */
-function Bar({ className }: { className?: string }) {
+function Bar({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <div
       className={cn("animate-pulse rounded-md bg-slate-200 dark:bg-slate-700", className)}
+      style={style}
     />
   );
 }
@@ -114,7 +116,7 @@ function WidgetSkeleton() {
 
 /* ─── Variant map ────────────────────────────────────────────────────── */
 
-const variantMap: Record<SkeletonVariant, () => JSX.Element> = {
+const variantMap: Record<SkeletonVariant, () => React.JSX.Element> = {
   card: CardSkeleton,
   table: TableSkeleton,
   chart: ChartSkeleton,

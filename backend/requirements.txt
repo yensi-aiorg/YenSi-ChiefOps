@@ -6,7 +6,7 @@ pydantic-settings==2.7.1
 
 # Database
 motor==3.6.0
-pymongo==4.10.1
+pymongo>=4.9,<4.10
 
 # Cache + pub/sub
 redis[hiredis]==5.2.1

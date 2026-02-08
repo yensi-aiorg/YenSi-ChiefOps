@@ -13,15 +13,18 @@ updates as they occur via Redis pub/sub or polling MongoDB for state changes.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.database import get_database_sync
-from app.models.base import utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -78,10 +81,8 @@ class ConnectionManager:
 
     async def send_personal(self, websocket: WebSocket, data: dict) -> None:
         """Send a message to a single WebSocket connection."""
-        try:
+        with contextlib.suppress(Exception):
             await websocket.send_json(data)
-        except Exception:
-            pass
 
     def get_channel_count(self, channel: str) -> int:
         """Return the number of connections on a channel."""
@@ -116,7 +117,7 @@ async def _poll_ingestion_status(
                     {
                         "type": "error",
                         "message": f"Job '{job_id}' not found.",
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                     },
                 )
                 break
@@ -140,7 +141,7 @@ async def _poll_ingestion_status(
                         (files_processed / total_files * 100) if total_files > 0 else 0, 1
                     ),
                     "error_message": doc.get("error_message"),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
                 await manager.send_personal(websocket, event)
 
@@ -152,7 +153,7 @@ async def _poll_ingestion_status(
                         "type": "ingestion_complete",
                         "job_id": job_id,
                         "final_status": current_status,
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                     },
                 )
                 break
@@ -196,7 +197,7 @@ async def _push_general_updates(
                     except (json.JSONDecodeError, TypeError):
                         event = {"type": "update", "data": str(data)}
 
-                    event["timestamp"] = datetime.now(timezone.utc).isoformat()
+                    event["timestamp"] = datetime.now(UTC).isoformat()
                     await manager.send_personal(websocket, event)
                 else:
                     # Send heartbeat to keep connection alive
@@ -204,7 +205,7 @@ async def _push_general_updates(
                         websocket,
                         {
                             "type": "heartbeat",
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "timestamp": datetime.now(UTC).isoformat(),
                         },
                     )
         finally:
@@ -220,7 +221,7 @@ async def _push_general_updates(
                     websocket,
                     {
                         "type": "heartbeat",
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                     },
                 )
 
@@ -233,7 +234,7 @@ async def _push_general_updates(
                         {
                             "type": "alert_summary",
                             "triggered_count": triggered,
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "timestamp": datetime.now(UTC).isoformat(),
                         },
                     )
 
@@ -275,7 +276,7 @@ async def websocket_ingestion(
             {
                 "type": "error",
                 "message": "Database not initialized.",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         )
         await websocket.close()
@@ -295,7 +296,7 @@ async def websocket_ingestion(
                         websocket,
                         {
                             "type": "pong",
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "timestamp": datetime.now(UTC).isoformat(),
                         },
                     )
             except json.JSONDecodeError:
@@ -304,10 +305,8 @@ async def websocket_ingestion(
         logger.info("WebSocket disconnected", extra={"channel": channel})
     finally:
         poll_task.cancel()
-        try:
+        with contextlib.suppress(asyncio.CancelledError):
             await poll_task
-        except asyncio.CancelledError:
-            pass
         manager.disconnect(channel, websocket)
 
 
@@ -338,7 +337,7 @@ async def websocket_updates(
             {
                 "type": "error",
                 "message": "Database not initialized.",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         )
         await websocket.close()
@@ -359,7 +358,7 @@ async def websocket_updates(
                         websocket,
                         {
                             "type": "pong",
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "timestamp": datetime.now(UTC).isoformat(),
                         },
                     )
                 elif msg_type == "subscribe":
@@ -370,7 +369,7 @@ async def websocket_updates(
                         {
                             "type": "subscribed",
                             "events": event_filter,
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "timestamp": datetime.now(UTC).isoformat(),
                         },
                     )
             except json.JSONDecodeError:
@@ -379,8 +378,6 @@ async def websocket_updates(
         logger.info("WebSocket disconnected", extra={"channel": channel})
     finally:
         update_task.cancel()
-        try:
+        with contextlib.suppress(asyncio.CancelledError):
             await update_task
-        except asyncio.CancelledError:
-            pass
         manager.disconnect(channel, websocket)

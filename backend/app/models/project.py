@@ -8,12 +8,10 @@ detects project boundaries, and the COO can confirm or adjust them.
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from app.models.base import MongoBaseModel, generate_uuid, utc_now
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -252,7 +250,7 @@ class Project(MongoBaseModel):
         le=100.0,
         description="Task-based completion percentage (0.0 to 100.0).",
     )
-    deadline: Optional[datetime] = Field(
+    deadline: datetime | None = Field(
         default=None,
         description="Target completion date.",
     )
@@ -301,15 +299,15 @@ class Project(MongoBaseModel):
         description="Jira project keys (e.g. ['PROJ', 'MOBILE']).",
     )
 
-    sprint_health: Optional[SprintHealth] = Field(
+    sprint_health: SprintHealth | None = Field(
         default=None,
         description="Current sprint health metrics.",
     )
-    gap_analysis: Optional[GapAnalysis] = Field(
+    gap_analysis: GapAnalysis | None = Field(
         default=None,
         description="AI-detected gaps in planning and execution.",
     )
-    technical_feasibility: Optional[TechnicalFeasibility] = Field(
+    technical_feasibility: TechnicalFeasibility | None = Field(
         default=None,
         description="AI-assessed technical feasibility.",
     )

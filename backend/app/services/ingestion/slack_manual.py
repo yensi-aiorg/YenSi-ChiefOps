@@ -13,13 +13,14 @@ import logging
 import os
 import tempfile
 import zipfile
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from app.models.ingestion import FileType, IngestionFileResult
+from app.services.ingestion.hasher import check_duplicate, compute_hash, record_hash
 
-from app.models.ingestion import IngestionFileResult, FileType
-from app.services.ingestion.hasher import compute_hash, check_duplicate, record_hash
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +114,7 @@ async def _process_json_file(
     skipped = 0
 
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
     except (json.JSONDecodeError, UnicodeDecodeError):
         logger.warning("Could not parse JSON file: %s", filename)
@@ -127,9 +128,7 @@ async def _process_json_file(
         for key, value in data.items():
             if isinstance(value, list):
                 channel_messages = [
-                    {**m, "_channel": key}
-                    for m in value
-                    if isinstance(m, dict) and "text" in m
+                    {**m, "_channel": key} for m in value if isinstance(m, dict) and "text" in m
                 ]
                 messages.extend(channel_messages)
 
@@ -174,10 +173,10 @@ async def _process_json_file(
                     "name": channel_name,
                     "purpose": f"Imported from manual export: {filename}",
                     "message_count": len(messages),
-                    "updated_at": datetime.now(tz=timezone.utc),
+                    "updated_at": datetime.now(tz=UTC),
                 },
                 "$setOnInsert": {
-                    "created_at": datetime.now(tz=timezone.utc),
+                    "created_at": datetime.now(tz=UTC),
                     "members": [],
                 },
             },
@@ -201,7 +200,7 @@ async def _process_csv_file(
     channel_name = os.path.splitext(filename)[0].replace("-", "_")
 
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             if reader.fieldnames is None:
                 return {"processed": 0, "skipped": 0}
@@ -230,7 +229,7 @@ async def _process_csv_file(
                     "user_id": user,
                     "user_name": row.get("user_name", row.get("username", "")),
                     "text": text,
-                    "timestamp": _parse_timestamp(ts) if ts else datetime.now(tz=timezone.utc),
+                    "timestamp": _parse_timestamp(ts) if ts else datetime.now(tz=UTC),
                     "thread_ts": row.get("thread_ts"),
                     "reactions": [],
                     "reply_count": 0,
@@ -256,18 +255,18 @@ async def _process_csv_file(
 def _parse_timestamp(ts_value: str) -> datetime:
     """Parse a Slack timestamp into a datetime object."""
     if not ts_value:
-        return datetime.now(tz=timezone.utc)
+        return datetime.now(tz=UTC)
 
     try:
         ts_float = float(ts_value.split(".")[0])
-        return datetime.fromtimestamp(ts_float, tz=timezone.utc)
+        return datetime.fromtimestamp(ts_float, tz=UTC)
     except (ValueError, TypeError):
         pass
 
     for fmt in ["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"]:
         try:
-            return datetime.strptime(ts_value, fmt).replace(tzinfo=timezone.utc)
+            return datetime.strptime(ts_value, fmt).replace(tzinfo=UTC)
         except ValueError:
             continue
 
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)

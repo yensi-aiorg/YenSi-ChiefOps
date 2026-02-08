@@ -9,13 +9,13 @@ contradicts them.
 
 from __future__ import annotations
 
-import json
 import logging
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ async def extract_facts(
     turn_content: str,
     ai_adapter: Any,
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
-    project_id: Optional[str] = None,
+    project_id: str | None = None,
 ) -> list[dict[str, Any]]:
     """Extract hard facts from a conversation turn using AI.
 
@@ -135,10 +135,10 @@ async def store_fact(
     content: str,
     category: str,
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
-    project_id: Optional[str] = None,
+    project_id: str | None = None,
     source: str = "conversation",
-    entity_type: Optional[str] = None,
-    entity_id: Optional[str] = None,
+    entity_type: str | None = None,
+    entity_id: str | None = None,
     confidence: float = 1.0,
 ) -> dict[str, Any]:
     """Store a hard fact in the database.
@@ -176,7 +176,7 @@ async def store_fact(
 
 
 async def get_active_facts(
-    project_id: Optional[str],
+    project_id: str | None,
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
 ) -> list[dict[str, Any]]:
     """Retrieve all active hard facts for a project.
@@ -227,11 +227,13 @@ async def supersede_fact(
     if old_doc:
         await db.conversation_facts.update_one(
             {"fact_id": old_fact_id},
-            {"$set": {
-                "active": False,
-                "superseded_at": utc_now(),
-                "updated_at": utc_now(),
-            }},
+            {
+                "$set": {
+                    "active": False,
+                    "superseded_at": utc_now(),
+                    "updated_at": utc_now(),
+                }
+            },
         )
 
     # Create new fact
@@ -239,7 +241,8 @@ async def supersede_fact(
         "fact_id": generate_uuid(),
         "content": new_fact.get("content", ""),
         "category": new_fact.get("category", "other"),
-        "project_id": new_fact.get("project_id") or (old_doc.get("project_id") if old_doc else None),
+        "project_id": new_fact.get("project_id")
+        or (old_doc.get("project_id") if old_doc else None),
         "source": new_fact.get("source", "correction"),
         "entity_type": new_fact.get("entity_type"),
         "entity_id": new_fact.get("entity_id"),

@@ -9,16 +9,19 @@ COO corrections, and triggering reprocessing of the people pipeline.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, Field
 
 from app.database import get_database
 from app.models.base import utc_now
-from app.models.person import ActivityLevel, Person, RoleSource
+from app.models.person import ActivityLevel, RoleSource
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +84,9 @@ class PersonListResponse(BaseModel):
 class PersonUpdateRequest(BaseModel):
     """Request body for COO corrections to a person record."""
 
-    name: str | None = Field(default=None, min_length=1, max_length=200, description="Corrected name.")
+    name: str | None = Field(
+        default=None, min_length=1, max_length=200, description="Corrected name."
+    )
     role: str | None = Field(default=None, min_length=1, description="Corrected role.")
     department: str | None = Field(default=None, description="Corrected department.")
 
@@ -126,9 +131,11 @@ def _get_collection(db: AsyncIOMotorDatabase):  # type: ignore[type-arg]
 async def list_people(
     skip: int = Query(default=0, ge=0, description="Records to skip."),
     limit: int = Query(default=50, ge=1, le=200, description="Maximum records to return."),
-    activity_level: Optional[ActivityLevel] = Query(default=None, description="Filter by activity level."),
-    department: Optional[str] = Query(default=None, description="Filter by department."),
-    project_id: Optional[str] = Query(default=None, description="Filter by project involvement."),
+    activity_level: ActivityLevel | None = Query(
+        default=None, description="Filter by activity level."
+    ),
+    department: str | None = Query(default=None, description="Filter by department."),
+    project_id: str | None = Query(default=None, description="Filter by project involvement."),
     db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
 ) -> PersonListResponse:
     collection = _get_collection(db)
@@ -142,12 +149,7 @@ async def list_people(
         query["projects"] = project_id
 
     total = await collection.count_documents(query)
-    cursor = (
-        collection.find(query, {"_id": 0})
-        .sort("name", 1)
-        .skip(skip)
-        .limit(limit)
-    )
+    cursor = collection.find(query, {"_id": 0}).sort("name", 1).skip(skip).limit(limit)
     docs = await cursor.to_list(length=limit)
 
     people = []

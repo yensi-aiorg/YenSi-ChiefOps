@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from app.citex.client import CitexClient
+if TYPE_CHECKING:
+    from app.citex.client import CitexClient
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,9 @@ _CHUNK_SIZE = 600  # characters per chunk (Citex optimal window)
 _CHUNK_OVERLAP = 50  # overlap between consecutive chunks
 
 
-def _chunk_text(text: str, chunk_size: int = _CHUNK_SIZE, overlap: int = _CHUNK_OVERLAP) -> list[str]:
+def _chunk_text(
+    text: str, chunk_size: int = _CHUNK_SIZE, overlap: int = _CHUNK_OVERLAP
+) -> list[str]:
     """Split text into overlapping chunks of approximately ``chunk_size`` characters.
 
     Tries to break on sentence boundaries (period, newline) within the

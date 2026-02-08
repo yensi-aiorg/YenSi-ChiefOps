@@ -13,14 +13,15 @@ import io
 import json
 import logging
 import zipfile
-from datetime import datetime, timezone
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
-from app.services.ingestion.hasher import compute_hash, check_duplicate, record_hash
+from app.services.ingestion.hasher import check_duplicate, compute_hash, record_hash
 from app.services.ingestion.slack_admin import IngestionFileResult
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -140,12 +141,14 @@ async def _process_users(
         if existing:
             await db.people.update_one(
                 {"slack_user_id": user_id},
-                {"$set": {
-                    "name": name,
-                    "email": email or existing.get("email"),
-                    "avatar_url": avatar_url or existing.get("avatar_url"),
-                    "updated_at": utc_now(),
-                }},
+                {
+                    "$set": {
+                        "name": name,
+                        "email": email or existing.get("email"),
+                        "avatar_url": avatar_url or existing.get("avatar_url"),
+                        "updated_at": utc_now(),
+                    }
+                },
             )
             result.records_skipped += 1
         else:
@@ -210,8 +213,12 @@ async def _process_channels(
         channel_doc = {
             "channel_id": channel_id,
             "name": ch.get("name", ""),
-            "purpose": ch.get("purpose", {}).get("value", "") if isinstance(ch.get("purpose"), dict) else str(ch.get("purpose", "")),
-            "topic": ch.get("topic", {}).get("value", "") if isinstance(ch.get("topic"), dict) else str(ch.get("topic", "")),
+            "purpose": ch.get("purpose", {}).get("value", "")
+            if isinstance(ch.get("purpose"), dict)
+            else str(ch.get("purpose", "")),
+            "topic": ch.get("topic", {}).get("value", "")
+            if isinstance(ch.get("topic"), dict)
+            else str(ch.get("topic", "")),
             "is_archived": ch.get("is_archived", False),
             "members": ch.get("members", []),
             "num_members": len(ch.get("members", [])),
@@ -281,7 +288,7 @@ async def _process_messages(
 
             try:
                 ts_float = float(ts)
-                timestamp = datetime.fromtimestamp(ts_float, tz=timezone.utc)
+                timestamp = datetime.fromtimestamp(ts_float, tz=UTC)
             except (ValueError, TypeError, OSError):
                 timestamp = utc_now()
 
@@ -294,16 +301,18 @@ async def _process_messages(
                 "thread_ts": msg.get("thread_ts"),
                 "reply_count": msg.get("reply_count", 0),
                 "reactions": [
-                    {"name": r.get("name", ""), "count": r.get("count", 0), "users": r.get("users", [])}
+                    {
+                        "name": r.get("name", ""),
+                        "count": r.get("count", 0),
+                        "users": r.get("users", []),
+                    }
                     for r in msg.get("reactions", [])
                     if isinstance(r, dict)
                 ],
                 "created_at": utc_now(),
             }
 
-            existing = await db.slack_messages.find_one(
-                {"channel": channel_name, "ts": ts}
-            )
+            existing = await db.slack_messages.find_one({"channel": channel_name, "ts": ts})
             if existing:
                 result.records_skipped += 1
                 continue
@@ -313,11 +322,13 @@ async def _process_messages(
 
             if channel_name not in channel_messages:
                 channel_messages[channel_name] = []
-            channel_messages[channel_name].append({
-                "user": user,
-                "text": text,
-                "timestamp": timestamp.isoformat(),
-            })
+            channel_messages[channel_name].append(
+                {
+                    "user": user,
+                    "text": text,
+                    "timestamp": timestamp.isoformat(),
+                }
+            )
 
     # Build text documents for Citex indexing
     for channel_name, messages in channel_messages.items():

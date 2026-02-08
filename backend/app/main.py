@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +15,9 @@ from app.core.logging import setup_logging
 from app.database import close_mongodb, connect_mongodb, get_database_sync
 from app.db.indexes import create_indexes
 from app.redis_client import close_redis, connect_redis
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 logger = logging.getLogger(__name__)
 
@@ -87,9 +90,7 @@ def create_application() -> FastAPI:
         )
 
     @application.exception_handler(Exception)
-    async def unhandled_exception_handler(
-        _request: Request, exc: Exception
-    ) -> ORJSONResponse:
+    async def unhandled_exception_handler(_request: Request, exc: Exception) -> ORJSONResponse:
         logger.exception("Unhandled exception: %s", str(exc))
         return ORJSONResponse(
             status_code=500,

@@ -9,10 +9,11 @@ group_count, time_series, top_n, and aggregate.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
-from motor.motor_asyncio import AsyncIOMotorDatabase
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -78,16 +79,15 @@ async def execute_query(
     try:
         if query_type == "count":
             return await _execute_count(collection, match_stage)
-        elif query_type == "group_count":
+        if query_type == "group_count":
             return await _execute_group_count(collection, match_stage, data_query)
-        elif query_type == "time_series":
+        if query_type == "time_series":
             return await _execute_time_series(collection, match_stage, data_query)
-        elif query_type == "top_n":
+        if query_type == "top_n":
             return await _execute_top_n(collection, match_stage, data_query)
-        elif query_type == "aggregate":
+        if query_type == "aggregate":
             return await _execute_aggregate(collection, match_stage, data_query)
-        else:
-            return {"data": [], "metadata": {"error": f"Unhandled query type: {query_type}"}}
+        return {"data": [], "metadata": {"error": f"Unhandled query type: {query_type}"}}
     except Exception as exc:
         logger.exception("Query execution failed")
         return {"data": [], "metadata": {"error": str(exc)}}
@@ -142,7 +142,7 @@ def _try_parse_date(value: str) -> datetime | None:
     ]
     for fmt in formats:
         try:
-            return datetime.strptime(value, fmt).replace(tzinfo=timezone.utc)
+            return datetime.strptime(value, fmt).replace(tzinfo=UTC)
         except ValueError:
             continue
     return None
@@ -176,13 +176,17 @@ async def _execute_group_count(
     if match_stage:
         pipeline.append({"$match": match_stage})
 
-    pipeline.extend([
-        {"$group": {
-            "_id": f"${group_by}",
-            "count": {"$sum": 1},
-        }},
-        {"$sort": {"count": -1}},
-    ])
+    pipeline.extend(
+        [
+            {
+                "$group": {
+                    "_id": f"${group_by}",
+                    "count": {"$sum": 1},
+                }
+            },
+            {"$sort": {"count": -1}},
+        ]
+    )
 
     limit = query.get("limit")
     if limit and isinstance(limit, int):
@@ -190,10 +194,12 @@ async def _execute_group_count(
 
     results: list[dict[str, Any]] = []
     async for doc in collection.aggregate(pipeline):
-        results.append({
-            "label": str(doc.get("_id", "Unknown")),
-            "value": doc.get("count", 0),
-        })
+        results.append(
+            {
+                "label": str(doc.get("_id", "Unknown")),
+                "value": doc.get("count", 0),
+            }
+        )
 
     return {
         "data": results,
@@ -215,21 +221,13 @@ async def _execute_time_series(
     # Build date truncation expression
     date_trunc: dict[str, Any]
     if interval == "day":
-        date_trunc = {
-            "$dateToString": {"format": "%Y-%m-%d", "date": f"${time_field}"}
-        }
+        date_trunc = {"$dateToString": {"format": "%Y-%m-%d", "date": f"${time_field}"}}
     elif interval == "week":
-        date_trunc = {
-            "$dateToString": {"format": "%Y-W%V", "date": f"${time_field}"}
-        }
+        date_trunc = {"$dateToString": {"format": "%Y-W%V", "date": f"${time_field}"}}
     elif interval == "month":
-        date_trunc = {
-            "$dateToString": {"format": "%Y-%m", "date": f"${time_field}"}
-        }
+        date_trunc = {"$dateToString": {"format": "%Y-%m", "date": f"${time_field}"}}
     else:
-        date_trunc = {
-            "$dateToString": {"format": "%Y-%m-%d", "date": f"${time_field}"}
-        }
+        date_trunc = {"$dateToString": {"format": "%Y-%m-%d", "date": f"${time_field}"}}
 
     pipeline: list[dict[str, Any]] = []
     if match_stage:
@@ -250,17 +248,21 @@ async def _execute_time_series(
     else:
         group_stage["value"] = {"$sum": 1}
 
-    pipeline.extend([
-        {"$group": group_stage},
-        {"$sort": {"_id": 1}},
-    ])
+    pipeline.extend(
+        [
+            {"$group": group_stage},
+            {"$sort": {"_id": 1}},
+        ]
+    )
 
     results: list[dict[str, Any]] = []
     async for doc in collection.aggregate(pipeline):
-        results.append({
-            "date": doc.get("_id", ""),
-            "value": doc.get("value", 0),
-        })
+        results.append(
+            {
+                "date": doc.get("_id", ""),
+                "value": doc.get("value", 0),
+            }
+        )
 
     return {
         "data": results,
@@ -296,21 +298,25 @@ async def _execute_top_n(
     else:
         group_stage["value"] = {"$sum": 1}
 
-    pipeline.extend([
-        {"$group": group_stage},
-        {"$sort": {"value": -1}},
-        {"$limit": limit},
-    ])
+    pipeline.extend(
+        [
+            {"$group": group_stage},
+            {"$sort": {"value": -1}},
+            {"$limit": limit},
+        ]
+    )
 
     results: list[dict[str, Any]] = []
     async for doc in collection.aggregate(pipeline):
         label = doc.get("_id", "Unknown")
         if label is None:
             label = "Unassigned"
-        results.append({
-            "label": str(label),
-            "value": doc.get("value", 0),
-        })
+        results.append(
+            {
+                "label": str(label),
+                "value": doc.get("value", 0),
+            }
+        )
 
     return {
         "data": results,
@@ -337,13 +343,15 @@ async def _execute_aggregate(
     op_map = {"sum": "$sum", "avg": "$avg", "min": "$min", "max": "$max"}
     mongo_op = op_map.get(operation, "$sum")
 
-    pipeline.append({
-        "$group": {
-            "_id": None,
-            "result": {mongo_op: f"${metric}"},
-            "count": {"$sum": 1},
-        },
-    })
+    pipeline.append(
+        {
+            "$group": {
+                "_id": None,
+                "result": {mongo_op: f"${metric}"},
+                "count": {"$sum": 1},
+            },
+        }
+    )
 
     result: dict[str, Any] = {}
     async for doc in collection.aggregate(pipeline):

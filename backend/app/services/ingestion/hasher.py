@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
-from motor.motor_asyncio import AsyncIOMotorDatabase
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +63,7 @@ async def record_hash(
         filename: Original filename that produced this hash.
         db: Motor database handle.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     await db.ingestion_hashes.update_one(
         {"content_hash": content_hash},
         {

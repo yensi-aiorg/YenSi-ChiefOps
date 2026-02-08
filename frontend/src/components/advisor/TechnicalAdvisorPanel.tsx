@@ -5,13 +5,11 @@ import {
   Calendar,
   AlertTriangle,
   HelpCircle,
-  Clock,
   CheckCircle2,
-  AlertCircle,
   Gauge,
 } from "lucide-react";
 import { useProjectStore } from "@/stores/projectStore";
-import { cn, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
 /*  TechnicalAdvisorPanel – project analysis: planning, gaps, Q&A     */
@@ -167,7 +165,6 @@ function MissingTaskCard({
 
 function ArchitectQuestionItem({
   question,
-  index,
 }: {
   question: string;
   index: number;

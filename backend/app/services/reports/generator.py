@@ -9,12 +9,12 @@ that the frontend can render and export.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -131,39 +131,58 @@ async def _gather_report_context(
             # Assignee workload
             pipeline = [
                 {"$match": {"project_key": {"$in": jira_keys}}},
-                {"$group": {
-                    "_id": "$assignee",
-                    "total": {"$sum": 1},
-                    "completed": {"$sum": {"$cond": [
-                        {"$in": ["$status", ["done", "closed", "resolved"]]},
-                        1, 0,
-                    ]}},
-                }},
+                {
+                    "$group": {
+                        "_id": "$assignee",
+                        "total": {"$sum": 1},
+                        "completed": {
+                            "$sum": {
+                                "$cond": [
+                                    {"$in": ["$status", ["done", "closed", "resolved"]]},
+                                    1,
+                                    0,
+                                ]
+                            }
+                        },
+                    }
+                },
                 {"$sort": {"total": -1}},
                 {"$limit": 20},
             ]
             workload: list[dict[str, Any]] = []
             async for doc in db.jira_tasks.aggregate(pipeline):
-                workload.append({
-                    "assignee": doc["_id"] or "Unassigned",
-                    "total": doc["total"],
-                    "completed": doc["completed"],
-                })
+                workload.append(
+                    {
+                        "assignee": doc["_id"] or "Unassigned",
+                        "total": doc["total"],
+                        "completed": doc["completed"],
+                    }
+                )
             context["workload"] = workload
 
             # Recently completed tasks
             recent_completed: list[dict[str, Any]] = []
-            async for task in db.jira_tasks.find(
-                {"project_key": {"$in": jira_keys}, "status": {"$in": ["done", "closed", "resolved"]}},
-                {"task_key": 1, "summary": 1, "assignee": 1, "resolved_date": 1, "_id": 0},
-            ).sort("resolved_date", -1).limit(10):
+            async for task in (
+                db.jira_tasks.find(
+                    {
+                        "project_key": {"$in": jira_keys},
+                        "status": {"$in": ["done", "closed", "resolved"]},
+                    },
+                    {"task_key": 1, "summary": 1, "assignee": 1, "resolved_date": 1, "_id": 0},
+                )
+                .sort("resolved_date", -1)
+                .limit(10)
+            ):
                 recent_completed.append(task)
             context["recent_completed"] = recent_completed
 
             # Blocked tasks
             blocked: list[dict[str, Any]] = []
             async for task in db.jira_tasks.find(
-                {"project_key": {"$in": jira_keys}, "status": {"$in": ["blocked", "impediment", "on_hold"]}},
+                {
+                    "project_key": {"$in": jira_keys},
+                    "status": {"$in": ["blocked", "impediment", "on_hold"]},
+                },
                 {"task_key": 1, "summary": 1, "assignee": 1, "_id": 0},
             ):
                 blocked.append(task)
@@ -295,51 +314,59 @@ def _heuristic_generate_report(
     sections: list[dict[str, str]] = []
 
     # Overview section
-    sections.append({
-        "heading": "Project Overview",
-        "content": (
-            f"Project: {project_info.get('name', 'N/A')}\n"
-            f"Status: {project_info.get('status', 'N/A')}\n"
-            f"Completion: {project_info.get('completion_percentage', 0):.1f}%\n"
-            f"Health Score: {project_info.get('health_score', 'N/A')}/100"
-        ),
-        "type": "text",
-    })
+    sections.append(
+        {
+            "heading": "Project Overview",
+            "content": (
+                f"Project: {project_info.get('name', 'N/A')}\n"
+                f"Status: {project_info.get('status', 'N/A')}\n"
+                f"Completion: {project_info.get('completion_percentage', 0):.1f}%\n"
+                f"Health Score: {project_info.get('health_score', 'N/A')}/100"
+            ),
+            "type": "text",
+        }
+    )
 
     # Task summary section
     if task_summary:
-        sections.append({
-            "heading": "Task Summary",
-            "content": (
-                f"Total: {task_summary.get('total', 0)}\n"
-                f"Completed: {task_summary.get('completed', 0)}\n"
-                f"In Progress: {task_summary.get('in_progress', 0)}\n"
-                f"Blocked: {task_summary.get('blocked', 0)}\n"
-                f"To Do: {task_summary.get('to_do', 0)}"
-            ),
-            "type": "metric",
-        })
+        sections.append(
+            {
+                "heading": "Task Summary",
+                "content": (
+                    f"Total: {task_summary.get('total', 0)}\n"
+                    f"Completed: {task_summary.get('completed', 0)}\n"
+                    f"In Progress: {task_summary.get('in_progress', 0)}\n"
+                    f"Blocked: {task_summary.get('blocked', 0)}\n"
+                    f"To Do: {task_summary.get('to_do', 0)}"
+                ),
+                "type": "metric",
+            }
+        )
 
     # Risks section
     risks = project_info.get("key_risks", [])
     if risks:
-        sections.append({
-            "heading": "Key Risks",
-            "content": "\n".join(f"- {r}" for r in risks),
-            "type": "list",
-        })
+        sections.append(
+            {
+                "heading": "Key Risks",
+                "content": "\n".join(f"- {r}" for r in risks),
+                "type": "list",
+            }
+        )
 
     # Blocked tasks
     blocked = context.get("blocked_tasks", [])
     if blocked:
-        sections.append({
-            "heading": "Blocked Items",
-            "content": "\n".join(
-                f"- [{t.get('task_key', '')}] {t.get('summary', '')} (Assignee: {t.get('assignee', 'N/A')})"
-                for t in blocked
-            ),
-            "type": "list",
-        })
+        sections.append(
+            {
+                "heading": "Blocked Items",
+                "content": "\n".join(
+                    f"- [{t.get('task_key', '')}] {t.get('summary', '')} (Assignee: {t.get('assignee', 'N/A')})"
+                    for t in blocked
+                ),
+                "type": "list",
+            }
+        )
 
     # Key metrics
     key_metrics: list[dict[str, str]] = []
@@ -348,13 +375,17 @@ def _heuristic_generate_report(
         completed = task_summary.get("completed", 0)
         key_metrics.append({"label": "Total Tasks", "value": str(total), "trend": "stable"})
         key_metrics.append({"label": "Completed", "value": str(completed), "trend": "up"})
-        key_metrics.append({"label": "Blocked", "value": str(task_summary.get("blocked", 0)), "trend": "stable"})
+        key_metrics.append(
+            {"label": "Blocked", "value": str(task_summary.get("blocked", 0)), "trend": "stable"}
+        )
 
-    key_metrics.append({
-        "label": "Health Score",
-        "value": str(project_info.get("health_score", "N/A")),
-        "trend": "stable",
-    })
+    key_metrics.append(
+        {
+            "label": "Health Score",
+            "value": str(project_info.get("health_score", "N/A")),
+            "trend": "stable",
+        }
+    )
 
     return {
         "title": title,

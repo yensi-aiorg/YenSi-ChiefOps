@@ -9,12 +9,13 @@ correction as a hard fact in the memory system.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
-
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import TYPE_CHECKING, Any
 
 from app.core.exceptions import NotFoundException, ValidationException
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -183,13 +184,15 @@ async def _log_correction(
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
 ) -> None:
     """Log the correction in the audit log."""
-    await db.audit_log.insert_one({
-        "request_id": generate_uuid(),
-        "action": "people_correction",
-        "entity_type": "person",
-        "entity_id": person_id,
-        "entity_name": person_name,
-        "changes": changes,
-        "old_values": old_values,
-        "created_at": utc_now(),
-    })
+    await db.audit_log.insert_one(
+        {
+            "request_id": generate_uuid(),
+            "action": "people_correction",
+            "entity_type": "person",
+            "entity_id": person_id,
+            "entity_name": person_name,
+            "changes": changes,
+            "old_values": old_values,
+            "created_at": utc_now(),
+        }
+    )

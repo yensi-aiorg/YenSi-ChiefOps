@@ -18,7 +18,7 @@ export function PdfExportButton({
   className,
   variant = "secondary",
 }: PdfExportButtonProps) {
-  const { exportPdf, exporting } = useReportStore();
+  const { exportPdf, isExporting } = useReportStore();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   const handleExport = async () => {
@@ -26,34 +26,18 @@ export function PdfExportButton({
 
     setStatus("loading");
     try {
-      const blobUrl = await exportPdf(reportId);
+      await exportPdf(reportId);
 
-      if (blobUrl) {
-        // Trigger browser download
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = `report-${reportId}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Clean up the blob URL after a delay
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-
-        setStatus("success");
-        // Reset status after showing success
-        setTimeout(() => setStatus("idle"), 2500);
-      } else {
-        setStatus("error");
-        setTimeout(() => setStatus("idle"), 3000);
-      }
+      setStatus("success");
+      // Reset status after showing success
+      setTimeout(() => setStatus("idle"), 2500);
     } catch {
       setStatus("error");
       setTimeout(() => setStatus("idle"), 3000);
     }
   };
 
-  const isLoading = status === "loading" || exporting;
+  const isLoading = status === "loading" || isExporting;
 
   const buttonClass = cn(
     variant === "primary" && "btn-primary",

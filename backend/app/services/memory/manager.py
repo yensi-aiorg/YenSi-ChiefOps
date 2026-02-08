@@ -9,15 +9,17 @@ handles post-turn processing (fact extraction, compaction checks).
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import httpx
-from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.config import get_settings
 from app.services.memory.assembler import assemble_context
 from app.services.memory.compactor import check_compaction_needed, compact
 from app.services.memory.hard_facts import extract_facts
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -55,14 +57,12 @@ async def get_context(
         await compact(project_id, db, ai_adapter)
 
     # Assemble the full context
-    context = await assemble_context(
+    return await assemble_context(
         project_id=project_id,
         query=query,
         db=db,
         rag_chunks=rag_chunks,
     )
-
-    return context
 
 
 async def process_turn(
@@ -105,7 +105,7 @@ async def process_turn(
 
 async def _retrieve_rag_chunks(
     query: str,
-    project_id: Optional[str] = None,
+    project_id: str | None = None,
 ) -> list[str]:
     """Retrieve relevant document chunks from Citex.
 

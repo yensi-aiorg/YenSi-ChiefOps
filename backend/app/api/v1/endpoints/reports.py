@@ -10,17 +10,20 @@ from __future__ import annotations
 
 import io
 import logging
-from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, Field
 
 from app.database import get_database
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -246,8 +249,8 @@ async def generate_report(
 async def list_reports(
     skip: int = Query(default=0, ge=0, description="Records to skip."),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum records to return."),
-    project_id: Optional[str] = Query(default=None, description="Filter by project ID."),
-    status: Optional[ReportStatus] = Query(default=None, description="Filter by status."),
+    project_id: str | None = Query(default=None, description="Filter by project ID."),
+    status: ReportStatus | None = Query(default=None, description="Filter by status."),
     db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
 ) -> ReportListResponse:
     collection = _get_collection(db)
@@ -259,12 +262,7 @@ async def list_reports(
         query["status"] = status.value
 
     total = await collection.count_documents(query)
-    cursor = (
-        collection.find(query, {"_id": 0})
-        .sort("created_at", -1)
-        .skip(skip)
-        .limit(limit)
-    )
+    cursor = collection.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
     docs = await cursor.to_list(length=limit)
 
     reports = []

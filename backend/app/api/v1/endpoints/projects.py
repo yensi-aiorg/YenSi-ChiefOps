@@ -9,16 +9,19 @@ analysis results.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, Field
 
 from app.database import get_database
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +62,12 @@ class ProjectCreateRequest(BaseModel):
 class ProjectUpdateRequest(BaseModel):
     """Request body for updating project metadata."""
 
-    name: str | None = Field(default=None, min_length=1, max_length=300, description="Updated name.")
-    description: str | None = Field(default=None, max_length=5000, description="Updated description.")
+    name: str | None = Field(
+        default=None, min_length=1, max_length=300, description="Updated name."
+    )
+    description: str | None = Field(
+        default=None, max_length=5000, description="Updated description."
+    )
     deadline: datetime | None = Field(default=None, description="Updated deadline.")
     status: ProjectStatus | None = Field(default=None, description="Updated status.")
 
@@ -72,7 +79,9 @@ class ProjectSummary(BaseModel):
     name: str = Field(..., description="Project name.")
     description: str = Field(default="", description="Project description.")
     status: ProjectStatus = Field(default=ProjectStatus.ACTIVE, description="Current status.")
-    health_score: ProjectHealthScore = Field(default=ProjectHealthScore.UNKNOWN, description="Overall health.")
+    health_score: ProjectHealthScore = Field(
+        default=ProjectHealthScore.UNKNOWN, description="Overall health."
+    )
     deadline: datetime | None = Field(default=None, description="Project deadline.")
     team_size: int = Field(default=0, description="Number of team members.")
     open_tasks: int = Field(default=0, description="Number of open tasks.")
@@ -90,14 +99,18 @@ class ProjectDetail(BaseModel):
     status: ProjectStatus = ProjectStatus.ACTIVE
     health_score: ProjectHealthScore = ProjectHealthScore.UNKNOWN
     deadline: datetime | None = None
-    team_members: list[str] = Field(default_factory=list, description="List of person_ids on the team.")
+    team_members: list[str] = Field(
+        default_factory=list, description="List of person_ids on the team."
+    )
     open_tasks: int = 0
     completed_tasks: int = 0
     total_tasks: int = 0
     key_risks: list[str] = Field(default_factory=list, description="Identified risks.")
     key_milestones: list[dict] = Field(default_factory=list, description="Project milestones.")
     recent_activity: list[dict] = Field(default_factory=list, description="Recent activity feed.")
-    last_analysis_at: datetime | None = Field(default=None, description="When last analysis was run.")
+    last_analysis_at: datetime | None = Field(
+        default=None, description="When last analysis was run."
+    )
     created_at: datetime = Field(..., description="Project creation timestamp.")
     updated_at: datetime = Field(..., description="Last update timestamp.")
 
@@ -118,9 +131,13 @@ class ProjectAnalysisResponse(BaseModel):
     health_score: ProjectHealthScore = Field(..., description="Computed health score.")
     summary: str = Field(default="", description="Executive summary of project state.")
     risks: list[dict] = Field(default_factory=list, description="Identified risks with severity.")
-    recommendations: list[str] = Field(default_factory=list, description="Actionable recommendations.")
+    recommendations: list[str] = Field(
+        default_factory=list, description="Actionable recommendations."
+    )
     team_dynamics: dict = Field(default_factory=dict, description="Team collaboration analysis.")
-    velocity_trend: str = Field(default="stable", description="Work velocity trend: improving, stable, declining.")
+    velocity_trend: str = Field(
+        default="stable", description="Work velocity trend: improving, stable, declining."
+    )
     analyzed_at: datetime = Field(..., description="When the analysis was performed.")
 
 
@@ -161,8 +178,8 @@ def _get_analysis_collection(db: AsyncIOMotorDatabase):  # type: ignore[type-arg
 async def list_projects(
     skip: int = Query(default=0, ge=0, description="Records to skip."),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum records to return."),
-    status: Optional[ProjectStatus] = Query(default=None, description="Filter by status."),
-    health: Optional[ProjectHealthScore] = Query(default=None, description="Filter by health score."),
+    status: ProjectStatus | None = Query(default=None, description="Filter by status."),
+    health: ProjectHealthScore | None = Query(default=None, description="Filter by health score."),
     db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
 ) -> ProjectListResponse:
     collection = _get_collection(db)
@@ -174,12 +191,7 @@ async def list_projects(
         query["health_score"] = health.value
 
     total = await collection.count_documents(query)
-    cursor = (
-        collection.find(query, {"_id": 0})
-        .sort("updated_at", -1)
-        .skip(skip)
-        .limit(limit)
-    )
+    cursor = collection.find(query, {"_id": 0}).sort("updated_at", -1).skip(skip).limit(limit)
     docs = await cursor.to_list(length=limit)
 
     projects = []

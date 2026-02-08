@@ -9,17 +9,20 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import httpx
 from fastapi import APIRouter, Depends
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, Field
-from redis.asyncio import Redis
 
 from app.config import get_settings
 from app.database import get_database
 from app.redis_client import get_redis
+
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
+    from redis.asyncio import Redis
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +160,7 @@ async def readiness_check(
 
     return ReadinessResponse(
         status=overall,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         environment=settings.ENVIRONMENT,
         mongo=DependencyDetail(healthy=mongo_ok, latency_ms=mongo_lat, error=mongo_err),
         redis=DependencyDetail(healthy=redis_ok, latency_ms=redis_lat, error=redis_err),

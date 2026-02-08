@@ -9,13 +9,11 @@ readiness and planning gaps.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
-from motor.motor_asyncio import AsyncIOMotorDatabase
-
-from app.models.base import utc_now
-from app.models.project import BackwardPlanItem
+if TYPE_CHECKING:
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -50,12 +48,20 @@ async def generate_backward_plan(
     if jira_keys:
         async for task in db.jira_tasks.find(
             {"project_key": {"$in": jira_keys}},
-            {"task_key": 1, "summary": 1, "status": 1, "assignee": 1,
-             "story_points": 1, "due_date": 1, "epic_link": 1, "_id": 0},
+            {
+                "task_key": 1,
+                "summary": 1,
+                "status": 1,
+                "assignee": 1,
+                "story_points": 1,
+                "due_date": 1,
+                "epic_link": 1,
+                "_id": 0,
+            },
         ):
             existing_tasks.append(task)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     days_available = (target_date - now).days
 
     if ai_adapter is None:
@@ -95,7 +101,10 @@ async def generate_backward_plan(
                         "task": {"type": "string"},
                         "estimated_days": {"type": "integer", "minimum": 1},
                         "depends_on": {"type": "array", "items": {"type": "string"}},
-                        "priority": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
+                        "priority": {
+                            "type": "string",
+                            "enum": ["critical", "high", "medium", "low"],
+                        },
                     },
                     "required": ["task", "estimated_days", "priority"],
                 },
@@ -219,7 +228,9 @@ async def generate_architect_questions(
             {"project_key": {"$in": jira_keys}},
             {"summary": 1, "description": 1, "_id": 0},
         ).limit(50):
-            tasks.append(f"{task.get('summary', '')} -- {(task.get('description', '') or '')[:200]}")
+            tasks.append(
+                f"{task.get('summary', '')} -- {(task.get('description', '') or '')[:200]}"
+            )
 
     prompt = (
         f"Generate architect questions for this project.\n\n"
@@ -264,12 +275,14 @@ def _heuristic_backward_plan(
     total_incomplete = len(incomplete)
 
     if days_available <= 0:
-        plan.append({
-            "task": "Deadline has passed -- conduct retrospective and reset timeline",
-            "estimated_days": 1,
-            "depends_on": [],
-            "priority": "critical",
-        })
+        plan.append(
+            {
+                "task": "Deadline has passed -- conduct retrospective and reset timeline",
+                "estimated_days": 1,
+                "depends_on": [],
+                "priority": "critical",
+            }
+        )
         return plan
 
     # Allocate time proportionally
@@ -278,30 +291,38 @@ def _heuristic_backward_plan(
     deploy_days = max(1, int(days_available * 0.1))
     buffer_days = max(1, days_available - dev_days - test_days - deploy_days)
 
-    plan.append({
-        "task": f"Complete {total_incomplete} remaining development tasks",
-        "estimated_days": dev_days,
-        "depends_on": [],
-        "priority": "high",
-    })
-    plan.append({
-        "task": "Integration testing and QA",
-        "estimated_days": test_days,
-        "depends_on": [f"Complete {total_incomplete} remaining development tasks"],
-        "priority": "high",
-    })
-    plan.append({
-        "task": "Staging deployment and validation",
-        "estimated_days": deploy_days,
-        "depends_on": ["Integration testing and QA"],
-        "priority": "critical",
-    })
-    plan.append({
-        "task": "Production release and monitoring",
-        "estimated_days": buffer_days,
-        "depends_on": ["Staging deployment and validation"],
-        "priority": "critical",
-    })
+    plan.append(
+        {
+            "task": f"Complete {total_incomplete} remaining development tasks",
+            "estimated_days": dev_days,
+            "depends_on": [],
+            "priority": "high",
+        }
+    )
+    plan.append(
+        {
+            "task": "Integration testing and QA",
+            "estimated_days": test_days,
+            "depends_on": [f"Complete {total_incomplete} remaining development tasks"],
+            "priority": "high",
+        }
+    )
+    plan.append(
+        {
+            "task": "Staging deployment and validation",
+            "estimated_days": deploy_days,
+            "depends_on": ["Integration testing and QA"],
+            "priority": "critical",
+        }
+    )
+    plan.append(
+        {
+            "task": "Production release and monitoring",
+            "estimated_days": buffer_days,
+            "depends_on": ["Staging deployment and validation"],
+            "priority": "critical",
+        }
+    )
 
     return plan
 
@@ -310,7 +331,7 @@ def _heuristic_missing_tasks(tasks: list[dict[str, Any]]) -> list[str]:
     """Detect missing tasks using heuristics."""
     missing: list[str] = []
     summaries_lower = " ".join(t.get("summary", "").lower() for t in tasks)
-    types = {t.get("issue_type", "").lower() for t in tasks}
+    {t.get("issue_type", "").lower() for t in tasks}
     labels = set()
     for t in tasks:
         for l in t.get("labels", []):

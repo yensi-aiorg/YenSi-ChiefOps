@@ -9,17 +9,20 @@ for type and size before being handed to the ingestion orchestrator.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
 from app.database import get_database
 from app.models.base import generate_uuid, utc_now
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -240,7 +243,7 @@ async def upload_files(
 
     # Store raw file data for the orchestrator to pick up
     file_store = db["ingestion_file_store"]
-    for file_info, content in zip(accepted_files, file_contents):
+    for file_info, content in zip(accepted_files, file_contents, strict=False):
         await file_store.insert_one(
             {
                 "job_id": job_id,
@@ -269,7 +272,13 @@ async def upload_files(
         )
         await collection.update_one(
             {"job_id": job_id},
-            {"$set": {"status": IngestionJobStatus.FAILED.value, "error_message": str(exc), "updated_at": utc_now()}},
+            {
+                "$set": {
+                    "status": IngestionJobStatus.FAILED.value,
+                    "error_message": str(exc),
+                    "updated_at": utc_now(),
+                }
+            },
         )
         raise HTTPException(status_code=500, detail=f"Failed to start ingestion: {exc}")
 
@@ -290,7 +299,7 @@ async def upload_files(
 async def list_jobs(
     skip: int = Query(default=0, ge=0, description="Number of records to skip."),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum records to return."),
-    status: Optional[IngestionJobStatus] = Query(default=None, description="Filter by status."),
+    status: IngestionJobStatus | None = Query(default=None, description="Filter by status."),
     db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
 ) -> IngestionJobListResponse:
     collection = _get_collection(db)
@@ -345,8 +354,12 @@ async def delete_job(
 
     current_status = doc.get("status", "")
 
-    if current_status in (IngestionJobStatus.PENDING.value, IngestionJobStatus.PROCESSING.value,
-                          IngestionJobStatus.EXTRACTING.value, IngestionJobStatus.ANALYZING.value):
+    if current_status in (
+        IngestionJobStatus.PENDING.value,
+        IngestionJobStatus.PROCESSING.value,
+        IngestionJobStatus.EXTRACTING.value,
+        IngestionJobStatus.ANALYZING.value,
+    ):
         # Cancel running/pending job
         await collection.update_one(
             {"job_id": job_id},
@@ -358,7 +371,11 @@ async def delete_job(
 
             await cancel_ingestion_job(job_id)
         except (ImportError, Exception) as exc:
-            logger.warning("Could not signal orchestrator to cancel job", extra={"job_id": job_id}, exc_info=exc)
+            logger.warning(
+                "Could not signal orchestrator to cancel job",
+                extra={"job_id": job_id},
+                exc_info=exc,
+            )
 
         return DeleteJobResponse(
             job_id=job_id,
