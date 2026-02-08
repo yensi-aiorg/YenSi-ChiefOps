@@ -98,7 +98,7 @@ export const useSettingsStore = create<SettingsStore>()(
       exportData: async () => {
         set({ isLoading: true, error: null }, false, "exportData/start");
         try {
-          const response = await api.get<Blob>("/v1/settings/export", {
+          const response = await api.post("/v1/settings/data/export", null, {
             responseType: "blob",
           });
 
@@ -131,7 +131,7 @@ export const useSettingsStore = create<SettingsStore>()(
       clearAllData: async () => {
         set({ isLoading: true, error: null }, false, "clearAllData/start");
         try {
-          await api.delete("/v1/settings/data");
+          await api.delete("/v1/settings/data", { params: { confirm: true } });
 
           set(
             { settings: null, isLoading: false },
