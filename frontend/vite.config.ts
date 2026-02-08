@@ -14,12 +14,12 @@ export default defineConfig({
     host: true,
     proxy: {
       "/api": {
-        target: "http://localhost:23101",
+        target: "http://host.docker.internal:23101",
         changeOrigin: true,
         secure: false,
       },
       "/ws": {
-        target: "ws://localhost:23101",
+        target: "ws://host.docker.internal:23101",
         ws: true,
         changeOrigin: true,
       },

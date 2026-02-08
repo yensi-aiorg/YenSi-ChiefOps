@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     # --- Citex Integration ---
     CITEX_API_URL: str = Field(
-        default="http://localhost:23100",
+        default="http://localhost:20161",
         description="Base URL for the Citex extraction service",
     )
 

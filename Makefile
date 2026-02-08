@@ -1,22 +1,32 @@
-.PHONY: dev dev-down test test-all lint format clean help
+.PHONY: infra infra-down backend setup logs test-all lint-all format-all clean help
 
-# ── Development ──────────────────────────────────────
-dev:
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+# ── Quick Start ─────────────────────────────────────
+# 1. make setup       (one-time: create venv + install deps)
+# 2. cp .env.example .env
+# 3. make infra       (start frontend + mongo + redis in Docker)
+# 4. make backend     (separate terminal: start backend on host)
 
-dev-down:
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+# ── Infrastructure (Docker) ─────────────────────────
+infra:
+	docker compose up --build -d
 
-up:
-	docker compose up -d --build
-
-down:
+infra-down:
 	docker compose down
 
 logs:
-	docker compose logs -f backend
+	docker compose logs -f
 
-# ── Testing ──────────────────────────────────────────
+logs-frontend:
+	docker compose logs -f frontend
+
+# ── Backend (Host) ──────────────────────────────────
+backend:
+	bash scripts/dev.sh
+
+setup:
+	bash scripts/setup.sh
+
+# ── Testing ─────────────────────────────────────────
 test-backend-unit:
 	cd backend && python -m pytest tests/unit -v
 
@@ -34,7 +44,7 @@ test-frontend-e2e:
 
 test-all: test-backend-all test-frontend-unit
 
-# ── Linting & Formatting ────────────────────────────
+# ── Linting & Formatting ───────────────────────────
 lint-backend:
 	cd backend && python -m ruff check app/ && python -m mypy app/ --ignore-missing-imports
 
@@ -51,7 +61,7 @@ format-frontend:
 
 format-all: format-backend format-frontend
 
-# ── Cleanup ──────────────────────────────────────────
+# ── Cleanup ─────────────────────────────────────────
 clean:
 	docker compose down -v
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
@@ -59,30 +69,37 @@ clean:
 	find . -type d -name .mypy_cache -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name .ruff_cache -exec rm -rf {} + 2>/dev/null || true
 
-# ── Database ─────────────────────────────────────────
+# ── Database ────────────────────────────────────────
 seed:
 	cd backend && python -m scripts.seed_data
 
 reset-db:
 	cd backend && python -m scripts.reset_db
 
-# ── Help ─────────────────────────────────────────────
+# ── Help ────────────────────────────────────────────
 help:
-	@echo "ChiefOps Step Zero - Development Commands"
+	@echo "ChiefOps — Local Dev Commands"
 	@echo ""
-	@echo "  make dev              Start all services with hot reload"
-	@echo "  make dev-down         Stop dev services"
-	@echo "  make up               Start all services (detached)"
-	@echo "  make down             Stop all services"
-	@echo "  make logs             Follow backend logs"
+	@echo "  Quick Start:"
+	@echo "    make setup          One-time: create venv + install deps"
+	@echo "    make infra          Start Docker services (frontend + mongo + redis)"
+	@echo "    make backend        Start backend on host (uvicorn, separate terminal)"
 	@echo ""
-	@echo "  make test-all         Run all tests"
-	@echo "  make test-backend-all Run backend tests with coverage"
-	@echo "  make test-frontend-unit Run frontend unit tests"
+	@echo "  Infrastructure:"
+	@echo "    make infra-down     Stop Docker services"
+	@echo "    make logs           Follow all Docker logs"
+	@echo "    make logs-frontend  Follow frontend logs"
 	@echo ""
-	@echo "  make lint-all         Run all linters"
-	@echo "  make format-all       Format all code"
-	@echo "  make clean            Stop services and remove volumes"
+	@echo "  Testing:"
+	@echo "    make test-all       Run all tests"
+	@echo "    make test-backend-all  Backend tests with coverage"
+	@echo "    make test-frontend-unit  Frontend unit tests"
 	@echo ""
-	@echo "  make seed             Load sample data"
-	@echo "  make reset-db         Clear all database collections"
+	@echo "  Code Quality:"
+	@echo "    make lint-all       Run all linters"
+	@echo "    make format-all     Format all code"
+	@echo "    make clean          Stop services + remove volumes + caches"
+	@echo ""
+	@echo "  Database:"
+	@echo "    make seed           Load sample data"
+	@echo "    make reset-db       Clear all collections"

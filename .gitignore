@@ -48,6 +48,9 @@ Thumbs.db
 # Docker
 docker-compose.override.yml
 
+# Python virtual env (host-based backend)
+backend/.venv/
+
 # Uploads & Exports
 uploads/
 exports/
