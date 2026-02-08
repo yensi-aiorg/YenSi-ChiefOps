@@ -154,6 +154,22 @@ async def create_indexes(db: AsyncIOMotorDatabase) -> None:  # type: ignore[type
         ]
     )
 
+    # ---- citex_ingestion_state ----
+    await db.citex_ingestion_state.create_indexes(
+        [
+            IndexModel(
+                [("project_id", ASCENDING), ("document_id", ASCENDING)],
+                unique=True,
+                name="uq_citex_project_document",
+            ),
+            IndexModel(
+                [("project_id", ASCENDING), ("source_group", ASCENDING)],
+                name="idx_citex_project_group",
+            ),
+            IndexModel([("updated_at", DESCENDING)], name="idx_citex_updated"),
+        ]
+    )
+
     # ---- health_scores ----
     await db.health_scores.create_indexes(
         [

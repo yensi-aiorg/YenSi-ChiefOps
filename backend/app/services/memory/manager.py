@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
+from app.citex.client import CitexClient
 from app.config import get_settings
 from app.services.memory.assembler import assemble_context
 from app.services.memory.compactor import check_compaction_needed, compact
@@ -125,40 +126,26 @@ async def _retrieve_rag_chunks(
     if not citex_url:
         return []
 
+    citex_client = CitexClient(citex_url)
     try:
-        payload: dict[str, Any] = {
-            "query": query,
-            "top_k": 5,
-        }
-        if project_id:
-            payload["filters"] = {"project_id": project_id}
+        effective_project_id = project_id or "default"
+        results = await citex_client.query(
+            project_id=effective_project_id,
+            query_text=query,
+            top_k=5,
+        )
+        chunks: list[str] = []
+        for result in results:
+            text = str(result.get("content", "")).strip()
+            if not text:
+                continue
+            source = str(result.get("source", "")).strip()
+            source_ref = str((result.get("metadata") or {}).get("source_ref", "")).strip()
+            header = f"[Source: {source} - {source_ref}]" if source or source_ref else ""
+            chunks.append(f"{header}\n{text}" if header else text)
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(
-                f"{citex_url}/api/v1/search",
-                json=payload,
-            )
-
-            if response.status_code != 200:
-                logger.warning(
-                    "Citex search returned status %d: %s",
-                    response.status_code,
-                    response.text[:200],
-                )
-                return []
-
-            data = response.json()
-            chunks: list[str] = []
-            for result in data.get("results", []):
-                text = result.get("text", "")
-                if text:
-                    source = result.get("source", "")
-                    title = result.get("title", "")
-                    header = f"[Source: {source} - {title}]" if source else ""
-                    chunks.append(f"{header}\n{text}" if header else text)
-
-            logger.debug("Citex returned %d chunks for query", len(chunks))
-            return chunks
+        logger.debug("Citex returned %d chunks for query", len(chunks))
+        return chunks
 
     except httpx.ConnectError:
         logger.debug("Citex service not available, skipping RAG retrieval")
@@ -166,3 +153,5 @@ async def _retrieve_rag_chunks(
     except Exception as exc:
         logger.warning("Citex retrieval failed: %s", exc)
         return []
+    finally:
+        await citex_client.close()

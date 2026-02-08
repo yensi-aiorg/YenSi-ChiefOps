@@ -1,4 +1,4 @@
-import { useState, useCallback, lazy, Suspense } from "react";
+import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -10,13 +10,13 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageSquare,
-  X,
   Menu,
   Search,
   Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink } from "react-router-dom";
+import { useSettingsStore } from "@/stores/settingsStore";
 
 /* ------------------------------------------------------------------ */
 /*  Lazy-loaded page components                                       */
@@ -57,6 +57,16 @@ const SettingsPage = lazy(() =>
 );
 const NotFound = lazy(() =>
   import("@/pages/NotFound").then((m) => ({ default: m.NotFound })),
+);
+const ChatSidebar = lazy(() =>
+  import("@/components/chat/ChatSidebar").then((m) => ({
+    default: m.ChatSidebar,
+  })),
+);
+const OnboardingWizard = lazy(() =>
+  import("@/components/onboarding/OnboardingWizard").then((m) => ({
+    default: m.OnboardingWizard,
+  })),
 );
 
 /* ------------------------------------------------------------------ */
@@ -244,71 +254,20 @@ function TopBar({
 }
 
 /* ------------------------------------------------------------------ */
-/*  ChatSidebar placeholder component                                 */
-/* ------------------------------------------------------------------ */
-interface ChatSidebarProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-function ChatSidebar({ open, onClose }: ChatSidebarProps) {
-  if (!open) return null;
-
-  return (
-    <aside className="fixed bottom-0 right-0 top-0 z-40 flex w-chat-sidebar flex-col border-l border-slate-200 bg-white shadow-lg transition-transform duration-300 dark:border-slate-700 dark:bg-surface-dark lg:z-20">
-      <div className="flex h-topbar items-center justify-between border-b border-slate-200 px-4 dark:border-slate-700">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-chief-600">
-            <MessageSquare className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-sm font-semibold text-slate-900 dark:text-white">
-            ChiefOps AI
-          </span>
-        </div>
-        <button
-          onClick={onClose}
-          className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-          aria-label="Close chat"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="flex flex-1 items-center justify-center p-6">
-        <div className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-chief-100 dark:from-teal-900/40 dark:to-chief-900/40">
-            <MessageSquare className="h-7 w-7 text-teal-600 dark:text-teal-400" />
-          </div>
-          <h3 className="mb-1 text-sm font-semibold text-slate-900 dark:text-white">
-            AI Assistant Ready
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Ask questions about your team, projects, or request reports.
-          </p>
-        </div>
-      </div>
-
-      <div className="border-t border-slate-200 p-4 dark:border-slate-700">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Ask ChiefOps AI..."
-            className="input flex-1"
-          />
-          <button className="btn-primary shrink-0 px-3">Send</button>
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /*  App component                                                     */
 /* ------------------------------------------------------------------ */
 export function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [_mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { settings, fetchSettings } = useSettingsStore();
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  useEffect(() => {
+    fetchSettings()
+      .catch(() => {})
+      .finally(() => setSettingsLoaded(true));
+  }, [fetchSettings]);
 
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed((prev) => !prev);
@@ -321,6 +280,18 @@ export function App() {
   const toggleMobileSidebar = useCallback(() => {
     setMobileSidebarOpen((prev) => !prev);
   }, []);
+
+  if (!settingsLoaded) {
+    return <PageLoader />;
+  }
+
+  if (settings && !settings.has_completed_onboarding) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <OnboardingWizard onComplete={() => fetchSettings()} />
+      </Suspense>
+    );
+  }
 
   return (
     <div className="flex h-full">
@@ -372,7 +343,11 @@ export function App() {
       </div>
 
       {/* Chat sidebar */}
-      <ChatSidebar open={chatOpen} onClose={() => setChatOpen(false)} />
+      {chatOpen && (
+        <Suspense fallback={null}>
+          <ChatSidebar open={chatOpen} onClose={() => setChatOpen(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }

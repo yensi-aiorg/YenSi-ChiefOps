@@ -24,15 +24,14 @@ def _build_claude_args(request: AIRequest) -> list[str]:
     """Build command-line arguments for the Claude CLI."""
     args: list[str] = [
         "--print",
-        "--output-format",
-        "text",
-        "--max-tokens",
-        str(request.max_tokens),
     ]
     if request.system_prompt:
         args.extend(["--system-prompt", request.system_prompt])
     if request.response_schema:
         args.extend(["--output-format", "json"])
+        args.extend(["--json-schema", json.dumps(request.response_schema)])
+    else:
+        args.extend(["--output-format", "text"])
     return args
 
 
@@ -95,8 +94,18 @@ class CLIAdapter(AIAdapter):
 
     async def generate(self, request: AIRequest) -> AIResponse:
         """Run the CLI tool and return the raw text response."""
-        full_prompt = request.build_full_prompt()
-        stdout, stderr, elapsed_ms = await self._run_subprocess(request, full_prompt)
+        # For Claude CLI: system prompt and json schema are passed via flags,
+        # so the positional prompt should only contain the user prompt + context.
+        if self._tool_name == "claude":
+            parts: list[str] = []
+            if request.context:
+                context_str = json.dumps(request.context, indent=2, default=str)
+                parts.append(f"<context>\n{context_str}\n</context>")
+            parts.append(request.user_prompt)
+            prompt = "\n\n".join(parts)
+        else:
+            prompt = request.build_full_prompt()
+        stdout, stderr, elapsed_ms = await self._run_subprocess(request, prompt)
 
         if stderr:
             logger.debug(

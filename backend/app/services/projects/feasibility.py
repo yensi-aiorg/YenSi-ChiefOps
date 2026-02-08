@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from app.ai.adapter import AIRequest
 from app.models.project import ReadinessItem, RiskItem, TechnicalFeasibility
 
 if TYPE_CHECKING:
@@ -22,6 +23,7 @@ async def assess_feasibility(
     project_id: str,
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
     ai_adapter: Any,
+    citex_context_text: str = "",
 ) -> TechnicalFeasibility:
     """Assess the technical feasibility of a project.
 
@@ -48,7 +50,12 @@ async def assess_feasibility(
     if ai_adapter is None:
         return _heuristic_feasibility(project, context)
 
-    return await _ai_feasibility(project, context, ai_adapter)
+    return await _ai_feasibility(
+        project,
+        context,
+        ai_adapter,
+        citex_context_text=citex_context_text,
+    )
 
 
 async def _gather_technical_context(
@@ -125,6 +132,7 @@ async def _ai_feasibility(
     project: dict[str, Any],
     context: dict[str, Any],
     ai_adapter: Any,
+    citex_context_text: str = "",
 ) -> TechnicalFeasibility:
     """Use AI to assess technical feasibility."""
     # Build tasks summary
@@ -153,6 +161,7 @@ async def _ai_feasibility(
         f"Labels: {', '.join(context.get('labels', [])) or 'None'}\n\n"
         f"Tasks:\n{tasks_text or 'No tasks'}\n\n"
         f"Recent technical discussions:\n{messages_text or 'None available'}\n\n"
+        f"Retrieved Citex context:\n{citex_context_text or 'None available'}\n\n"
         "Evaluate:\n"
         "1. Technical readiness by area (infrastructure, API design, data model, "
         "testing, deployment, security, performance, documentation)\n"
@@ -203,11 +212,13 @@ async def _ai_feasibility(
     }
 
     try:
-        result = await ai_adapter.generate_structured(
-            prompt=prompt,
-            schema=schema,
-            system="You are a technical architect reviewing project feasibility. Be thorough and practical.",
+        request = AIRequest(
+            system_prompt="You are a technical architect reviewing project feasibility. Be thorough and practical.",
+            user_prompt=prompt,
+            response_schema=schema,
         )
+        response = await ai_adapter.generate_structured(request)
+        result = response.parse_json()
 
         readiness = [
             ReadinessItem(

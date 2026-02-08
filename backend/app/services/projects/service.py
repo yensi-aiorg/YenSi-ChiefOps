@@ -243,6 +243,8 @@ class ProjectService:
                 "recommendations": result.get("gap_analysis", {}).get("missing_tasks", []),
                 "team_dynamics": {},
                 "velocity_trend": "stable",
+                "citex_ingestion": result.get("citex_ingestion", {}),
+                "citex_context_chunks": result.get("citex_context_chunks", 0),
                 "analyzed_at": utc_now(),
             }
             await self._analysis_collection.insert_one(analysis_doc)

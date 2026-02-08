@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
 from app.models.project import ProjectStatus
+from app.services.projects.citex_sync import get_project_citex_context, sync_project_to_citex
 from app.services.projects.feasibility import assess_feasibility
 from app.services.projects.gaps import detect_gaps
 from app.services.projects.health import calculate_health
@@ -52,10 +53,24 @@ async def analyze_project(
 
     logger.info("Analyzing project: %s (%s)", project.get("name", ""), project_id)
 
+    # Keep Citex in sync first (Jira -> Slack -> Docs), then pull unified context.
+    citex_ingestion = await sync_project_to_citex(project_id=project_id, db=db)
+    citex_context = await get_project_citex_context(project_id=project_id)
+
     # Run sub-analyses
     health = await calculate_health(project_id, db)
-    gap_analysis = await detect_gaps(project_id, db, ai_adapter)
-    feasibility = await assess_feasibility(project_id, db, ai_adapter)
+    gap_analysis = await detect_gaps(
+        project_id,
+        db,
+        ai_adapter,
+        citex_context_text=str(citex_context.get("text", "")),
+    )
+    feasibility = await assess_feasibility(
+        project_id,
+        db,
+        ai_adapter,
+        citex_context_text=str(citex_context.get("text", "")),
+    )
 
     # Update task summary
     task_summary = await _compute_task_summary(project, db)
@@ -83,6 +98,8 @@ async def analyze_project(
         "key_risks": key_risks,
         "missing_tasks": gap_analysis.missing_tasks,
         "technical_concerns": [r.risk for r in feasibility.risk_items],
+        "citex_ingestion": citex_ingestion,
+        "citex_context_chunks": int(citex_context.get("chunk_count", 0)),
         "last_analyzed_at": utc_now(),
         "updated_at": utc_now(),
     }
@@ -108,6 +125,8 @@ async def analyze_project(
         "task_summary": task_summary,
         "completion_percentage": completion_pct,
         "status": status.value,
+        "citex_ingestion": citex_ingestion,
+        "citex_context_chunks": int(citex_context.get("chunk_count", 0)),
     }
 
 

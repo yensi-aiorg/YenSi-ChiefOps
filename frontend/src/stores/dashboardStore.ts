@@ -77,15 +77,33 @@ export const useDashboardStore = create<DashboardStore>()(
           if (projectId) params.project_id = projectId;
 
           const { data } = await api.get<
-            Dashboard[] | { dashboards: Dashboard[] }
+            Dashboard[] | { dashboards: Dashboard[]; widgets?: WidgetSpec[] }
           >("/v1/dashboards", { params });
 
           const dashboards = Array.isArray(data)
             ? data
             : (data as { dashboards?: Dashboard[] }).dashboards ?? [];
 
+          // Extract inline widget specs if the API includes them.
+          const inlineWidgets = !Array.isArray(data)
+            ? ((data as { widgets?: WidgetSpec[] }).widgets ?? [])
+            : [];
+
+          const widgetsMap = new Map(get().widgets);
+          for (const w of inlineWidgets) {
+            widgetsMap.set(w.widget_id, w);
+          }
+
+          // Auto-select first dashboard as active when available.
+          const active = dashboards.length > 0 ? dashboards[0]! : null;
+
           set(
-            { dashboards, isLoading: false },
+            {
+              dashboards,
+              widgets: inlineWidgets.length > 0 ? widgetsMap : get().widgets,
+              activeDashboard: active ?? get().activeDashboard,
+              isLoading: false,
+            },
             false,
             "fetchDashboards/success",
           );

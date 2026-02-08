@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -107,6 +107,13 @@ class ProjectDetail(BaseModel):
     key_risks: list[str] = Field(default_factory=list, description="Identified risks.")
     key_milestones: list[dict] = Field(default_factory=list, description="Project milestones.")
     recent_activity: list[dict] = Field(default_factory=list, description="Recent activity feed.")
+    completion_percentage: float = Field(default=0.0, description="Overall completion percentage.")
+    task_summary: dict[str, Any] | None = Field(default=None, description="Task status breakdown.")
+    sprint_health: dict[str, Any] | None = Field(default=None, description="Sprint health metrics.")
+    gap_analysis: dict[str, Any] | None = Field(default=None, description="Gap analysis results.")
+    technical_feasibility: dict[str, Any] | None = Field(
+        default=None, description="Technical feasibility assessment."
+    )
     last_analysis_at: datetime | None = Field(
         default=None, description="When last analysis was run."
     )
@@ -173,8 +180,21 @@ def _safe_status(value: object) -> str:
 
 
 def _safe_health(value: object) -> str:
-    """Return a valid ProjectHealthScore string, defaulting to 'unknown'."""
-    return value if isinstance(value, str) and value in _VALID_HEALTH_SCORES else ProjectHealthScore.UNKNOWN.value
+    """Return a valid ProjectHealthScore string, defaulting to 'unknown'.
+
+    Also handles numeric scores (0-100) written by the analyzer:
+      0-33 → critical, 34-66 → at_risk, 67-100 → healthy.
+    """
+    if isinstance(value, str) and value in _VALID_HEALTH_SCORES:
+        return value
+    if isinstance(value, (int, float)):
+        score = int(value)
+        if score <= 33:
+            return ProjectHealthScore.CRITICAL.value
+        if score <= 66:
+            return ProjectHealthScore.AT_RISK.value
+        return ProjectHealthScore.HEALTHY.value
+    return ProjectHealthScore.UNKNOWN.value
 
 
 # ---------------------------------------------------------------------------
@@ -258,6 +278,11 @@ async def get_project(
         key_risks=doc.get("key_risks", []),
         key_milestones=doc.get("key_milestones", []),
         recent_activity=doc.get("recent_activity", []),
+        completion_percentage=doc.get("completion_percentage", 0.0),
+        task_summary=doc.get("task_summary"),
+        sprint_health=doc.get("sprint_health"),
+        gap_analysis=doc.get("gap_analysis"),
+        technical_feasibility=doc.get("technical_feasibility"),
         last_analysis_at=doc.get("last_analysis_at"),
         created_at=doc["created_at"],
         updated_at=doc["updated_at"],
@@ -367,6 +392,11 @@ async def update_project(
         key_risks=updated_doc.get("key_risks", []),
         key_milestones=updated_doc.get("key_milestones", []),
         recent_activity=updated_doc.get("recent_activity", []),
+        completion_percentage=updated_doc.get("completion_percentage", 0.0),
+        task_summary=updated_doc.get("task_summary"),
+        sprint_health=updated_doc.get("sprint_health"),
+        gap_analysis=updated_doc.get("gap_analysis"),
+        technical_feasibility=updated_doc.get("technical_feasibility"),
         last_analysis_at=updated_doc.get("last_analysis_at"),
         created_at=updated_doc["created_at"],
         updated_at=updated_doc["updated_at"],

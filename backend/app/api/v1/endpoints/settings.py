@@ -31,6 +31,7 @@ router = APIRouter(prefix="/settings", tags=["settings"])
 
 DEFAULT_SETTINGS: dict[str, Any] = {
     "settings_id": "singleton",
+    "has_completed_onboarding": False,
     "ai_adapter": "cli",
     "ai_cli_tool": "claude",
     "openrouter_model": "anthropic/claude-sonnet-4",
@@ -54,6 +55,9 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 class SettingsResponse(BaseModel):
     """Current application settings."""
 
+    has_completed_onboarding: bool = Field(
+        default=False, description="Whether the user has completed the onboarding wizard."
+    )
     ai_adapter: str = Field(default="cli", description="AI backend: 'openrouter' or 'cli'.")
     ai_cli_tool: str = Field(default="claude", description="CLI tool name when ai_adapter=cli.")
     openrouter_model: str = Field(
@@ -86,6 +90,9 @@ class SettingsResponse(BaseModel):
 class SettingsUpdateRequest(BaseModel):
     """Request to update one or more settings."""
 
+    has_completed_onboarding: bool | None = Field(
+        default=None, description="Onboarding completion flag."
+    )
     ai_adapter: str | None = Field(default=None, description="AI backend.")
     ai_cli_tool: str | None = Field(default=None, description="CLI tool name.")
     openrouter_model: str | None = Field(default=None, description="OpenRouter model ID.")
@@ -175,6 +182,9 @@ async def get_settings(
     doc = await _ensure_settings(db)
 
     return SettingsResponse(
+        has_completed_onboarding=doc.get(
+            "has_completed_onboarding", DEFAULT_SETTINGS["has_completed_onboarding"]
+        ),
         ai_adapter=doc.get("ai_adapter", DEFAULT_SETTINGS["ai_adapter"]),
         ai_cli_tool=doc.get("ai_cli_tool", DEFAULT_SETTINGS["ai_cli_tool"]),
         openrouter_model=doc.get("openrouter_model", DEFAULT_SETTINGS["openrouter_model"]),
@@ -212,6 +222,9 @@ async def update_settings(
     collection = _get_collection(db)
 
     update_fields: dict[str, Any] = {"updated_at": utc_now()}
+
+    if body.has_completed_onboarding is not None:
+        update_fields["has_completed_onboarding"] = body.has_completed_onboarding
 
     if body.ai_adapter is not None:
         if body.ai_adapter not in ("openrouter", "cli"):
@@ -257,6 +270,9 @@ async def update_settings(
     doc = await collection.find_one({"settings_id": "singleton"}, {"_id": 0})
 
     return SettingsResponse(
+        has_completed_onboarding=doc.get(
+            "has_completed_onboarding", DEFAULT_SETTINGS["has_completed_onboarding"]
+        ),
         ai_adapter=doc.get("ai_adapter", DEFAULT_SETTINGS["ai_adapter"]),
         ai_cli_tool=doc.get("ai_cli_tool", DEFAULT_SETTINGS["ai_cli_tool"]),
         openrouter_model=doc.get("openrouter_model", DEFAULT_SETTINGS["openrouter_model"]),

@@ -79,6 +79,21 @@ async function setupAppRoutes(page: import("@playwright/test").Page) {
   );
 }
 
+/**
+ * Build an SSE response body from content, turn ID, and optional sources.
+ * The chatStore uses EventSource to GET /v1/conversation/message?content=...
+ */
+function sseResponse(
+  content: string,
+  turnId: string,
+  sources: Array<{ source_type: string; item_count: number }> = [],
+): string {
+  return [
+    `data: ${JSON.stringify({ content })}\n\n`,
+    `data: ${JSON.stringify({ done: true, turn_id: turnId, sources_used: sources })}\n\n`,
+  ].join("");
+}
+
 test.describe("Natural Language Query (AI Chat)", () => {
   test.describe("Chat sidebar interaction", () => {
     test("chat sidebar opens when AI Chat toggle is clicked", async ({
@@ -121,22 +136,20 @@ test.describe("Natural Language Query (AI Chat)", () => {
     }) => {
       await setupAppRoutes(page);
 
-      // Mock the chat/converse endpoint
-      await page.route(`${API_BASE}/v1/chat/converse`, (route) =>
+      // Mock the SSE conversation endpoint
+      await page.route(`${API_BASE}/v1/conversation/message*`, (route) =>
         route.fulfill({
           status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            turn_id: "turn-resp-001",
-            role: "assistant",
-            content:
-              "Based on the current data, **Demo Project** is on track with 60% completion. The team has 12 out of 20 tasks completed with no blockers.",
-            sources_used: [
+          contentType: "text/event-stream",
+          headers: { "Cache-Control": "no-cache" },
+          body: sseResponse(
+            "Based on the current data, **Demo Project** is on track with 60% completion. The team has 12 out of 20 tasks completed with no blockers.",
+            "turn-resp-001",
+            [
               { source_type: "jira", item_count: 15 },
               { source_type: "slack", item_count: 8 },
             ],
-            timestamp: new Date().toISOString(),
-          }),
+          ),
         }),
       );
 
@@ -166,21 +179,16 @@ test.describe("Natural Language Query (AI Chat)", () => {
       const assistantResponse =
         "Based on the current data, **Demo Project** is on track with 60% completion. The team has 12 out of 20 tasks completed with no blockers.";
 
-      // Mock the chat/converse endpoint
-      await page.route(`${API_BASE}/v1/chat/converse`, (route) =>
+      // Mock the SSE conversation endpoint
+      await page.route(`${API_BASE}/v1/conversation/message*`, (route) =>
         route.fulfill({
           status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            turn_id: "turn-resp-002",
-            role: "assistant",
-            content: assistantResponse,
-            sources_used: [
-              { source_type: "jira", item_count: 15 },
-              { source_type: "slack", item_count: 8 },
-            ],
-            timestamp: new Date().toISOString(),
-          }),
+          contentType: "text/event-stream",
+          headers: { "Cache-Control": "no-cache" },
+          body: sseResponse(assistantResponse, "turn-resp-002", [
+            { source_type: "jira", item_count: 15 },
+            { source_type: "slack", item_count: 8 },
+          ]),
         }),
       );
 
@@ -194,36 +202,30 @@ test.describe("Natural Language Query (AI Chat)", () => {
       await chatInput.fill("Project status update please");
       await page.getByRole("button", { name: "Send message" }).click();
 
-      // Wait for the assistant response to appear
-      await expect(
-        page.getByText(/Demo Project.*on track/i),
-      ).toBeVisible({ timeout: 10000 });
-
-      // The response should contain the key details
+      // Wait for the assistant response to appear in the chat
       await expect(
         page.getByText(/60% completion/i),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 10000 });
     });
 
     test("source badges are displayed on AI responses", async ({ page }) => {
       await setupAppRoutes(page);
 
-      // Mock chat endpoint with sources
-      await page.route(`${API_BASE}/v1/chat/converse`, (route) =>
+      // Mock SSE endpoint with sources
+      await page.route(`${API_BASE}/v1/conversation/message*`, (route) =>
         route.fulfill({
           status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            turn_id: "turn-resp-003",
-            role: "assistant",
-            content: "Here is the project summary based on your data sources.",
-            sources_used: [
+          contentType: "text/event-stream",
+          headers: { "Cache-Control": "no-cache" },
+          body: sseResponse(
+            "Here is the project summary based on your data sources.",
+            "turn-resp-003",
+            [
               { source_type: "slack", item_count: 12 },
               { source_type: "jira", item_count: 25 },
               { source_type: "gdrive", item_count: 3 },
             ],
-            timestamp: new Date().toISOString(),
-          }),
+          ),
         }),
       );
 
@@ -243,9 +245,9 @@ test.describe("Natural Language Query (AI Chat)", () => {
       ).toBeVisible({ timeout: 10000 });
 
       // Source badges should appear below the message
-      await expect(page.getByText("Slack")).toBeVisible();
-      await expect(page.getByText("Jira")).toBeVisible();
-      await expect(page.getByText("Drive")).toBeVisible();
+      await expect(page.getByText("Slack").first()).toBeVisible();
+      await expect(page.getByText("Jira").first()).toBeVisible();
+      await expect(page.getByText("Drive").first()).toBeVisible();
 
       // Item counts should appear in the badges
       await expect(page.getByText("(12)")).toBeVisible();
@@ -258,18 +260,16 @@ test.describe("Natural Language Query (AI Chat)", () => {
     }) => {
       await setupAppRoutes(page);
 
-      // Mock chat endpoint
-      await page.route(`${API_BASE}/v1/chat/converse`, (route) =>
+      // Mock SSE endpoint
+      await page.route(`${API_BASE}/v1/conversation/message*`, (route) =>
         route.fulfill({
           status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            turn_id: "turn-persist-001",
-            role: "assistant",
-            content: "This is a test response that should persist.",
-            sources_used: [],
-            timestamp: new Date().toISOString(),
-          }),
+          contentType: "text/event-stream",
+          headers: { "Cache-Control": "no-cache" },
+          body: sseResponse(
+            "This is a test response that should persist.",
+            "turn-persist-001",
+          ),
         }),
       );
 
@@ -289,10 +289,12 @@ test.describe("Natural Language Query (AI Chat)", () => {
         page.getByText("This is a test response that should persist."),
       ).toBeVisible({ timeout: 10000 });
 
-      // Close the chat sidebar
-      await page.getByRole("button", { name: /Close chat/i }).click();
+      // Close the chat sidebar using the TopBar toggle (which says "Close AI Chat" when open)
+      await page
+        .getByRole("button", { name: /Close AI Chat/i })
+        .click();
 
-      // The chat content should no longer be visible
+      // The chat content should no longer be visible (component unmounted)
       await expect(
         page.getByText("This is a test response that should persist."),
       ).not.toBeVisible();

@@ -109,8 +109,8 @@ test.describe("Report Generation", () => {
     }) => {
       await setupAppRoutes(page);
 
-      // Mock empty reports list
-      await page.route(`${API_BASE}/v1/reports`, (route) =>
+      // Mock empty reports list (trailing * matches query params like ?skip=0&limit=20)
+      await page.route(`${API_BASE}/v1/reports?*`, (route) =>
         route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -150,7 +150,7 @@ test.describe("Report Generation", () => {
     test("report generation navigates to chat context", async ({ page }) => {
       await setupAppRoutes(page);
 
-      await page.route(`${API_BASE}/v1/reports`, (route) =>
+      await page.route(`${API_BASE}/v1/reports?*`, (route) =>
         route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -188,8 +188,8 @@ test.describe("Report Generation", () => {
           }),
       );
 
-      // Also mock the list for navigation
-      await page.route(`${API_BASE}/v1/reports`, (route) =>
+      // Also mock the list for navigation (trailing ?* matches query params)
+      await page.route(`${API_BASE}/v1/reports?*`, (route) =>
         route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -210,7 +210,7 @@ test.describe("Report Generation", () => {
       ).toBeVisible({ timeout: 10000 });
 
       // Report type badge
-      await expect(page.getByText("Project Status")).toBeVisible();
+      await expect(page.getByText("Project Status").first()).toBeVisible();
 
       // Section titles should be rendered
       await expect(
@@ -314,8 +314,8 @@ test.describe("Report Generation", () => {
     }) => {
       await setupAppRoutes(page);
 
-      // Mock reports list with data
-      await page.route(`${API_BASE}/v1/reports`, (route) =>
+      // Mock reports list with data (trailing ?* matches query params)
+      await page.route(`${API_BASE}/v1/reports?*`, (route) =>
         route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -333,8 +333,8 @@ test.describe("Report Generation", () => {
         page.getByRole("heading", { name: "Reports", level: 1 }),
       ).toBeVisible();
 
-      // The count badge
-      await expect(page.getByText("3")).toBeVisible();
+      // Report count should appear on the page
+      await expect(page.getByText("3").first()).toBeVisible();
 
       // Table headers
       await expect(
@@ -369,9 +369,9 @@ test.describe("Report Generation", () => {
       ).toBeVisible();
 
       // Type badges
-      await expect(page.getByText("Project Status")).toBeVisible();
-      await expect(page.getByText("Sprint Review")).toBeVisible();
-      await expect(page.getByText("Risk Assessment")).toBeVisible();
+      await expect(page.getByText("Project Status").first()).toBeVisible();
+      await expect(page.getByText("Sprint Review").first()).toBeVisible();
+      await expect(page.getByText("Risk Assessment").first()).toBeVisible();
     });
   });
 });

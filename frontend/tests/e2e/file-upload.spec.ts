@@ -150,7 +150,7 @@ test.describe("File Upload", () => {
       // The uploading state should be triggered -- verify the drop zone changes
       // to indicate upload activity or the upload endpoint was called
       await expect(
-        page.getByText(/Uploading files|processing|complete/i),
+        page.getByText(/Uploading files|processing|complete/i).first(),
       ).toBeVisible({ timeout: 10000 });
     });
   });
@@ -250,7 +250,7 @@ test.describe("File Upload", () => {
 
       // Progress should be visible -- the Active Ingestion Job card
       await expect(
-        page.getByText(/Active Ingestion Job|Uploading files|processing/i),
+        page.getByText(/Active Ingestion Job|Uploading files|processing/i).first(),
       ).toBeVisible({ timeout: 10000 });
 
       // File names should appear in progress detail
@@ -324,10 +324,12 @@ test.describe("File Upload", () => {
       });
 
       // Summary statistics should be displayed
-      await expect(page.getByText("Files")).toBeVisible();
-      await expect(page.getByText("Records")).toBeVisible();
-      await expect(page.getByText("Errors")).toBeVisible();
-      await expect(page.getByText("Duration")).toBeVisible();
+      await expect(
+        page.getByRole("paragraph").filter({ hasText: /^Files$/ }),
+      ).toBeVisible();
+      await expect(page.getByText("Records").first()).toBeVisible();
+      await expect(page.getByText("Errors").first()).toBeVisible();
+      await expect(page.getByText("Duration").first()).toBeVisible();
     });
   });
 

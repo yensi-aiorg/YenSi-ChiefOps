@@ -190,21 +190,19 @@ async function setupWidgetRoutes(
     }),
   );
 
-  // Chat/converse for NL widget creation
-  await page.route(`${API_BASE}/v1/chat/converse`, (route) =>
-    route.fulfill({
+  // Chat/converse for NL widget creation (SSE endpoint)
+  await page.route(`${API_BASE}/v1/conversation/message*`, (route) => {
+    const sseBody = [
+      `data: ${JSON.stringify({ content: 'I\'ve created a "Tasks by Status" bar chart widget on your custom dashboard. It shows the breakdown of tasks across different statuses.' })}\n\n`,
+      `data: ${JSON.stringify({ done: true, turn_id: "turn-widget-001", sources_used: [{ source_type: "jira", item_count: 30 }] })}\n\n`,
+    ].join("");
+    return route.fulfill({
       status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        turn_id: "turn-widget-001",
-        role: "assistant",
-        content:
-          'I\'ve created a "Tasks by Status" bar chart widget on your custom dashboard. It shows the breakdown of tasks across different statuses.',
-        sources_used: [{ source_type: "jira", item_count: 30 }],
-        timestamp: new Date().toISOString(),
-      }),
-    }),
-  );
+      contentType: "text/event-stream",
+      headers: { "Cache-Control": "no-cache" },
+      body: sseBody,
+    });
+  });
 
   // Widget CRUD endpoints
   await page.route(`${API_BASE}/v1/widgets`, (route) => {
@@ -330,7 +328,7 @@ test.describe("Widget Management", () => {
 
       // The AI should respond confirming the widget was created
       await expect(
-        page.getByText(/Tasks by Status/i),
+        page.getByText(/I've created a.*Tasks by Status/i),
       ).toBeVisible({ timeout: 10000 });
     });
   });
@@ -368,21 +366,19 @@ test.describe("Widget Management", () => {
     }) => {
       await setupWidgetRoutes(page, { dashboardHasWidgets: true });
 
-      // Override chat response for edit scenario
-      await page.route(`${API_BASE}/v1/chat/converse`, (route) =>
-        route.fulfill({
+      // Override chat response for edit scenario (SSE endpoint)
+      await page.route(`${API_BASE}/v1/conversation/message*`, (route) => {
+        const sseBody = [
+          `data: ${JSON.stringify({ content: 'I\'ve updated the "Tasks by Status" widget. The chart title has been changed to "Updated Tasks Chart" and the visualization has been refreshed.' })}\n\n`,
+          `data: ${JSON.stringify({ done: true, turn_id: "turn-edit-001", sources_used: [{ source_type: "jira", item_count: 30 }] })}\n\n`,
+        ].join("");
+        return route.fulfill({
           status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            turn_id: "turn-edit-001",
-            role: "assistant",
-            content:
-              'I\'ve updated the "Tasks by Status" widget. The chart title has been changed to "Updated Tasks Chart" and the visualization has been refreshed.',
-            sources_used: [{ source_type: "jira", item_count: 30 }],
-            timestamp: new Date().toISOString(),
-          }),
-        }),
-      );
+          contentType: "text/event-stream",
+          headers: { "Cache-Control": "no-cache" },
+          body: sseBody,
+        });
+      });
 
       await page.goto("/projects/proj-widget/custom");
 
@@ -405,7 +401,7 @@ test.describe("Widget Management", () => {
 
       // The AI should confirm the edit
       await expect(
-        page.getByText(/Updated Tasks Chart/i),
+        page.getByText(/I've updated the.*Tasks by Status/i),
       ).toBeVisible({ timeout: 10000 });
     });
   });
@@ -415,21 +411,19 @@ test.describe("Widget Management", () => {
       // Start with widgets, then simulate deletion via chat
       await setupWidgetRoutes(page, { dashboardHasWidgets: true });
 
-      // Override chat response for delete scenario
-      await page.route(`${API_BASE}/v1/chat/converse`, (route) =>
-        route.fulfill({
+      // Override chat response for delete scenario (SSE endpoint)
+      await page.route(`${API_BASE}/v1/conversation/message*`, (route) => {
+        const sseBody = [
+          `data: ${JSON.stringify({ content: 'I\'ve removed the "Blocker Count" widget from your custom dashboard. You now have 1 widget remaining.' })}\n\n`,
+          `data: ${JSON.stringify({ done: true, turn_id: "turn-delete-001", sources_used: [] })}\n\n`,
+        ].join("");
+        return route.fulfill({
           status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            turn_id: "turn-delete-001",
-            role: "assistant",
-            content:
-              'I\'ve removed the "Blocker Count" widget from your custom dashboard. You now have 1 widget remaining.',
-            sources_used: [],
-            timestamp: new Date().toISOString(),
-          }),
-        }),
-      );
+          contentType: "text/event-stream",
+          headers: { "Cache-Control": "no-cache" },
+          body: sseBody,
+        });
+      });
 
       await page.goto("/projects/proj-widget/custom");
 

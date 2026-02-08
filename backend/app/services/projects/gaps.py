@@ -11,6 +11,7 @@ import logging
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
+from app.ai.adapter import AIRequest
 from app.models.project import BackwardPlanItem, GapAnalysis
 
 if TYPE_CHECKING:
@@ -23,6 +24,7 @@ async def detect_gaps(
     project_id: str,
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
     ai_adapter: Any,
+    citex_context_text: str = "",
 ) -> GapAnalysis:
     """Detect gaps in project planning and execution.
 
@@ -51,7 +53,12 @@ async def detect_gaps(
         return _heuristic_gap_detection(project, project_context)
 
     # Use AI for gap detection
-    return await _ai_gap_detection(project, project_context, ai_adapter)
+    return await _ai_gap_detection(
+        project,
+        project_context,
+        ai_adapter,
+        citex_context_text=citex_context_text,
+    )
 
 
 async def _gather_project_context(
@@ -117,6 +124,7 @@ async def _ai_gap_detection(
     project: dict[str, Any],
     context: dict[str, Any],
     ai_adapter: Any,
+    citex_context_text: str = "",
 ) -> GapAnalysis:
     """Use AI to detect gaps in the project."""
     # Build the analysis prompt
@@ -152,6 +160,7 @@ async def _ai_gap_detection(
         f"Status breakdown: {context.get('status_breakdown', {})}\n\n"
         f"Milestones:\n{milestones_str or 'None defined'}\n\n"
         f"Current tasks:\n{tasks_summary or 'No tasks found'}\n\n"
+        f"Retrieved Citex context:\n{citex_context_text or 'None available'}\n\n"
         "Identify:\n"
         "1. Missing tasks that should exist but don't\n"
         "2. Missing prerequisites for existing tasks\n"
@@ -188,11 +197,13 @@ async def _ai_gap_detection(
     }
 
     try:
-        result = await ai_adapter.generate_structured(
-            prompt=prompt,
-            schema=schema,
-            system="You are a project management analyst. Identify gaps and missing items in project plans.",
+        request = AIRequest(
+            system_prompt="You are a project management analyst. Identify gaps and missing items in project plans.",
+            user_prompt=prompt,
+            response_schema=schema,
         )
+        response = await ai_adapter.generate_structured(request)
+        result = response.parse_json()
 
         backward_plan = [
             BackwardPlanItem(

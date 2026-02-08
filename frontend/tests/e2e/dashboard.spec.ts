@@ -228,7 +228,7 @@ test.describe("Dashboard", () => {
 
       // KPI cards
       await expect(page.getByText("Total Projects")).toBeVisible();
-      await expect(page.getByText("Team Members")).toBeVisible();
+      await expect(page.getByText("Team Members").first()).toBeVisible();
       await expect(page.getByText("Open Tasks")).toBeVisible();
     });
 
@@ -284,7 +284,7 @@ test.describe("Dashboard", () => {
       await expect(page.getByText("Blockers")).toBeVisible();
 
       // Team Members section
-      await expect(page.getByText("Team Members")).toBeVisible();
+      await expect(page.getByText("Team Members").first()).toBeVisible();
       await expect(page.getByText("Alice Chen")).toBeVisible();
       await expect(page.getByText("Bob Martinez")).toBeVisible();
 
