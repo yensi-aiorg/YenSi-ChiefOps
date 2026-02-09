@@ -126,11 +126,20 @@ async def _retrieve_rag_chunks(
     if not citex_url:
         return []
 
-    citex_client = CitexClient(citex_url)
+    resolved_project_id = (project_id or "").strip()
+    if not resolved_project_id:
+        logger.debug("Missing project_id; skipping Citex retrieval to avoid cross-project context")
+        return []
+
+    citex_client = CitexClient(
+        citex_url,
+        api_key=settings.CITEX_API_KEY,
+        user_id=settings.CITEX_USER_ID,
+        scope_id=f"project:{resolved_project_id}",
+    )
     try:
-        effective_project_id = project_id or "default"
         results = await citex_client.query(
-            project_id=effective_project_id,
+            project_id=resolved_project_id,
             query_text=query,
             top_k=5,
         )

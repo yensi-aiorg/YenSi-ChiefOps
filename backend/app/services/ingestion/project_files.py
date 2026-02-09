@@ -439,7 +439,12 @@ async def _ingest_to_citex(
 ) -> bool:
     """Attempt to ingest content into Citex. Returns True on success."""
     settings = get_settings()
-    client = CitexClient(settings.CITEX_API_URL)
+    client = CitexClient(
+        settings.CITEX_API_URL,
+        api_key=settings.CITEX_API_KEY,
+        user_id=settings.CITEX_USER_ID,
+        scope_id=f"project:{project_id}",
+    )
 
     try:
         if not await client.ping():

@@ -253,7 +253,12 @@ async def sync_project_to_citex(
                 doc_files.append(pdoc)
 
     settings = get_settings()
-    citex_client = CitexClient(settings.CITEX_API_URL)
+    citex_client = CitexClient(
+        settings.CITEX_API_URL,
+        api_key=settings.CITEX_API_KEY,
+        user_id=settings.CITEX_USER_ID,
+        scope_id=f"project:{project_id}",
+    )
     groups: list[dict[str, Any]] = []
     errors: list[str] = []
 
@@ -355,7 +360,12 @@ async def get_project_citex_context(
 ) -> dict[str, Any]:
     """Retrieve unified Citex context for project analysis prompts."""
     settings = get_settings()
-    citex_client = CitexClient(settings.CITEX_API_URL)
+    citex_client = CitexClient(
+        settings.CITEX_API_URL,
+        api_key=settings.CITEX_API_KEY,
+        user_id=settings.CITEX_USER_ID,
+        scope_id=f"project:{project_id}",
+    )
 
     queries = [
         "Summarize project scope, client goals, technical architecture, and key constraints.",

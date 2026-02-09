@@ -38,6 +38,18 @@ class Settings(BaseSettings):
         default="http://localhost:20161",
         description="Base URL for the Citex extraction service",
     )
+    CITEX_API_KEY: str = Field(
+        default="",
+        description="Project API key for authenticated Citex endpoints",
+    )
+    CITEX_USER_ID: str = Field(
+        default="chiefops_system",
+        description="Default Citex user context for ChiefOps requests",
+    )
+    CITEX_SCOPE_ID: str = Field(
+        default="default_scope",
+        description="Default Citex scope context when project scope is unavailable",
+    )
 
     # --- AI Adapter ---
     AI_ADAPTER: Literal["openrouter", "cli", "mock"] = Field(

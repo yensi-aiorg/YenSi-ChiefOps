@@ -2,7 +2,7 @@
 Async HTTP client for the Citex RAG extraction service.
 
 Provides document ingestion, semantic querying, and project-level document
-deletion with retry logic and graceful degradation when the Citex service
+delete with retry logic and graceful degradation when the Citex service
 is unavailable.
 """
 
@@ -45,17 +45,52 @@ class CitexClient:
         await client.close()
     """
 
-    def __init__(self, base_url: str) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        *,
+        api_key: str | None = None,
+        user_id: str = "default_user",
+        scope_id: str = "default_scope",
+    ) -> None:
         self._base_url = base_url.rstrip("/")
         self._http = httpx.AsyncClient(
             base_url=self._base_url,
             timeout=httpx.Timeout(_DEFAULT_TIMEOUT),
         )
         self._api_variant: str | None = None  # "new" | "legacy" | "unknown"
+        self._api_key = (api_key or "").strip()
+        self._default_user_id = user_id.strip() or "default_user"
+        self._default_scope_id = scope_id.strip() or "default_scope"
 
     async def close(self) -> None:
         """Shut down the underlying HTTP client."""
         await self._http.aclose()
+
+    def _resolve_user_id(self, user_id: str | None = None) -> str:
+        if user_id and user_id.strip():
+            return user_id.strip()
+        return self._default_user_id
+
+    def _resolve_scope_id(self, scope_id: str | None = None) -> str:
+        if scope_id and scope_id.strip():
+            return scope_id.strip()
+        return self._default_scope_id
+
+    def _build_headers(
+        self,
+        *,
+        user_id: str | None = None,
+        scope_id: str | None = None,
+        include_api_key: bool = True,
+    ) -> dict[str, str]:
+        headers: dict[str, str] = {
+            "X-Citex-User-Id": self._resolve_user_id(user_id),
+            "X-Citex-Scope-Id": self._resolve_scope_id(scope_id),
+        }
+        if include_api_key and self._api_key:
+            headers["X-Citex-API-Key"] = self._api_key
+        return headers
 
     async def _get_api_variant(self) -> str:
         """Detect Citex API variant from OpenAPI paths and cache the result."""
@@ -92,6 +127,7 @@ class CitexClient:
         params: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
         files: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> httpx.Response | None:
         """Execute an HTTP request with exponential-backoff retry.
 
@@ -111,6 +147,7 @@ class CitexClient:
                     params=params,
                     data=data,
                     files=files,
+                    headers=headers,
                 )
                 response.raise_for_status()
                 return response
@@ -120,7 +157,7 @@ class CitexClient:
                 if isinstance(exc, httpx.HTTPStatusError):
                     status_code = exc.response.status_code
                     # Do not retry deterministic client errors.
-                    if status_code in {400, 401, 403, 404, 422}:
+                    if status_code in {400, 401, 403, 404, 409, 422}:
                         logger.warning(
                             "Citex request %s %s returned non-retriable status %d: %s",
                             method,
@@ -131,7 +168,7 @@ class CitexClient:
                         break
                 wait = _BACKOFF_BASE * (2**attempt)
                 logger.warning(
-                    "Citex request %s %s failed (attempt %d/%d): %s – retrying in %.1fs",
+                    "Citex request %s %s failed (attempt %d/%d): %s - retrying in %.1fs",
                     method,
                     path,
                     attempt + 1,
@@ -150,6 +187,41 @@ class CitexClient:
         )
         return None
 
+    async def _poll_job_status(
+        self,
+        *,
+        job_id: str,
+        user_id: str,
+        scope_id: str,
+        timeout_seconds: float = 8.0,
+        interval_seconds: float = 1.0,
+    ) -> dict[str, Any] | None:
+        """Poll ingestion job status briefly and return the latest job payload."""
+        deadline = asyncio.get_running_loop().time() + timeout_seconds
+        headers = self._build_headers(user_id=user_id, scope_id=scope_id)
+
+        latest: dict[str, Any] | None = None
+        while asyncio.get_running_loop().time() < deadline:
+            response = await self._request_with_retry(
+                "GET",
+                f"/api/ingest/jobs/{job_id}",
+                headers=headers,
+            )
+            if response is None:
+                break
+
+            payload = response.json()
+            job = payload.get("job") if isinstance(payload, dict) else None
+            if isinstance(job, dict):
+                latest = job
+                status = str(job.get("status", "")).lower()
+                if status in {"completed", "failed", "cancelled"}:
+                    return latest
+
+            await asyncio.sleep(interval_seconds)
+
+        return latest
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -165,7 +237,7 @@ class CitexClient:
         if response is not None and response.status_code == 200:
             logger.debug("Citex ping: OK")
             return True
-        logger.warning("Citex ping failed – service may be unavailable")
+        logger.warning("Citex ping failed - service may be unavailable")
         return False
 
     async def ingest_document(
@@ -174,6 +246,9 @@ class CitexClient:
         content: str,
         metadata: dict[str, Any],
         filename: str,
+        *,
+        user_id: str | None = None,
+        scope_id: str | None = None,
     ) -> dict[str, Any]:
         """Ingest a document into Citex for semantic indexing.
 
@@ -182,35 +257,23 @@ class CitexClient:
             content: Full text content to ingest.
             metadata: Arbitrary metadata dict (source, author, etc.).
             filename: Original filename.
+            user_id: Optional user context override.
+            scope_id: Optional scope context override.
 
         Returns:
             The JSON response body from Citex on success, or an empty
             dict if the request failed.
         """
+        resolved_user_id = self._resolve_user_id(user_id)
+        resolved_scope_id = self._resolve_scope_id(scope_id)
         variant = await self._get_api_variant()
-        if variant in {"new", "unknown"}:
-            # New API: use /api/content for pre-extracted text.
-            # The /api/ingest endpoint expects raw binary files and parses them
-            # internally, which fails for already-extracted text content.
-            # Truncate to 100 000 chars (Citex content API limit).
-            truncated = content[:100_000]
-            content_type_map = {
-                ".md": "markdown",
-                ".json": "json",
-                ".yaml": "yaml",
-                ".yml": "yaml",
-            }
-            ext = ("." + filename.rsplit(".", 1)[-1].lower()) if "." in filename else ""
-            citex_content_type = content_type_map.get(ext, "text")
 
-            payload: dict[str, Any] = {
-                "content": truncated,
-                "contentType": citex_content_type,
-                "category": "document",
-                "projectId": project_id,
-                "createdBy": "chiefops",
-                "accessScope": "project",
-                "title": filename,
+        if variant in {"new", "unknown"}:
+            # New API: upload as multipart to /api/ingest with explicit context.
+            form_data = {
+                "project_id": project_id,
+                "user_id": resolved_user_id,
+                "scope_id": resolved_scope_id,
             }
             if metadata:
                 tags = [
@@ -219,24 +282,53 @@ class CitexClient:
                     if isinstance(v, str) and v
                 ]
                 if tags:
-                    payload["tags"] = tags[:10]
+                    form_data["tags"] = json.dumps(tags[:20])
 
             response = await self._request_with_retry(
                 "POST",
-                "/api/content",
-                json_body=payload,
+                "/api/ingest",
+                data=form_data,
+                files={"file": (filename, content.encode("utf-8"), "text/plain")},
+                headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
             )
             if response is not None:
                 body = response.json()
+                job = body.get("job") if isinstance(body, dict) else None
+                job_id = str(job.get("jobId", "")) if isinstance(job, dict) else ""
+                if job_id:
+                    polled = await self._poll_job_status(
+                        job_id=job_id,
+                        user_id=resolved_user_id,
+                        scope_id=resolved_scope_id,
+                    )
+                    if polled and str(polled.get("status", "")).lower() == "failed":
+                        logger.error(
+                            "Citex ingestion job failed: project=%s filename=%s job=%s",
+                            project_id,
+                            filename,
+                            job_id,
+                        )
+                        return {}
+                    logger.info(
+                        "Document queued in Citex ingest API: project=%s filename=%s jobId=%s",
+                        project_id,
+                        filename,
+                        job_id,
+                    )
+                    return {
+                        "job": polled or job,
+                        "jobId": job_id,
+                    }
+
                 logger.info(
-                    "Document stored in Citex (content API): project=%s filename=%s contentId=%s",
+                    "Document queued in Citex ingest API: project=%s filename=%s",
                     project_id,
                     filename,
-                    body.get("contentId", "?"),
                 )
                 return body
+
             if variant == "new":
-                logger.error("New Citex content API failed for %s", filename)
+                logger.error("New Citex ingest API failed for %s", filename)
                 return {}
 
         if variant in {"legacy", "unknown"}:
@@ -244,13 +336,18 @@ class CitexClient:
             request = CitexIngestRequest(
                 project_id=project_id,
                 content=content,
-                metadata=metadata,
+                metadata={
+                    **metadata,
+                    "user_id": resolved_user_id,
+                    "scope_id": resolved_scope_id,
+                },
                 filename=filename,
             )
             response = await self._request_with_retry(
                 "POST",
                 "/api/v1/documents",
                 json_body=request.model_dump(),
+                headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
             )
             if response is not None:
                 logger.info(
@@ -273,6 +370,9 @@ class CitexClient:
         query_text: str,
         filters: dict[str, Any] | None = None,
         top_k: int = 5,
+        *,
+        user_id: str | None = None,
+        scope_id: str | None = None,
     ) -> list[dict[str, Any]]:
         """Perform a semantic search against Citex.
 
@@ -281,28 +381,40 @@ class CitexClient:
             query_text: Natural-language query.
             filters: Optional metadata filters.
             top_k: Maximum number of result chunks.
+            user_id: Optional user context override.
+            scope_id: Optional scope context override.
 
         Returns:
             A list of chunk dicts on success, or an empty list if
             the request failed.
         """
+        resolved_user_id = self._resolve_user_id(user_id)
+        resolved_scope_id = self._resolve_scope_id(scope_id)
+
         variant = await self._get_api_variant()
         if variant in {"new", "unknown"}:
             normalized: list[dict[str, Any]] = []
 
-            # Try /api/retrieval/query first (for embedded/chunked documents).
             query_payload: dict[str, Any] = {
                 "project_id": project_id,
                 "query": query_text,
                 "top_k": top_k,
                 "score_threshold": 0.0,
+                "user_id": resolved_user_id,
+                "scope_id": resolved_scope_id,
             }
             if filters:
-                query_payload["filters"] = {"metadata_filters": filters}
+                query_payload["filters"] = {
+                    **filters,
+                    "user_id": resolved_user_id,
+                    "scope_id": resolved_scope_id,
+                }
+
             response = await self._request_with_retry(
                 "POST",
                 "/api/retrieval/query",
                 json_body=query_payload,
+                headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
             )
             if response is not None:
                 data = response.json()
@@ -323,6 +435,7 @@ class CitexClient:
                             or item.get("chunkId")
                             or item.get("id")
                             or item.get("doc_id")
+                            or item.get("docId")
                             or "",
                             "content": str(content),
                             "score": float(item.get("score") or item.get("fused_score") or 0.0),
@@ -333,32 +446,6 @@ class CitexClient:
                             or metadata.get("source", ""),
                         }
                     )
-
-            # Fallback: query /api/content/query for content-store items.
-            # The content store does not support semantic search (query param
-            # returns empty when provided), so we list by project only.
-            if not normalized:
-                content_response = await self._request_with_retry(
-                    "POST",
-                    "/api/content/query",
-                    json_body={
-                        "projectId": project_id,
-                    },
-                )
-                if content_response is not None:
-                    content_data = content_response.json()
-                    for item in content_data.get("items", []):
-                        if not isinstance(item, dict):
-                            continue
-                        normalized.append(
-                            {
-                                "chunk_id": item.get("contentId", ""),
-                                "content": str(item.get("content", ""))[:2000],
-                                "score": 0.5,
-                                "metadata": {"source": "content_store", "title": item.get("title", "")},
-                                "source": item.get("title", "content_store"),
-                            }
-                        )
 
             if normalized:
                 logger.debug(
@@ -382,6 +469,7 @@ class CitexClient:
                 "POST",
                 "/api/v1/query",
                 json_body=request.model_dump(),
+                headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
             )
             if response is not None:
                 data = response.json()
@@ -410,11 +498,23 @@ class CitexClient:
         """
         response = await self._request_with_retry(
             "DELETE",
-            "/api/v1/documents",
-            params={"project_id": project_id},
+            f"/api/projects/{project_id}",
+            params={"confirmProjectId": project_id},
+            headers=self._build_headers(),
         )
         if response is not None:
-            logger.info("Deleted Citex documents for project=%s", project_id)
+            logger.info("Deleted Citex project data for project=%s", project_id)
+            return True
+
+        # Legacy fallback.
+        response = await self._request_with_retry(
+            "DELETE",
+            "/api/v1/documents",
+            params={"project_id": project_id},
+            headers=self._build_headers(),
+        )
+        if response is not None:
+            logger.info("Deleted Citex documents for project=%s (legacy)", project_id)
             return True
 
         logger.error("Failed to delete Citex documents for project=%s", project_id)
