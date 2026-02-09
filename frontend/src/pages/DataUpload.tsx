@@ -450,6 +450,7 @@ export function DataUpload() {
     isUploading,
     error,
     fetchJobs,
+    fetchJob,
     uploadFiles,
     clearError,
   } = useIngestionStore();
@@ -457,6 +458,22 @@ export function DataUpload() {
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
+
+  // Poll the active job while it's in a non-terminal status.
+  useEffect(() => {
+    if (!activeJobId) return;
+    const activeJob = jobs.find((j) => j.job_id === activeJobId);
+    const TERMINAL = new Set(["completed", "failed", "cancelled"]);
+    if (activeJob && TERMINAL.has(activeJob.status)) return;
+
+    const poll = setInterval(() => {
+      fetchJob(activeJobId).catch(() => {
+        // Swallow network errors — keep retrying.
+      });
+    }, 3000);
+
+    return () => clearInterval(poll);
+  }, [activeJobId, jobs, fetchJob]);
 
   // Derive the active job object from the list
   const activeJob = useMemo(

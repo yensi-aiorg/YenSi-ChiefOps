@@ -14,6 +14,10 @@ interface ProjectState {
   isLoading: boolean;
   error: string | null;
 
+  // Analysis job polling
+  analysisJobId: string | null;
+  analysisStatus: string | null;
+
   // Per-project files
   projectFiles: ProjectFileInfo[];
   isUploadingFiles: boolean;
@@ -69,6 +73,8 @@ export const useProjectStore = create<ProjectStore>()(
       analysis: null,
       isLoading: false,
       error: null,
+      analysisJobId: null,
+      analysisStatus: null,
       projectFiles: [],
       isUploadingFiles: false,
       uploadError: null,
@@ -189,27 +195,70 @@ export const useProjectStore = create<ProjectStore>()(
       },
 
       triggerAnalysis: async (projectId) => {
-        set({ isLoading: true, error: null }, false, "triggerAnalysis/start");
+        set(
+          { error: null, analysisJobId: null, analysisStatus: null },
+          false,
+          "triggerAnalysis/start",
+        );
         try {
-          const { data } = await api.post<unknown>(
-            `/v1/projects/${projectId}/analyze`,
-          );
+          const { data } = await api.post<{
+            job_id: string;
+            status: string;
+          }>(`/v1/projects/${projectId}/analyze`);
 
+          const jobId = data.job_id;
           set(
-            { analysis: data, isLoading: false },
+            { analysisJobId: jobId, analysisStatus: "pending" },
             false,
-            "triggerAnalysis/success",
+            "triggerAnalysis/queued",
           );
 
-          // Refetch the project to pick up updated analysis fields.
-          await get().fetchProjectDetail(projectId);
+          // Poll every 3 seconds for completion.
+          const poll = setInterval(async () => {
+            try {
+              const { data: job } = await api.get<{
+                status: string;
+                error_message?: string | null;
+              }>(`/v1/projects/${projectId}/analysis-jobs/${jobId}`);
+
+              set(
+                { analysisStatus: job.status },
+                false,
+                "triggerAnalysis/poll",
+              );
+
+              if (job.status === "completed") {
+                clearInterval(poll);
+                set(
+                  { analysisJobId: null, analysisStatus: null },
+                  false,
+                  "triggerAnalysis/done",
+                );
+                // Refetch the project to pick up updated analysis fields.
+                await get().fetchProjectDetail(projectId);
+              } else if (job.status === "failed") {
+                clearInterval(poll);
+                set(
+                  {
+                    analysisJobId: null,
+                    analysisStatus: null,
+                    error: job.error_message ?? "Analysis failed",
+                  },
+                  false,
+                  "triggerAnalysis/failed",
+                );
+              }
+            } catch {
+              // Swallow network errors during poll — keep retrying.
+            }
+          }, 3000);
         } catch (err) {
           const message =
             err instanceof Error
               ? err.message
               : "Failed to trigger project analysis";
           set(
-            { error: message, isLoading: false },
+            { error: message, analysisJobId: null, analysisStatus: null },
             false,
             "triggerAnalysis/error",
           );

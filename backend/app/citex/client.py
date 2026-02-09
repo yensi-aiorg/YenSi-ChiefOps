@@ -189,45 +189,54 @@ class CitexClient:
         """
         variant = await self._get_api_variant()
         if variant in {"new", "unknown"}:
-            # New API: /api/ingest (multipart); embed metadata header in file text.
-            metadata_header = ""
-            if metadata:
-                compact_meta = json.dumps(metadata, default=str, ensure_ascii=True)
-                metadata_header = f"[citex-metadata]\n{compact_meta}\n[/citex-metadata]\n\n"
-            payload_text = f"{metadata_header}{content}"
+            # New API: use /api/content for pre-extracted text.
+            # The /api/ingest endpoint expects raw binary files and parses them
+            # internally, which fails for already-extracted text content.
+            # Truncate to 100 000 chars (Citex content API limit).
+            truncated = content[:100_000]
+            content_type_map = {
+                ".md": "markdown",
+                ".json": "json",
+                ".yaml": "yaml",
+                ".yml": "yaml",
+            }
+            ext = ("." + filename.rsplit(".", 1)[-1].lower()) if "." in filename else ""
+            citex_content_type = content_type_map.get(ext, "text")
 
-            # Citex only supports certain extensions; map unsupported ones to .txt
-            citex_filename = filename
-            _unsupported_text_exts = {".md", ".html", ".htm", ".xml", ".eml", ".rst"}
-            ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-            if ext in _unsupported_text_exts:
-                citex_filename = filename.rsplit(".", 1)[0] + ".txt"
+            payload: dict[str, Any] = {
+                "content": truncated,
+                "contentType": citex_content_type,
+                "category": "document",
+                "projectId": project_id,
+                "createdBy": "chiefops",
+                "accessScope": "project",
+                "title": filename,
+            }
+            if metadata:
+                tags = [
+                    f"{k}:{v}"
+                    for k, v in metadata.items()
+                    if isinstance(v, str) and v
+                ]
+                if tags:
+                    payload["tags"] = tags[:10]
 
             response = await self._request_with_retry(
                 "POST",
-                "/api/ingest",
-                data={
-                    "project_id": project_id,
-                    "file_name": citex_filename,
-                },
-                files={
-                    "file": (
-                        citex_filename,
-                        payload_text.encode("utf-8"),
-                        "text/plain",
-                    )
-                },
+                "/api/content",
+                json_body=payload,
             )
             if response is not None:
                 body = response.json()
                 logger.info(
-                    "Document submitted to Citex (new API): project=%s filename=%s",
+                    "Document stored in Citex (content API): project=%s filename=%s contentId=%s",
                     project_id,
                     filename,
+                    body.get("contentId", "?"),
                 )
                 return body
             if variant == "new":
-                logger.error("New Citex API detected but ingest failed for %s", filename)
+                logger.error("New Citex content API failed for %s", filename)
                 return {}
 
         if variant in {"legacy", "unknown"}:
@@ -279,7 +288,9 @@ class CitexClient:
         """
         variant = await self._get_api_variant()
         if variant in {"new", "unknown"}:
-            # New API: /api/retrieval/query
+            normalized: list[dict[str, Any]] = []
+
+            # Try /api/retrieval/query first (for embedded/chunked documents).
             query_payload: dict[str, Any] = {
                 "project_id": project_id,
                 "query": query_text,
@@ -295,7 +306,6 @@ class CitexClient:
             )
             if response is not None:
                 data = response.json()
-                normalized: list[dict[str, Any]] = []
                 for item in data.get("results", []):
                     if not isinstance(item, dict):
                         continue
@@ -323,6 +333,34 @@ class CitexClient:
                             or metadata.get("source", ""),
                         }
                     )
+
+            # Fallback: query /api/content/query for content-store items.
+            # The content store does not support semantic search (query param
+            # returns empty when provided), so we list by project only.
+            if not normalized:
+                content_response = await self._request_with_retry(
+                    "POST",
+                    "/api/content/query",
+                    json_body={
+                        "projectId": project_id,
+                    },
+                )
+                if content_response is not None:
+                    content_data = content_response.json()
+                    for item in content_data.get("items", []):
+                        if not isinstance(item, dict):
+                            continue
+                        normalized.append(
+                            {
+                                "chunk_id": item.get("contentId", ""),
+                                "content": str(item.get("content", ""))[:2000],
+                                "score": 0.5,
+                                "metadata": {"source": "content_store", "title": item.get("title", "")},
+                                "source": item.get("title", "content_store"),
+                            }
+                        )
+
+            if normalized:
                 logger.debug(
                     "Citex query returned %d chunks for project=%s (new API)",
                     len(normalized),

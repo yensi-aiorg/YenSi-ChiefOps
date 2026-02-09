@@ -105,16 +105,50 @@ export const useIngestionStore = create<IngestionStore>()(
             },
           );
 
+          // The upload response may be an UploadResponse (with ingestion_job_id)
+          // or an IngestionJob (with job_id). Handle both shapes.
+          const rawData = data as unknown as Record<string, unknown>;
+          const jobId =
+            (rawData.ingestion_job_id as string) ??
+            (rawData.job_id as string) ??
+            "";
+
           // Add the new job to the list and set it as active.
           set(
             (s) => ({
               jobs: [data, ...s.jobs],
-              activeJobId: data.job_id,
+              activeJobId: jobId,
               isUploading: false,
             }),
             false,
             "uploadFiles/success",
           );
+
+          // Start polling the job status every 3 seconds until terminal.
+          if (jobId) {
+            const TERMINAL = new Set(["completed", "failed", "cancelled"]);
+            const poll = setInterval(async () => {
+              try {
+                const { data: job } = await api.get<IngestionJob>(
+                  `/v1/ingestion/jobs/${jobId}`,
+                );
+                set(
+                  (s) => ({
+                    jobs: s.jobs.some((j) => j.job_id === jobId)
+                      ? s.jobs.map((j) => (j.job_id === jobId ? job : j))
+                      : [job, ...s.jobs],
+                  }),
+                  false,
+                  "uploadFiles/poll",
+                );
+                if (TERMINAL.has(job.status)) {
+                  clearInterval(poll);
+                }
+              } catch {
+                // Swallow network errors — keep retrying.
+              }
+            }, 3000);
+          }
         } catch (err) {
           const message =
             err instanceof Error ? err.message : "Failed to upload files";

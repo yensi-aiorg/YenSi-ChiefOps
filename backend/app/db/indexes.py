@@ -47,6 +47,14 @@ async def create_indexes(db: AsyncIOMotorDatabase) -> None:  # type: ignore[type
         ]
     )
 
+    # ---- analysis_jobs ----
+    await db.analysis_jobs.create_indexes(
+        [
+            IndexModel([("job_id", ASCENDING)], unique=True, name="uq_analysis_job_id"),
+            IndexModel([("project_id", ASCENDING)], name="idx_analysis_project"),
+        ]
+    )
+
     # ---- conversation_turns ----
     await db.conversation_turns.create_indexes(
         [

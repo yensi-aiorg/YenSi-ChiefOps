@@ -8,6 +8,7 @@ analysis results.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime
 from enum import Enum
@@ -16,7 +17,7 @@ from typing import Any, TYPE_CHECKING
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.database import get_database
+from app.database import get_database, get_database_sync
 from app.models.base import generate_uuid, utc_now
 
 if TYPE_CHECKING:
@@ -151,8 +152,21 @@ class AnalyzeTriggerResponse(BaseModel):
     """Response after triggering a fresh analysis."""
 
     project_id: str = Field(..., description="Project identifier.")
+    job_id: str = Field(..., description="Background analysis job identifier.")
     status: str = Field(..., description="Analysis trigger status.")
     message: str = Field(..., description="Human-readable status message.")
+
+
+class AnalysisJobResponse(BaseModel):
+    """Status of a background analysis job."""
+
+    job_id: str = Field(..., description="Job identifier.")
+    project_id: str = Field(..., description="Project identifier.")
+    status: str = Field(..., description="Job status: pending, processing, completed, failed.")
+    error_message: str | None = Field(default=None, description="Error details if failed.")
+    created_at: datetime = Field(..., description="Job creation timestamp.")
+    updated_at: datetime = Field(..., description="Last status update timestamp.")
+    completed_at: datetime | None = Field(default=None, description="Completion timestamp.")
 
 
 # ---------------------------------------------------------------------------
@@ -195,6 +209,57 @@ def _safe_health(value: object) -> str:
             return ProjectHealthScore.AT_RISK.value
         return ProjectHealthScore.HEALTHY.value
     return ProjectHealthScore.UNKNOWN.value
+
+
+# ---------------------------------------------------------------------------
+# Background task infrastructure
+# ---------------------------------------------------------------------------
+
+# Prevent garbage-collected tasks from silently disappearing.
+_background_tasks: set[asyncio.Task] = set()  # type: ignore[type-arg]
+
+
+async def _run_analysis_background(job_id: str, project_id: str) -> None:
+    """Run the full analysis pipeline in the background."""
+    db = get_database_sync()
+    jobs_col = db["analysis_jobs"]
+    projects_col = db["projects"]
+
+    try:
+        await jobs_col.update_one(
+            {"job_id": job_id},
+            {"$set": {"status": "processing", "updated_at": utc_now()}},
+        )
+
+        from app.services.projects.service import ProjectService
+
+        service = ProjectService(db)
+        await service.analyze_project(project_id)
+
+        now = utc_now()
+        await projects_col.update_one(
+            {"project_id": project_id},
+            {"$set": {"last_analysis_at": now, "updated_at": now}},
+        )
+
+        await jobs_col.update_one(
+            {"job_id": job_id},
+            {"$set": {"status": "completed", "updated_at": utc_now(), "completed_at": utc_now()}},
+        )
+        logger.info("Analysis job completed", extra={"job_id": job_id, "project_id": project_id})
+    except Exception as exc:
+        logger.error("Analysis job failed", extra={"job_id": job_id}, exc_info=exc)
+        await jobs_col.update_one(
+            {"job_id": job_id},
+            {
+                "$set": {
+                    "status": "failed",
+                    "error_message": str(exc),
+                    "updated_at": utc_now(),
+                    "completed_at": utc_now(),
+                }
+            },
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -449,7 +514,7 @@ async def get_project_analysis(
     response_model=AnalyzeTriggerResponse,
     summary="Trigger project analysis",
     description="Trigger a fresh AI-powered analysis of the project's health, risks, "
-    "and team dynamics.",
+    "and team dynamics. Returns immediately with a job ID for polling.",
 )
 async def trigger_analysis(
     project_id: str,
@@ -460,33 +525,47 @@ async def trigger_analysis(
     if project_doc is None:
         raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found.")
 
-    try:
-        from app.services.projects.service import ProjectService
+    # Create a job record so the frontend can poll for status.
+    now = utc_now()
+    job_id = generate_uuid()
+    job_doc = {
+        "job_id": job_id,
+        "project_id": project_id,
+        "status": "pending",
+        "error_message": None,
+        "created_at": now,
+        "updated_at": now,
+        "completed_at": None,
+    }
+    await db["analysis_jobs"].insert_one(job_doc)
 
-        service = ProjectService(db)
-        await service.analyze_project(project_id)
+    # Fire-and-forget: launch in the background, return immediately.
+    task = asyncio.create_task(_run_analysis_background(job_id, project_id))
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
 
-        # Update the project's last_analysis_at
-        await projects.update_one(
-            {"project_id": project_id},
-            {"$set": {"last_analysis_at": utc_now(), "updated_at": utc_now()}},
-        )
+    return AnalyzeTriggerResponse(
+        project_id=project_id,
+        job_id=job_id,
+        status="pending",
+        message="Project analysis has been queued.",
+    )
 
-        return AnalyzeTriggerResponse(
-            project_id=project_id,
-            status="started",
-            message="Project analysis has been initiated.",
-        )
-    except ImportError:
-        logger.warning("Project service not yet implemented.")
-        return AnalyzeTriggerResponse(
-            project_id=project_id,
-            status="unavailable",
-            message="Project analysis service is not yet available.",
-        )
-    except Exception as exc:
-        logger.error("Failed to trigger project analysis", exc_info=exc)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to trigger analysis: {exc}",
-        )
+
+@router.get(
+    "/{project_id}/analysis-jobs/{job_id}",
+    response_model=AnalysisJobResponse,
+    summary="Poll analysis job status",
+    description="Check the status of a background analysis job.",
+)
+async def get_analysis_job(
+    project_id: str,
+    job_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
+) -> AnalysisJobResponse:
+    doc = await db["analysis_jobs"].find_one(
+        {"job_id": job_id, "project_id": project_id}, {"_id": 0}
+    )
+    if doc is None:
+        raise HTTPException(status_code=404, detail=f"Analysis job '{job_id}' not found.")
+    return AnalysisJobResponse(**doc)

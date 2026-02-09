@@ -687,12 +687,14 @@ export function ProjectDetail() {
     error,
     fetchProjectDetail,
     triggerAnalysis,
+    analysisStatus,
     projectFiles,
     fetchProjectFiles,
   } = useProjectStore();
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
-  const [analyzing, setAnalyzing] = useState(false);
+  const analyzing =
+    analysisStatus === "pending" || analysisStatus === "processing";
 
   useEffect(() => {
     if (projectId) {
@@ -702,12 +704,11 @@ export function ProjectDetail() {
   }, [projectId, fetchProjectDetail, fetchProjectFiles]);
 
   const handleAnalyze = async () => {
-    if (!projectId) return;
-    setAnalyzing(true);
+    if (!projectId || analyzing) return;
     try {
       await triggerAnalysis(projectId);
-    } finally {
-      setAnalyzing(false);
+    } catch {
+      // Error is set in the store.
     }
   };
 
@@ -785,7 +786,12 @@ export function ProjectDetail() {
             disabled={analyzing}
             className="btn-primary"
           >
-            {analyzing ? (
+            {analysisStatus === "pending" ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Starting...
+              </>
+            ) : analysisStatus === "processing" ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Analyzing...

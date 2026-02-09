@@ -8,6 +8,7 @@ for type and size before being handed to the ingestion orchestrator.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime
 from enum import Enum
@@ -17,7 +18,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
-from app.database import get_database
+from app.database import get_database, get_database_sync
 from app.models.base import generate_uuid, utc_now
 
 if TYPE_CHECKING:
@@ -160,6 +161,45 @@ def _get_collection(db: AsyncIOMotorDatabase):  # type: ignore[type-arg]
 
 
 # ---------------------------------------------------------------------------
+# Background task infrastructure
+# ---------------------------------------------------------------------------
+
+_ingestion_background_tasks: set[asyncio.Task] = set()  # type: ignore[type-arg]
+
+
+async def _run_ingestion_background(job_id: str) -> None:
+    """Run the ingestion orchestrator in the background."""
+    db = get_database_sync()
+    collection = _get_collection(db)
+
+    try:
+        from app.services.ingestion.orchestrator import start_ingestion_job
+
+        await start_ingestion_job(job_id)
+    except ImportError:
+        logger.warning(
+            "Ingestion orchestrator not yet implemented; job created but not started.",
+            extra={"job_id": job_id},
+        )
+    except Exception as exc:
+        logger.error(
+            "Ingestion job failed in background",
+            extra={"job_id": job_id},
+            exc_info=exc,
+        )
+        await collection.update_one(
+            {"job_id": job_id},
+            {
+                "$set": {
+                    "status": IngestionJobStatus.FAILED.value,
+                    "error_message": str(exc),
+                    "updated_at": utc_now(),
+                }
+            },
+        )
+
+
+# ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
@@ -261,33 +301,10 @@ async def upload_files(
             }
         )
 
-    # Trigger the ingestion orchestrator asynchronously
-    try:
-        from app.services.ingestion.orchestrator import start_ingestion_job
-
-        await start_ingestion_job(job_id)
-    except ImportError:
-        logger.warning(
-            "Ingestion orchestrator not yet implemented; job created but not started.",
-            extra={"job_id": job_id},
-        )
-    except Exception as exc:
-        logger.error(
-            "Failed to start ingestion job",
-            extra={"job_id": job_id},
-            exc_info=exc,
-        )
-        await collection.update_one(
-            {"job_id": job_id},
-            {
-                "$set": {
-                    "status": IngestionJobStatus.FAILED.value,
-                    "error_message": str(exc),
-                    "updated_at": utc_now(),
-                }
-            },
-        )
-        raise HTTPException(status_code=500, detail=f"Failed to start ingestion: {exc}")
+    # Fire-and-forget: launch ingestion in the background, return immediately.
+    task = asyncio.create_task(_run_ingestion_background(job_id))
+    _ingestion_background_tasks.add(task)
+    task.add_done_callback(_ingestion_background_tasks.discard)
 
     return UploadResponse(
         ingestion_job_id=job_id,
