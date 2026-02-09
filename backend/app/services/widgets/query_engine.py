@@ -31,6 +31,9 @@ QUERYABLE_COLLECTIONS = {
     "alerts",
     "alerts_triggered",
     "health_scores",
+    "operational_insights",
+    "project_snapshots",
+    "semantic_summaries",
 }
 
 

@@ -188,6 +188,34 @@ async def _gather_report_context(
                 blocked.append(task)
             context["blocked_tasks"] = blocked
 
+    # Semantic narrative context
+    snapshot = await db.project_snapshots.find_one({"project_id": project_id}, {"_id": 0})
+    if snapshot:
+        context["semantic_snapshot"] = {
+            "executive_summary": snapshot.get("executive_summary", ""),
+            "summary": snapshot.get("summary", ""),
+            "detailed_understanding": snapshot.get("detailed_understanding", ""),
+            "insight_counts": snapshot.get("insight_counts", {}),
+            "severity_counts": snapshot.get("severity_counts", {}),
+        }
+
+    insights = await (
+        db.operational_insights.find({"project_id": project_id, "active": True}, {"_id": 0})
+        .sort([("created_at", -1)])
+        .limit(30)
+        .to_list(length=30)
+    )
+    if insights:
+        context["semantic_insights"] = [
+            {
+                "type": x.get("insight_type"),
+                "severity": x.get("severity"),
+                "summary": x.get("summary"),
+                "confidence": x.get("confidence"),
+            }
+            for x in insights
+        ]
+
     return context
 
 

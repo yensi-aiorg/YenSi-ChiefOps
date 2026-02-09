@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from app.database import get_database, get_database_sync
 from app.models.base import generate_uuid, utc_now
+from app.services.insights.semantic import generate_project_snapshot
 
 if TYPE_CHECKING:
     from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -167,6 +168,27 @@ class AnalysisJobResponse(BaseModel):
     created_at: datetime = Field(..., description="Job creation timestamp.")
     updated_at: datetime = Field(..., description="Last status update timestamp.")
     completed_at: datetime | None = Field(default=None, description="Completion timestamp.")
+
+
+class ProjectSnapshotResponse(BaseModel):
+    """Current semantic snapshot of project state."""
+
+    snapshot_id: str = Field(..., description="Snapshot identifier.")
+    project_id: str | None = Field(default=None, description="Project identifier.")
+    executive_summary: str = Field(default="", description="Executive-level concise summary.")
+    summary: str = Field(default="", description="Operational summary.")
+    detailed_understanding: str = Field(default="", description="Detailed narrative understanding.")
+    insight_counts: dict[str, int] = Field(default_factory=dict, description="Insight counts by type.")
+    severity_counts: dict[str, int] = Field(default_factory=dict, description="Insight counts by severity.")
+    as_of: datetime = Field(..., description="Snapshot generation time.")
+
+
+class ProjectInsightsResponse(BaseModel):
+    """Recent semantic insights for project."""
+
+    project_id: str
+    total: int = Field(default=0, description="Total returned insights.")
+    insights: list[dict[str, Any]] = Field(default_factory=list, description="Recent insights.")
 
 
 # ---------------------------------------------------------------------------
@@ -351,6 +373,62 @@ async def get_project(
         last_analysis_at=doc.get("last_analysis_at"),
         created_at=doc["created_at"],
         updated_at=doc["updated_at"],
+    )
+
+
+@router.get(
+    "/{project_id}/insights",
+    response_model=ProjectInsightsResponse,
+    summary="Get project semantic insights",
+    description="Return recent semantic operational insights extracted from Slack/files/notes/conversation.",
+)
+async def get_project_insights(
+    project_id: str,
+    limit: int = Query(default=50, ge=1, le=500, description="Maximum insights to return."),
+    db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
+) -> ProjectInsightsResponse:
+    project = await db.projects.find_one({"project_id": project_id}, {"project_id": 1})
+    if project is None:
+        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found.")
+
+    docs = await (
+        db.operational_insights.find({"project_id": project_id, "active": True}, {"_id": 0})
+        .sort([("created_at", -1)])
+        .limit(limit)
+        .to_list(length=limit)
+    )
+    return ProjectInsightsResponse(project_id=project_id, total=len(docs), insights=docs)
+
+
+@router.get(
+    "/{project_id}/snapshot",
+    response_model=ProjectSnapshotResponse,
+    summary="Get semantic project snapshot",
+    description="Generate or retrieve summary, executive summary, and detailed understanding for the project.",
+)
+async def get_project_snapshot(
+    project_id: str,
+    force: bool = Query(default=False, description="Force regeneration even if a recent snapshot exists."),
+    db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
+) -> ProjectSnapshotResponse:
+    project = await db.projects.find_one({"project_id": project_id}, {"project_id": 1})
+    if project is None:
+        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found.")
+
+    snapshot = await generate_project_snapshot(
+        project_id=project_id,
+        db=db,
+        force=force,
+    )
+    return ProjectSnapshotResponse(
+        snapshot_id=snapshot.get("snapshot_id", ""),
+        project_id=snapshot.get("project_id"),
+        executive_summary=snapshot.get("executive_summary", ""),
+        summary=snapshot.get("summary", ""),
+        detailed_understanding=snapshot.get("detailed_understanding", ""),
+        insight_counts=snapshot.get("insight_counts", {}),
+        severity_counts=snapshot.get("severity_counts", {}),
+        as_of=snapshot.get("as_of", utc_now()),
     )
 
 

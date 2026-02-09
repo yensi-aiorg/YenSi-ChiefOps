@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any
 
 from app.models.base import generate_uuid, utc_now
 from app.services.ingestion.hasher import check_duplicate, compute_hash, record_hash
+from app.services.insights.semantic import extract_semantic_insights, generate_project_snapshot
 
 if TYPE_CHECKING:
     from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -430,4 +431,13 @@ async def _build_text_documents(
             {"$set": doc},
             upsert=True,
         )
+        await extract_semantic_insights(
+            project_id=None,
+            source_type="slack",
+            source_ref=channel_name,
+            content=full_text,
+            db=db,
+        )
         await record_hash(content_hash, f"slack_channel_{channel_name}", db)
+
+    await generate_project_snapshot(project_id=None, db=db, force=True)

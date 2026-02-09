@@ -87,18 +87,19 @@ async def test_app(test_db: AsyncIOMotorDatabase):
     from unittest.mock import patch
 
     from fastapi import FastAPI
-    from fastapi.responses import ORJSONResponse
+    from fastapi.responses import JSONResponse
 
     from app.api.v1.endpoints.conversation import router as conversation_router
     from app.api.v1.endpoints.health import router as health_router
     from app.api.v1.endpoints.ingestion import router as ingestion_router
     from app.api.v1.endpoints.people import router as people_router
+    from app.api.v1.endpoints.project_files import router as project_files_router
     from app.api.v1.endpoints.projects import router as projects_router
     from app.database import get_database
 
     app = FastAPI(
         title="ChiefOps Test API",
-        default_response_class=ORJSONResponse,
+        default_response_class=JSONResponse,
     )
 
     # Override the database dependency
@@ -123,6 +124,7 @@ async def test_app(test_db: AsyncIOMotorDatabase):
     app.include_router(ingestion_router, prefix="/api/v1")
     app.include_router(people_router, prefix="/api/v1")
     app.include_router(projects_router, prefix="/api/v1")
+    app.include_router(project_files_router, prefix="/api/v1")
     app.include_router(conversation_router, prefix="/api/v1")
 
     yield app

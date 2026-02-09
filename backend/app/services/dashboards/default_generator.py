@@ -34,7 +34,7 @@ DASHBOARD_DESC = (
 # ---------------------------------------------------------------------------
 
 def _widget_defs() -> list[dict[str, Any]]:
-    """Return the 20 widget definition dicts."""
+    """Return the default dashboard widget definition dicts."""
     return [
         # ==================================================================
         # Section A: Executive Summary (Row 0, 4 KPI cards)
@@ -559,6 +559,68 @@ def _widget_defs() -> list[dict[str, Any]]:
                 "refresh_interval_seconds": 300,
             },
         },
+        # ==================================================================
+        # Section G: Narrative Intelligence (Row 34)
+        # ==================================================================
+        {
+            "title": "Executive Snapshot",
+            "widget_type": "text",
+            "position": {"x": 0, "y": 34, "w": 12, "h": 3},
+            "data_query": {
+                "collection": "project_snapshots",
+                "pipeline": [
+                    {"$sort": {"updated_at": -1}},
+                    {"$limit": 1},
+                    {
+                        "$project": {
+                            "_id": 0,
+                            "Executive Summary": {
+                                "$ifNull": ["$executive_summary", "No snapshot available yet."]
+                            },
+                        }
+                    },
+                ],
+                "refresh_interval_seconds": 120,
+            },
+        },
+        {
+            "title": "Critical Narrative Signals",
+            "widget_type": "table",
+            "position": {"x": 0, "y": 37, "w": 8, "h": 4},
+            "data_query": {
+                "collection": "operational_insights",
+                "pipeline": [
+                    {"$match": {"severity": {"$in": ["critical", "high"]}, "active": True}},
+                    {"$sort": {"created_at": -1}},
+                    {
+                        "$project": {
+                            "_id": 0,
+                            "Type": "$insight_type",
+                            "Severity": "$severity",
+                            "Summary": "$summary",
+                            "Source": "$source_type",
+                        }
+                    },
+                    {"$limit": 20},
+                ],
+                "refresh_interval_seconds": 120,
+            },
+        },
+        {
+            "title": "Signal Severity Mix",
+            "widget_type": "pie_chart",
+            "position": {"x": 8, "y": 37, "w": 4, "h": 4},
+            "data_query": {
+                "collection": "operational_insights",
+                "pipeline": [
+                    {"$match": {"active": True}},
+                    {"$group": {"_id": {"$ifNull": ["$severity", "unknown"]}, "count": {"$sum": 1}}},
+                    {"$project": {"_id": 0, "name": "$_id", "value": "$count"}},
+                    {"$sort": {"value": -1}},
+                ],
+                "refresh_interval_seconds": 120,
+            },
+        },
     ]
 
 
@@ -571,7 +633,7 @@ async def generate_default_dashboard(
     *,
     force: bool = False,
 ) -> dict[str, Any]:
-    """Create or recreate the default COO dashboard with 20 widgets.
+    """Create or recreate the default COO dashboard.
 
     Args:
         db: Motor database handle.

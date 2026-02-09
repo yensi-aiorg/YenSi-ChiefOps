@@ -18,7 +18,11 @@ from pydantic import BaseModel, Field
 
 from app.config import get_settings
 from app.database import get_database
-from app.services.ingestion.project_files import ALLOWED_EXTENSIONS, process_project_file
+from app.services.ingestion.project_files import (
+    ALLOWED_EXTENSIONS,
+    process_project_file,
+    process_project_note,
+)
 
 if TYPE_CHECKING:
     from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -84,6 +88,23 @@ class DeleteFileResponse(BaseModel):
 
     file_id: str = Field(..., description="Deleted file ID.")
     message: str = Field(..., description="Human-readable status message.")
+
+
+class ProjectNoteRequest(BaseModel):
+    """Request body for pasted project notes."""
+
+    title: str = Field(default="Project Note", max_length=300, description="Optional note title.")
+    content: str = Field(..., min_length=1, max_length=100_000, description="Narrative note text.")
+
+
+class ProjectNoteResponse(BaseModel):
+    """Response after processing a project note."""
+
+    project_id: str = Field(..., description="Project identifier.")
+    status: str = Field(..., description="Processing status.")
+    document_id: str | None = Field(default=None, description="Stored text document id.")
+    insights_created: int = Field(default=0, description="Number of semantic insights extracted.")
+    error_message: str | None = Field(default=None, description="Error message when failed.")
 
 
 # ---------------------------------------------------------------------------
@@ -206,6 +227,37 @@ async def upload_project_files(
         files_succeeded=succeeded,
         files_failed=failed,
         results=results,
+    )
+
+
+@router.post(
+    "/notes",
+    response_model=ProjectNoteResponse,
+    summary="Submit project note text",
+    description="Submit free-form narrative text (meeting notes, decisions, direction changes). "
+    "The system stores the note and extracts semantic operational insights.",
+)
+async def submit_project_note(
+    project_id: str,
+    body: ProjectNoteRequest,
+    db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
+) -> ProjectNoteResponse:
+    project = await db.projects.find_one({"project_id": project_id})
+    if not project:
+        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found.")
+
+    result = await process_project_note(
+        project_id=project_id,
+        title=body.title,
+        content=body.content,
+        db=db,
+    )
+    return ProjectNoteResponse(
+        project_id=project_id,
+        status=result.get("status", "failed"),
+        document_id=result.get("document_id"),
+        insights_created=int(result.get("insights_created", 0)),
+        error_message=result.get("error_message"),
     )
 
 

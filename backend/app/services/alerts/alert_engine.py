@@ -29,6 +29,7 @@ ALERT_TYPES = [
     "unassigned_tasks",
     "overdue_tasks",
     "team_activity",
+    "narrative_signal",
     "custom",
 ]
 
@@ -266,6 +267,14 @@ async def _get_metric_value(
         }
         return float(await db.jira_tasks.count_documents(query))
 
+    if metric == "narrative_critical_count":
+        query = {
+            **filters,
+            "active": True,
+            "severity": {"$in": ["critical", "high"]},
+        }
+        return float(await db.operational_insights.count_documents(query))
+
     # Generic count
     return float(await db[collection].count_documents(filters))
 
@@ -280,7 +289,7 @@ async def _ai_parse_alert(
         f'Description: "{description}"\n\n'
         f"Available alert types: {ALERT_TYPES}\n"
         "Available metrics: count, blocked_count, completion_rate, "
-        "health_score, unassigned_count, overdue_count\n"
+        "health_score, unassigned_count, overdue_count, narrative_critical_count\n"
         "Available operators: greater_than, less_than, equals, "
         "greater_equal, less_equal, not_equals\n\n"
         "Respond with a JSON object containing:\n"

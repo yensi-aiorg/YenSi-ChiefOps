@@ -26,6 +26,7 @@ from app.services.ingestion.drive import (
     _get_content_type,
 )
 from app.services.ingestion.hasher import compute_hash
+from app.services.insights.semantic import extract_semantic_insights, generate_project_snapshot
 
 if TYPE_CHECKING:
     from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -113,6 +114,14 @@ async def process_project_file(
                 content=text_content,
                 db=db,
             )
+            await extract_semantic_insights(
+                project_id=project_id,
+                source_type=file_type,
+                source_ref=filename,
+                content=text_content,
+                db=db,
+            )
+            await generate_project_snapshot(project_id=project_id, db=db, force=True)
 
         # Attempt Citex ingestion
         if text_content and text_content.strip():
@@ -167,6 +176,43 @@ async def process_project_file(
         await db.project_files.insert_one(file_doc)
 
     return result
+
+
+async def process_project_note(
+    project_id: str,
+    title: str,
+    content: str,
+    db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
+) -> dict[str, Any]:
+    """
+    Process a raw text note pasted from UI and persist semantic insights.
+    """
+    note_title = title.strip() or "Project Note"
+    text = content.strip()
+    if not text:
+        return {"status": "failed", "error_message": "Note content is empty."}
+
+    document_id = await _store_text_document(
+        project_id=project_id,
+        source="ui_note",
+        source_ref=f"{note_title}:{generate_uuid()[:8]}",
+        title=note_title,
+        content=text,
+        db=db,
+    )
+    extraction = await extract_semantic_insights(
+        project_id=project_id,
+        source_type="ui_note",
+        source_ref=note_title,
+        content=text,
+        db=db,
+    )
+    await generate_project_snapshot(project_id=project_id, db=db, force=True)
+    return {
+        "status": "completed",
+        "document_id": document_id,
+        "insights_created": extraction.get("created", 0),
+    }
 
 
 # ---------------------------------------------------------------------------

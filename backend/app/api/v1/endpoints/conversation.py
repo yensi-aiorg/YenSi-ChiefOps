@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from app.database import get_database
 from app.models.base import generate_uuid, utc_now
+from app.services.insights.semantic import extract_conversation_signal, generate_project_snapshot
 
 if TYPE_CHECKING:
     from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -147,6 +148,12 @@ async def send_message(
         "metadata": None,
     }
     await collection.insert_one(user_doc)
+    await extract_conversation_signal(
+        content=body.content,
+        project_id=body.project_id,
+        db=db,
+        source_ref=user_message_id,
+    )
 
     # Generate AI response via conversation service
     assistant_message_id = generate_uuid()
@@ -186,6 +193,11 @@ async def send_message(
         "metadata": response_metadata,
     }
     await collection.insert_one(assistant_doc)
+    await generate_project_snapshot(
+        project_id=body.project_id,
+        db=db,
+        force=True,
+    )
 
     return StreamingResponse(
         _stream_response(response_content, assistant_message_id, body.project_id),

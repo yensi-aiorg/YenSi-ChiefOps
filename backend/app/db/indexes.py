@@ -175,6 +175,43 @@ async def create_indexes(db: AsyncIOMotorDatabase) -> None:  # type: ignore[type
         ]
     )
 
+    # ---- operational_insights ----
+    await db.operational_insights.create_indexes(
+        [
+            IndexModel([("insight_id", ASCENDING)], unique=True, name="uq_operational_insight_id"),
+            IndexModel([("project_id", ASCENDING)], name="idx_operational_insight_project"),
+            IndexModel([("severity", ASCENDING)], name="idx_operational_insight_severity"),
+            IndexModel([("insight_type", ASCENDING)], name="idx_operational_insight_type"),
+            IndexModel(
+                [("project_id", ASCENDING), ("active", ASCENDING), ("created_at", DESCENDING)],
+                name="idx_operational_insight_project_active_created",
+            ),
+        ]
+    )
+
+    # ---- semantic_summaries ----
+    await db.semantic_summaries.create_indexes(
+        [
+            IndexModel(
+                [("project_id", ASCENDING), ("source_type", ASCENDING), ("source_ref", ASCENDING)],
+                unique=True,
+                name="uq_semantic_summary_scope",
+            ),
+            IndexModel([("updated_at", DESCENDING)], name="idx_semantic_summary_updated"),
+        ]
+    )
+
+    # ---- project_snapshots ----
+    await db.project_snapshots.create_indexes(
+        [
+            IndexModel([("snapshot_id", ASCENDING)], unique=True, name="uq_project_snapshot_id"),
+            IndexModel(
+                [("project_id", ASCENDING), ("updated_at", DESCENDING)],
+                name="idx_project_snapshot_project_updated",
+            ),
+        ]
+    )
+
     # ---- drive_files ----
     await db.drive_files.create_indexes(
         [
