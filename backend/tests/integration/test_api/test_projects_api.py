@@ -19,7 +19,7 @@ class TestListProjects:
     """Test the projects listing endpoint."""
 
     async def test_list_projects(self, async_client: AsyncClient, test_db):
-        """GET /api/v1/projects/ should return a paginated list of projects."""
+        """GET /api/v1/projects should return a paginated list of projects."""
         collection = test_db["projects"]
         now = utc_now()
 
@@ -43,7 +43,7 @@ class TestListProjects:
                 "updated_at": now,
             })
 
-        response = await async_client.get("/api/v1/projects/")
+        response = await async_client.get("/api/v1/projects")
 
         assert response.status_code == 200
         data = response.json()
@@ -54,7 +54,7 @@ class TestListProjects:
 
     async def test_list_projects_empty(self, async_client: AsyncClient):
         """Listing projects when none exist should return an empty list."""
-        response = await async_client.get("/api/v1/projects/")
+        response = await async_client.get("/api/v1/projects")
 
         assert response.status_code == 200
         data = response.json()
@@ -66,9 +66,9 @@ class TestCreateProject:
     """Test project creation endpoint."""
 
     async def test_create_project(self, async_client: AsyncClient):
-        """POST /api/v1/projects/ should create a new project."""
+        """POST /api/v1/projects should create a new project."""
         response = await async_client.post(
-            "/api/v1/projects/",
+            "/api/v1/projects",
             json={
                 "name": "New Platform",
                 "description": "A brand new platform project.",
@@ -87,7 +87,7 @@ class TestCreateProject:
         """Creating a project with a deadline should persist the deadline."""
         deadline = "2026-06-30T00:00:00Z"
         response = await async_client.post(
-            "/api/v1/projects/",
+            "/api/v1/projects",
             json={
                 "name": "Deadline Project",
                 "deadline": deadline,
@@ -102,7 +102,7 @@ class TestCreateProject:
     async def test_create_project_requires_name(self, async_client: AsyncClient):
         """Creating a project without a name should fail validation."""
         response = await async_client.post(
-            "/api/v1/projects/",
+            "/api/v1/projects",
             json={"description": "No name provided."},
         )
 

@@ -18,7 +18,7 @@ class TestListPeople:
     """Test the people listing endpoint."""
 
     async def test_list_people(self, async_client: AsyncClient, test_db):
-        """GET /api/v1/people/ should return a paginated list of people."""
+        """GET /api/v1/people should return a paginated list of people."""
         # Insert test people
         collection = test_db["people"]
         now = utc_now()
@@ -40,7 +40,7 @@ class TestListPeople:
                 "updated_at": now,
             })
 
-        response = await async_client.get("/api/v1/people/")
+        response = await async_client.get("/api/v1/people")
 
         assert response.status_code == 200
         data = response.json()
@@ -58,7 +58,7 @@ class TestListPeople:
 
     async def test_list_people_empty(self, async_client: AsyncClient):
         """Listing people when none exist should return an empty list."""
-        response = await async_client.get("/api/v1/people/")
+        response = await async_client.get("/api/v1/people")
 
         assert response.status_code == 200
         data = response.json()
@@ -87,7 +87,7 @@ class TestListPeople:
         })
 
         response = await async_client.get(
-            "/api/v1/people/",
+            "/api/v1/people",
             params={"activity_level": "very_active"},
         )
 
