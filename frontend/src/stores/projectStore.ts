@@ -58,12 +58,18 @@ interface ProjectActions {
 
   /** Upload files to a project. */
   uploadProjectFiles: (projectId: string, files: File[]) => Promise<void>;
+  /** Resume polling an in-flight upload job for a project (if any). */
+  resumeUploadPolling: (projectId: string) => Promise<void>;
+  /** Cancel an in-flight upload/processing job for a project. */
+  cancelUploadProcessing: (projectId: string) => Promise<void>;
 
   /** Fetch files for a project. */
   fetchProjectFiles: (projectId: string) => Promise<void>;
 
   /** Delete a file from a project. */
   deleteProjectFile: (projectId: string, fileId: string) => Promise<void>;
+  /** Retry Citex indexing for an uploaded file. */
+  retryProjectFileIndex: (projectId: string, fileId: string) => Promise<void>;
 
   /** Submit a free-form project note/transcript. */
   submitProjectNote: (
@@ -81,6 +87,10 @@ interface ProjectActions {
 }
 
 type ProjectStore = ProjectState & ProjectActions;
+
+const uploadPollers = new Map<string, Promise<void>>();
+const uploadCancelRequests = new Set<string>();
+const uploadJobStorageKey = (projectId: string) => `chiefops.uploadJob.${projectId}`;
 
 // ---------------------------------------------------------------------------
 // Store
@@ -310,14 +320,28 @@ export const useProjectStore = create<ProjectStore>()(
           for (const file of files) {
             formData.append("files", file);
           }
-          await api.post(
+          const { data } = await api.post<{
+            job_id: string;
+            status: string;
+          }>(
             `/v1/projects/${projectId}/files/upload`,
             formData,
-            { headers: { "Content-Type": "multipart/form-data" } },
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+              // Upload + queueing can exceed default timeout on slower links.
+              timeout: 0,
+            },
           );
-          set({ isUploadingFiles: false }, false, "uploadProjectFiles/success");
-          // Refetch files to get updated list
-          await get().fetchProjectFiles(projectId);
+          const jobId = data.job_id;
+          if (typeof window !== "undefined") {
+            window.localStorage.setItem(uploadJobStorageKey(projectId), jobId);
+          }
+          set(
+            { isUploadingFiles: true, uploadError: null },
+            false,
+            "uploadProjectFiles/queued",
+          );
+          await get().resumeUploadPolling(projectId);
         } catch (err) {
           const message =
             err instanceof Error ? err.message : "Failed to upload files";
@@ -328,6 +352,150 @@ export const useProjectStore = create<ProjectStore>()(
           );
           throw err;
         }
+      },
+
+      resumeUploadPolling: async (projectId) => {
+        const existing = uploadPollers.get(projectId);
+        if (existing) {
+          await existing;
+          return;
+        }
+
+        const jobId =
+          typeof window !== "undefined"
+            ? window.localStorage.getItem(uploadJobStorageKey(projectId))
+            : null;
+        if (!jobId) {
+          return;
+        }
+
+        const pollPromise = (async () => {
+          set(
+            { isUploadingFiles: true, uploadError: null },
+            false,
+            "resumeUploadPolling/start",
+          );
+
+          for (let attempt = 0; attempt < 600; attempt += 1) {
+            if (uploadCancelRequests.has(projectId)) {
+              uploadCancelRequests.delete(projectId);
+              if (typeof window !== "undefined") {
+                window.localStorage.removeItem(uploadJobStorageKey(projectId));
+              }
+              set(
+                { isUploadingFiles: false, uploadError: null },
+                false,
+                "resumeUploadPolling/cancelled-local",
+              );
+              return;
+            }
+
+            try {
+              const { data: job } = await api.get<{
+                status: string;
+                error_message?: string | null;
+              }>(`/v1/projects/${projectId}/files/upload-jobs/${jobId}`);
+
+              if (job.status === "completed") {
+                if (typeof window !== "undefined") {
+                  window.localStorage.removeItem(uploadJobStorageKey(projectId));
+                }
+                set(
+                  { isUploadingFiles: false, uploadError: null },
+                  false,
+                  "resumeUploadPolling/completed",
+                );
+                await get().fetchProjectFiles(projectId);
+                return;
+              }
+
+              if (job.status === "failed") {
+                const message = job.error_message ?? "File upload processing failed.";
+                if (typeof window !== "undefined") {
+                  window.localStorage.removeItem(uploadJobStorageKey(projectId));
+                }
+                set(
+                  { isUploadingFiles: false, uploadError: message },
+                  false,
+                  "resumeUploadPolling/failed",
+                );
+                return;
+              }
+
+              if (job.status === "cancelled") {
+                if (typeof window !== "undefined") {
+                  window.localStorage.removeItem(uploadJobStorageKey(projectId));
+                }
+                set(
+                  { isUploadingFiles: false, uploadError: null },
+                  false,
+                  "resumeUploadPolling/cancelled-remote",
+                );
+                await get().fetchProjectFiles(projectId);
+                return;
+              }
+            } catch (err) {
+              const message = err instanceof Error ? err.message : "";
+              if (message.includes("404")) {
+                if (typeof window !== "undefined") {
+                  window.localStorage.removeItem(uploadJobStorageKey(projectId));
+                }
+                set(
+                  { isUploadingFiles: false },
+                  false,
+                  "resumeUploadPolling/not-found",
+                );
+                return;
+              }
+              // Keep polling on transient errors.
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+          }
+
+          set(
+            {
+              isUploadingFiles: false,
+              uploadError: "Upload processing timed out while polling status.",
+            },
+            false,
+            "resumeUploadPolling/timeout",
+          );
+        })();
+
+        uploadPollers.set(projectId, pollPromise);
+        try {
+          await pollPromise;
+        } finally {
+          uploadCancelRequests.delete(projectId);
+          uploadPollers.delete(projectId);
+        }
+      },
+
+      cancelUploadProcessing: async (projectId) => {
+        const jobId =
+          typeof window !== "undefined"
+            ? window.localStorage.getItem(uploadJobStorageKey(projectId))
+            : null;
+
+        uploadCancelRequests.add(projectId);
+
+        if (jobId) {
+          try {
+            await api.post(`/v1/projects/${projectId}/files/upload-jobs/${jobId}/cancel`);
+          } catch {
+            // Ignore cancel errors; local poll-stop still applies.
+          }
+        }
+
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem(uploadJobStorageKey(projectId));
+        }
+        set(
+          { isUploadingFiles: false, uploadError: null },
+          false,
+          "cancelUploadProcessing/done",
+        );
       },
 
       fetchProjectFiles: async (projectId) => {
@@ -357,6 +525,24 @@ export const useProjectStore = create<ProjectStore>()(
             { uploadError: message },
             false,
             "deleteProjectFile/error",
+          );
+          throw err;
+        }
+      },
+
+      retryProjectFileIndex: async (projectId, fileId) => {
+        try {
+          await api.post(`/v1/projects/${projectId}/files/${fileId}/retry-index`);
+          await get().fetchProjectFiles(projectId);
+        } catch (err) {
+          const message =
+            err instanceof Error
+              ? err.message
+              : "Failed to retry indexing in Citex";
+          set(
+            { uploadError: message },
+            false,
+            "retryProjectFileIndex/error",
           );
           throw err;
         }

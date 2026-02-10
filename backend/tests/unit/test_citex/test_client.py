@@ -106,6 +106,49 @@ async def test_ingest_new_api_posts_ingest_with_context(monkeypatch: pytest.Monk
     assert data["project_id"] == "alpha"
     assert data["user_id"] == "chiefops-user"
     assert data["scope_id"] == "project:alpha"
+    files = kwargs["files"]
+    assert files["file"][0] == "alpha.txt"
+    assert files["file"][1] == b"hello world"
+    assert files["file"][2] == "text/plain"
+
+
+@pytest.mark.asyncio
+async def test_ingest_uses_raw_file_bytes_when_provided(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = CitexClient(
+        "http://citex.local",
+        api_key="test-key",
+        user_id="chiefops-user",
+        scope_id="project:alpha",
+    )
+
+    calls: list[tuple[str, str, dict]] = []
+
+    async def _fake_request(method: str, path: str, **kwargs):
+        calls.append((method, path, kwargs))
+        return _DummyResponse({"job": {"jobId": "job-456", "status": "queued"}})
+
+    async def _fake_poll(**kwargs):
+        return {"jobId": kwargs["job_id"], "status": "completed"}
+
+    monkeypatch.setattr(client, "_request_with_retry", _fake_request)
+    monkeypatch.setattr(client, "_poll_job_status", _fake_poll)
+
+    result = await client.ingest_document(
+        project_id="alpha",
+        content="ignored-text",
+        metadata={"source": "documentation"},
+        filename="alpha.xlsx",
+        file_bytes=b"PK\x03\x04raw-bytes",
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+    assert result["jobId"] == "job-456"
+    assert len(calls) == 1
+    _, _, kwargs = calls[0]
+    files = kwargs["files"]
+    assert files["file"][0] == "alpha.xlsx"
+    assert files["file"][1] == b"PK\x03\x04raw-bytes"
+    assert files["file"][2] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
 @pytest.mark.asyncio

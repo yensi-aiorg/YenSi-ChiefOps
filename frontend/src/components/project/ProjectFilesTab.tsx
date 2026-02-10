@@ -13,6 +13,8 @@ import {
   Cloud,
   Upload,
   NotebookPen,
+  RotateCcw,
+  Square,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DropZone } from "@/components/ingestion/DropZone";
@@ -127,11 +129,18 @@ function formatDate(dateStr: string): string {
 function FileRow({
   file,
   onDelete,
+  onRetryIndex,
+  isRetryingIndex,
 }: {
   file: ProjectFileInfo;
   onDelete: (fileId: string) => void;
+  onRetryIndex: (fileId: string) => void;
+  isRetryingIndex: boolean;
 }) {
   const Icon = getFileIcon(file.filename);
+  const canRetryIndex =
+    !file.citex_ingested &&
+    (file.status === "completed" || file.status === "failed" || file.status === "skipped");
 
   return (
     <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-surface-dark-card dark:hover:bg-slate-800/70">
@@ -177,6 +186,23 @@ function FileRow({
         )}
       </div>
 
+      {/* Retry index */}
+      {canRetryIndex && (
+        <button
+          onClick={() => onRetryIndex(file.file_id)}
+          disabled={isRetryingIndex}
+          className="shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-teal-50 hover:text-teal-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-teal-900/20 dark:hover:text-teal-400"
+          aria-label={`Retry indexing ${file.filename}`}
+          title="Retry indexing in Citex"
+        >
+          {isRetryingIndex ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RotateCcw className="h-4 w-4" />
+          )}
+        </button>
+      )}
+
       {/* Date */}
       <span className="hidden shrink-0 text-xs text-slate-400 dark:text-slate-500 lg:inline">
         {formatDate(file.created_at)}
@@ -205,6 +231,7 @@ interface ProjectFilesTabProps {
 export function ProjectFilesTab({ projectId }: ProjectFilesTabProps) {
   const [noteTitle, setNoteTitle] = useState("Project Note");
   const [noteContent, setNoteContent] = useState("");
+  const [retryingFileId, setRetryingFileId] = useState<string | null>(null);
   const {
     projectFiles,
     isUploadingFiles,
@@ -216,12 +243,16 @@ export function ProjectFilesTab({ projectId }: ProjectFilesTabProps) {
     submitProjectNote,
     clearNoteStatus,
     fetchProjectFiles,
+    resumeUploadPolling,
     deleteProjectFile,
+    retryProjectFileIndex,
+    cancelUploadProcessing,
   } = useProjectStore();
 
   useEffect(() => {
     fetchProjectFiles(projectId);
-  }, [projectId, fetchProjectFiles]);
+    void resumeUploadPolling(projectId);
+  }, [projectId, fetchProjectFiles, resumeUploadPolling]);
 
   const handleFilesAccepted = async (files: File[]) => {
     try {
@@ -249,6 +280,17 @@ export function ProjectFilesTab({ projectId }: ProjectFilesTabProps) {
       await deleteProjectFile(projectId, fileId);
     } catch {
       // Error is set in store
+    }
+  };
+
+  const handleRetryIndex = async (fileId: string) => {
+    try {
+      setRetryingFileId(fileId);
+      await retryProjectFileIndex(projectId, fileId);
+    } catch {
+      // Error is set in store
+    } finally {
+      setRetryingFileId(null);
     }
   };
 
@@ -341,12 +383,22 @@ export function ProjectFilesTab({ projectId }: ProjectFilesTabProps) {
             <Upload className="h-4 w-4 text-teal-500" />
             Upload Project Files
           </h3>
-          {isUploadingFiles && (
-            <div className="flex items-center gap-2 text-xs text-teal-600 dark:text-teal-400">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Uploading...
+          {isUploadingFiles ? (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-xs text-teal-600 dark:text-teal-400">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Uploading and processing...
+              </div>
+              <button
+                onClick={() => void cancelUploadProcessing(projectId)}
+                className="inline-flex items-center gap-1 rounded border border-slate-300 px-2 py-1 text-xs text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                title="Cancel current upload and processing"
+              >
+                <Square className="h-3 w-3" />
+                Cancel
+              </button>
             </div>
-          )}
+          ) : null}
         </div>
 
         <DropZone
@@ -394,12 +446,14 @@ export function ProjectFilesTab({ projectId }: ProjectFilesTabProps) {
         ) : (
           <div className="space-y-2">
             {projectFiles.map((file) => (
-              <FileRow
-                key={file.file_id}
-                file={file}
-                onDelete={handleDelete}
-              />
-            ))}
+                <FileRow
+                  key={file.file_id}
+                  file={file}
+                  onDelete={handleDelete}
+                  onRetryIndex={handleRetryIndex}
+                  isRetryingIndex={retryingFileId === file.file_id}
+                />
+              ))}
           </div>
         )}
       </div>

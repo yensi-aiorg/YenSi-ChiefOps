@@ -125,6 +125,37 @@ async def _ingest_group(
             skipped += 1
             continue
 
+        # Bridge existing "file indexed" UI status to the canonical dedupe state.
+        # This prevents re-ingesting older uploads created before state tracking.
+        if not existing_state and source in {"documentation", "jira_xlsx", "slack_json"} and source_ref:
+            latest_file = await db.project_files.find_one(
+                {"project_id": chiefops_project_id, "filename": source_ref},
+                {"citex_ingested": 1, "_id": 0},
+                sort=[("created_at", -1)],
+            )
+            if latest_file and latest_file.get("citex_ingested") is True:
+                await state_col.update_one(
+                    state_key,
+                    {
+                        "$set": {
+                            "project_id": chiefops_project_id,
+                            "citex_project_id": citex_project_id,
+                            "source_group": group_name,
+                            "source": source,
+                            "source_ref": source_ref,
+                            "document_id": document_id,
+                            "content_hash": content_hash,
+                            "status": "ingested",
+                            "last_ingested_at": utc_now(),
+                            "updated_at": utc_now(),
+                        },
+                        "$setOnInsert": {"created_at": utc_now()},
+                    },
+                    upsert=True,
+                )
+                skipped += 1
+                continue
+
         metadata = {
             "source_group": group_name,
             "source": source,

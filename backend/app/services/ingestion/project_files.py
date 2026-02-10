@@ -106,6 +106,7 @@ async def process_project_file(
 
         # Store text document if we extracted text
         text_document_id = None
+        semantic_summary_text = ""
         if text_content and text_content.strip():
             text_document_id = await _store_text_document(
                 project_id=project_id,
@@ -115,23 +116,76 @@ async def process_project_file(
                 content=text_content,
                 db=db,
             )
-            await extract_semantic_insights(
+            semantic_result = await extract_semantic_insights(
                 project_id=project_id,
                 source_type=file_type,
                 source_ref=filename,
                 content=text_content,
                 db=db,
             )
+            semantic_summary_text = str(semantic_result.get("summary_text", "")).strip()
             await generate_project_snapshot(project_id=project_id, db=db, force=True)
 
         # Attempt Citex ingestion
         if text_content and text_content.strip():
+            # Preserve raw source bytes for formats Citex parses by structure/containers.
+            passthrough_upload_exts = {".json", ".xlsx", ".pdf", ".docx"}
+            upload_bytes: bytes | None = content if ext in passthrough_upload_exts else None
             result["citex_ingested"] = await _ingest_to_citex(
                 project_id=project_id,
                 content=text_content,
                 filename=filename,
                 source=file_type,
+                file_bytes=upload_bytes,
+                content_type=_get_content_type(ext) if upload_bytes is not None else None,
             )
+            if result["citex_ingested"] and text_document_id:
+                settings = get_settings()
+                await _record_citex_ingestion_state(
+                    db=db,
+                    project_id=project_id,
+                    source_group="docs",
+                    source=file_type,
+                    source_ref=filename,
+                    document_id=text_document_id,
+                    content_hash=compute_hash(text_content.encode("utf-8")),
+                )
+                await db.text_documents.update_one(
+                    {"document_id": text_document_id},
+                    {
+                        "$set": {
+                            "indexed_in_citex": True,
+                            "citex_project_id": derive_citex_project_id(
+                                configured_project_id=settings.CITEX_PROJECT_ID,
+                                api_key=settings.CITEX_API_KEY,
+                                fallback_project_id=project_id,
+                            ),
+                            "citex_last_ingested_at": utc_now(),
+                            "updated_at": utc_now(),
+                        }
+                    },
+                )
+            # Send semantic extraction output as a dedicated text document to Citex.
+            if semantic_summary_text:
+                summary_filename = f"{Path(filename).stem}__semantic_summary.txt"
+                summary_content = (
+                    f"Semantic summary for: {filename}\n\n"
+                    f"{semantic_summary_text}\n"
+                )
+                summary_ok = await _ingest_to_citex(
+                    project_id=project_id,
+                    content=summary_content,
+                    filename=summary_filename,
+                    source="semantic_summary",
+                    source_ref=filename,
+                    content_type="text/plain",
+                )
+                if not summary_ok:
+                    logger.warning(
+                        "Semantic summary Citex ingestion failed for %s (summary file %s)",
+                        filename,
+                        summary_filename,
+                    )
 
         # Store file metadata
         file_doc: dict[str, Any] = {
@@ -213,6 +267,95 @@ async def process_project_note(
         "status": "completed",
         "document_id": document_id,
         "insights_created": extraction.get("created", 0),
+    }
+
+
+async def retry_project_file_citex_index(
+    *,
+    project_id: str,
+    file_id: str,
+    db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
+) -> dict[str, Any]:
+    """
+    Retry Citex indexing for an already-uploaded project file using stored text.
+
+    This path is used when the original ingest attempt failed or was skipped.
+    Since raw file bytes are not persisted for all uploads, retry uses the
+    canonical ``text_documents`` representation and sends a text-safe filename.
+    """
+    file_doc = await db.project_files.find_one({"project_id": project_id, "file_id": file_id})
+    if not file_doc:
+        return {
+            "status": "failed",
+            "message": f"File '{file_id}' not found in project '{project_id}'.",
+            "citex_ingested": False,
+            "job_id": None,
+        }
+
+    filename = str(file_doc.get("filename") or file_id)
+    source_type = str(file_doc.get("file_type") or "documentation")
+    text_document_id = str(file_doc.get("text_document_id") or "")
+
+    text_doc = None
+    if text_document_id:
+        text_doc = await db.text_documents.find_one({"document_id": text_document_id}, {"_id": 0})
+    if text_doc is None:
+        text_doc = await db.text_documents.find_one(
+            {"project_id": project_id, "source": source_type, "source_ref": filename},
+            {"_id": 0},
+        )
+
+    text_content = str((text_doc or {}).get("content") or "").strip()
+    if not text_content:
+        await db.project_files.update_one(
+            {"project_id": project_id, "file_id": file_id},
+            {"$set": {"citex_ingested": False, "error_message": "No extracted text found for retry.", "updated_at": utc_now()}},
+        )
+        return {
+            "status": "failed",
+            "message": "No extracted text found; re-upload the file to index again.",
+            "citex_ingested": False,
+            "job_id": None,
+        }
+
+    summary_doc = await db.semantic_summaries.find_one(
+        {"project_id": project_id, "source_type": source_type, "source_ref": filename},
+        {"summary_text": 1, "_id": 0},
+    )
+    summary_text = str((summary_doc or {}).get("summary_text") or "").strip()
+    citex_content = text_content
+    if summary_text:
+        citex_content = (
+            f"{text_content}\n\n"
+            "## ChiefOps Semantic Insights\n"
+            f"{summary_text}\n"
+        )
+
+    retry_filename = f"{Path(filename).stem}.txt"
+    success, job_id = await _retry_ingest_to_citex(
+        project_id=project_id,
+        content=citex_content,
+        source=source_type,
+        source_ref=filename,
+        retry_filename=retry_filename,
+    )
+
+    await db.project_files.update_one(
+        {"project_id": project_id, "file_id": file_id},
+        {
+            "$set": {
+                "citex_ingested": success,
+                "error_message": None if success else "Citex retry indexing failed.",
+                "updated_at": utc_now(),
+            }
+        },
+    )
+
+    return {
+        "status": "completed" if success else "failed",
+        "message": "Re-indexed in Citex." if success else "Failed to re-index in Citex.",
+        "citex_ingested": success,
+        "job_id": job_id,
     }
 
 
@@ -515,6 +658,10 @@ async def _ingest_to_citex(
     content: str,
     filename: str,
     source: str,
+    *,
+    source_ref: str | None = None,
+    file_bytes: bytes | None = None,
+    content_type: str | None = None,
 ) -> bool:
     """Attempt to ingest content into Citex. Returns True on success."""
     settings = get_settings()
@@ -537,7 +684,7 @@ async def _ingest_to_citex(
 
         metadata = {
             "source": source,
-            "source_ref": filename,
+            "source_ref": source_ref or filename,
             "upload_type": "project_file",
         }
         response = await client.ingest_document(
@@ -545,11 +692,104 @@ async def _ingest_to_citex(
             content=content,
             metadata=metadata,
             filename=filename,
+            file_bytes=file_bytes,
+            content_type=content_type,
         )
         return bool(response)
 
     except Exception as exc:
         logger.warning("Citex ingestion failed for %s: %s", filename, exc)
         return False
+    finally:
+        await client.close()
+
+
+async def _record_citex_ingestion_state(
+    *,
+    db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
+    project_id: str,
+    source_group: str,
+    source: str,
+    source_ref: str,
+    document_id: str,
+    content_hash: str,
+) -> None:
+    """Persist Citex ingestion state used by project analysis dedupe."""
+    settings = get_settings()
+    citex_project_id = derive_citex_project_id(
+        configured_project_id=settings.CITEX_PROJECT_ID,
+        api_key=settings.CITEX_API_KEY,
+        fallback_project_id=project_id,
+    )
+    now = utc_now()
+    await db.citex_ingestion_state.update_one(
+        {
+            "project_id": project_id,
+            "source_group": source_group,
+            "document_id": document_id,
+        },
+        {
+            "$set": {
+                "project_id": project_id,
+                "citex_project_id": citex_project_id,
+                "source_group": source_group,
+                "source": source,
+                "source_ref": source_ref,
+                "document_id": document_id,
+                "content_hash": content_hash,
+                "status": "ingested",
+                "last_ingested_at": now,
+                "updated_at": now,
+            },
+            "$setOnInsert": {"created_at": now},
+        },
+        upsert=True,
+    )
+
+
+async def _retry_ingest_to_citex(
+    *,
+    project_id: str,
+    content: str,
+    source: str,
+    source_ref: str,
+    retry_filename: str,
+) -> tuple[bool, str | None]:
+    """Retry Citex indexing from text content and return (success, job_id)."""
+    settings = get_settings()
+    citex_project_id = derive_citex_project_id(
+        configured_project_id=settings.CITEX_PROJECT_ID,
+        api_key=settings.CITEX_API_KEY,
+        fallback_project_id=project_id,
+    )
+    client = CitexClient(
+        settings.CITEX_API_URL,
+        api_key=settings.CITEX_API_KEY,
+        user_id=settings.CITEX_USER_ID,
+        scope_id=f"project:{project_id}",
+    )
+    try:
+        if not await client.ping():
+            return False, None
+
+        metadata = {
+            "source": source,
+            "source_ref": source_ref,
+            "upload_type": "project_file_retry",
+            "original_filename": source_ref,
+        }
+        response = await client.ingest_document(
+            project_id=citex_project_id,
+            content=content,
+            metadata=metadata,
+            filename=retry_filename,
+            content_type="text/plain",
+        )
+        if not response:
+            return False, None
+        return True, str(response.get("jobId")) if response.get("jobId") else None
+    except Exception as exc:
+        logger.warning("Citex retry ingestion failed for %s: %s", source_ref, exc)
+        return False, None
     finally:
         await client.close()

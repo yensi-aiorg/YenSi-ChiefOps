@@ -234,6 +234,8 @@ class CitexClient:
         metadata: dict[str, Any],
         filename: str,
         *,
+        file_bytes: bytes | None = None,
+        content_type: str | None = None,
         user_id: str | None = None,
         scope_id: str | None = None,
     ) -> dict[str, Any]:
@@ -244,6 +246,9 @@ class CitexClient:
             content: Full text content to ingest.
             metadata: Arbitrary metadata dict (source, author, etc.).
             filename: Original filename.
+            file_bytes: Optional raw file bytes to upload directly. When
+                provided, ``content`` is ignored for upload payload.
+            content_type: Optional MIME type for ``file_bytes`` uploads.
             user_id: Optional user context override.
             scope_id: Optional scope context override.
 
@@ -268,11 +273,16 @@ class CitexClient:
             if tags:
                 form_data["tags"] = json.dumps(tags[:20])
 
+        upload_bytes = file_bytes if file_bytes is not None else content.encode("utf-8")
+        upload_content_type = content_type or (
+            "application/octet-stream" if file_bytes is not None else "text/plain"
+        )
+
         response = await self._request_with_retry(
             "POST",
             "/api/ingest",
             data=form_data,
-            files={"file": (filename, content.encode("utf-8"), "text/plain")},
+            files={"file": (filename, upload_bytes, upload_content_type)},
             headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
         )
         if response is not None:

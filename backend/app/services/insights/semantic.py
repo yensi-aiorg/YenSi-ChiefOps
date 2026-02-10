@@ -260,6 +260,8 @@ async def extract_semantic_insights(
         await db.operational_insights.insert_one(doc)
         created_ids.append(insight_id)
 
+    summary_text = _build_compact_summary_from_insights(extracted)
+
     await db.semantic_summaries.update_one(
         {"project_id": project_id, "source_type": _normalize_source(source_type), "source_ref": source_ref},
         {
@@ -267,7 +269,7 @@ async def extract_semantic_insights(
                 "project_id": project_id,
                 "source_type": _normalize_source(source_type),
                 "source_ref": source_ref,
-                "summary_text": _build_compact_summary_from_insights(extracted),
+                "summary_text": summary_text,
                 "insight_count": len(created_ids),
                 "updated_at": now,
             },
@@ -279,7 +281,11 @@ async def extract_semantic_insights(
         upsert=True,
     )
 
-    return {"created": len(created_ids), "insights": created_ids}
+    return {
+        "created": len(created_ids),
+        "insights": created_ids,
+        "summary_text": summary_text,
+    }
 
 
 def _build_compact_summary_from_insights(insights: list[dict[str, Any]]) -> str:

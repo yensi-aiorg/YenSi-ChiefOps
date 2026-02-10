@@ -49,16 +49,16 @@ function healthToNumber(h: unknown): number | null {
 
 /** Safely get team_size from a project (API may return team_size or people_involved). */
 function getTeamSize(p: Project): number {
-  if (typeof (p as Record<string, unknown>).team_size === "number")
-    return (p as Record<string, unknown>).team_size as number;
+  const legacy = p as Project & { team_size?: number };
+  if (typeof legacy.team_size === "number") return legacy.team_size;
   if (Array.isArray(p.people_involved)) return p.people_involved.length;
   return 0;
 }
 
 /** Safely get open tasks count. */
 function getOpenTasks(p: Project): number {
-  if (typeof (p as Record<string, unknown>).open_tasks === "number")
-    return (p as Record<string, unknown>).open_tasks as number;
+  const legacy = p as Project & { open_tasks?: number };
+  if (typeof legacy.open_tasks === "number") return legacy.open_tasks;
   if (p.task_summary)
     return p.task_summary.to_do + p.task_summary.in_progress + p.task_summary.blocked;
   return 0;
@@ -66,8 +66,8 @@ function getOpenTasks(p: Project): number {
 
 /** Safely get completed tasks count. */
 function getCompletedTasks(p: Project): number {
-  if (typeof (p as Record<string, unknown>).completed_tasks === "number")
-    return (p as Record<string, unknown>).completed_tasks as number;
+  const legacy = p as Project & { completed_tasks?: number };
+  if (typeof legacy.completed_tasks === "number") return legacy.completed_tasks;
   if (p.task_summary) return p.task_summary.completed;
   return 0;
 }
@@ -617,7 +617,7 @@ function AlertBanner({
 
 function AiBriefingPanel({ projects }: { projects: Project[] }) {
   const activeCount = projects.filter(
-    (p) => p.status !== "completed" && p.status !== "cancelled",
+    (p) => String(p.status) !== "completed" && String(p.status) !== "cancelled",
   ).length;
   const atRiskCount = projects.filter(
     (p) => p.status === "at_risk" || p.status === "behind",
@@ -841,7 +841,7 @@ function FallbackDashboard() {
 
   // Computed stats
   const activeProjects = projects.filter(
-    (p) => p.status !== "completed" && p.status !== "cancelled",
+    (p) => String(p.status) !== "completed" && String(p.status) !== "cancelled",
   );
   const totalPeople = useMemo(
     () => projects.reduce((sum, p) => sum + getTeamSize(p), 0),
