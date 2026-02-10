@@ -12,6 +12,7 @@ interface COOBriefingState {
   status: COOBriefingStatus | null;
   fileSummaries: FileSummaryInfo[];
   isLoading: boolean;
+  isExporting: boolean;
   isStuck: boolean;
   error: string | null;
 }
@@ -21,6 +22,7 @@ interface COOBriefingActions {
   fetchBriefingStatus: (projectId: string) => Promise<void>;
   fetchFileSummaries: (projectId: string) => Promise<void>;
   regenerateBriefing: (projectId: string) => Promise<void>;
+  exportBriefingPdf: (projectId: string) => Promise<void>;
   startPolling: (projectId: string) => void;
   stopPolling: () => void;
   reset: () => void;
@@ -44,6 +46,7 @@ export const useCooBriefingStore = create<COOBriefingStore>()(
       status: null,
       fileSummaries: [],
       isLoading: false,
+      isExporting: false,
       isStuck: false,
       error: null,
 
@@ -106,6 +109,48 @@ export const useCooBriefingStore = create<COOBriefingStore>()(
           const message =
             err instanceof Error ? err.message : "Failed to regenerate briefing";
           set({ error: message }, false, "regenerateBriefing/error");
+        }
+      },
+
+      exportBriefingPdf: async (projectId) => {
+        set({ isExporting: true, error: null }, false, "exportBriefingPdf/start");
+        try {
+          const response = await api.get<Blob>(
+            `/v1/projects/${projectId}/coo-briefing/export/pdf`,
+            { responseType: "blob" },
+          );
+
+          const url = window.URL.createObjectURL(response.data);
+          const link = document.createElement("a");
+          link.href = url;
+
+          const disposition = response.headers["content-disposition"] as
+            | string
+            | undefined;
+          let filename = `coo_briefing_${projectId}.pdf`;
+          if (disposition) {
+            const match = /filename="?([^";\n]+)"?/.exec(disposition);
+            if (match?.[1]) {
+              filename = match[1];
+            }
+          }
+
+          link.setAttribute("download", filename);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(url);
+
+          set({ isExporting: false }, false, "exportBriefingPdf/success");
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Failed to export PDF";
+          set(
+            { error: message, isExporting: false },
+            false,
+            "exportBriefingPdf/error",
+          );
+          throw err;
         }
       },
 
@@ -172,6 +217,7 @@ export const useCooBriefingStore = create<COOBriefingStore>()(
             status: null,
             fileSummaries: [],
             isLoading: false,
+            isExporting: false,
             isStuck: false,
             error: null,
           },

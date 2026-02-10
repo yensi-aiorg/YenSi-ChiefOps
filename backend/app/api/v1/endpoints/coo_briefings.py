@@ -8,11 +8,13 @@ regenerate trigger.
 from __future__ import annotations
 
 import asyncio
+import io
 import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.database import get_database
@@ -273,4 +275,54 @@ async def regenerate_coo_briefing(
         project_id=project_id,
         status="started",
         message=f"Regenerating COO briefing from {completed_count} file summaries.",
+    )
+
+
+@router.get(
+    "/coo-briefing/export/pdf",
+    summary="Export COO briefing as PDF",
+    description="Generate a PDF from the latest completed COO briefing.",
+)
+async def export_coo_briefing_pdf(
+    project_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
+) -> StreamingResponse:
+    doc = await db.coo_briefings.find_one(
+        {"project_id": project_id},
+        sort=[("created_at", -1)],
+    )
+    if doc is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No COO briefing found for project '{project_id}'.",
+        )
+
+    if doc.get("status") != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Briefing is not ready for export (status: {doc.get('status')}).",
+        )
+
+    try:
+        from app.services.summarization.coo_pdf_export import export_coo_briefing_pdf as _export
+
+        file_path = await _export(doc["briefing_id"], db)
+    except Exception as exc:
+        logger.error("COO briefing PDF export failed", exc_info=exc)
+        raise HTTPException(status_code=500, detail=f"PDF export failed: {exc}")
+
+    with open(file_path, "rb") as f:
+        content = f.read()
+
+    is_pdf = file_path.endswith(".pdf")
+    media_type = "application/pdf" if is_pdf else "text/html"
+    ext = "pdf" if is_pdf else "html"
+    safe_name = f"coo_briefing_{project_id[:20]}.{ext}"
+
+    return StreamingResponse(
+        io.BytesIO(content),
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{safe_name}"',
+        },
     )

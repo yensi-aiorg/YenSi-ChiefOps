@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  Download,
   FileText,
   Loader2,
   TrendingUp,
@@ -37,14 +38,17 @@ export function COOBriefingTab({ projectId }: { projectId: string }) {
     status,
     fileSummaries,
     isLoading,
+    isExporting,
     isStuck,
     error,
     startPolling,
     regenerateBriefing,
+    exportBriefingPdf,
     reset,
   } = useCooBriefingStore();
 
   const [regenerating, setRegenerating] = useState(false);
+  const [exportStatus, setExportStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   useEffect(() => {
     startPolling(projectId);
@@ -60,6 +64,19 @@ export function COOBriefingTab({ projectId }: { projectId: string }) {
     // clears when the briefing status changes from processing
     setTimeout(() => setRegenerating(false), 2000);
   }, [projectId, regenerateBriefing]);
+
+  const handleExportPdf = useCallback(async () => {
+    if (exportStatus === "loading") return;
+    setExportStatus("loading");
+    try {
+      await exportBriefingPdf(projectId);
+      setExportStatus("success");
+      setTimeout(() => setExportStatus("idle"), 2500);
+    } catch {
+      setExportStatus("error");
+      setTimeout(() => setExportStatus("idle"), 3000);
+    }
+  }, [projectId, exportBriefingPdf, exportStatus]);
 
   // Idle — no pipeline has run
   if (
@@ -191,20 +208,49 @@ export function COOBriefingTab({ projectId }: { projectId: string }) {
               </p>
             </div>
           </div>
-          {/* Timestamp + Regenerate */}
+          {/* Timestamp + Actions */}
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-2xs text-slate-400">
               <CalendarClock className="h-3 w-3" />
               Generated {new Date(briefing.updated_at).toLocaleString()}
             </div>
-            <button
-              onClick={handleRegenerate}
-              disabled={regenerating}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-all hover:border-teal-300 hover:text-teal-700 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-teal-600 dark:hover:text-teal-400"
-            >
-              <RefreshCw className={cn("h-3.5 w-3.5", regenerating && "animate-spin")} />
-              {regenerating ? "Regenerating..." : "Regenerate"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleExportPdf}
+                disabled={exportStatus === "loading" || isExporting}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-all hover:border-teal-300 hover:text-teal-700 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-teal-600 dark:hover:text-teal-400"
+              >
+                {exportStatus === "loading" || isExporting ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Exporting...
+                  </>
+                ) : exportStatus === "success" ? (
+                  <>
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                    Downloaded
+                  </>
+                ) : exportStatus === "error" ? (
+                  <>
+                    <XCircle className="h-3.5 w-3.5 text-red-500" />
+                    Failed
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-3.5 w-3.5" />
+                    Download PDF
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleRegenerate}
+                disabled={regenerating}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-all hover:border-teal-300 hover:text-teal-700 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-teal-600 dark:hover:text-teal-400"
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5", regenerating && "animate-spin")} />
+                {regenerating ? "Regenerating..." : "Regenerate"}
+              </button>
+            </div>
           </div>
         </div>
 
