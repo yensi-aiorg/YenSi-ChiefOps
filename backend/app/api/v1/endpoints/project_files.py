@@ -195,6 +195,7 @@ async def _run_project_files_upload_background(
     results: list[dict] = []
     succeeded = 0
     failed = 0
+    summary_tasks: list[asyncio.Task] = []  # COO pipeline: per-file Claude CLI tasks
 
     try:
         for filename, content in files_payload:
@@ -251,6 +252,23 @@ async def _run_project_files_upload_background(
                     db=db,
                 )
 
+                # Immediately fire off Claude CLI summarization for this file
+                # (runs in parallel while the next file is being processed)
+                if result.get("status") == "completed" and result.get("file_id"):
+                    try:
+                        from app.services.summarization.pipeline import start_file_summarization
+
+                        task = start_file_summarization(
+                            project_id=project_id,
+                            file_id=result["file_id"],
+                            filename=result.get("filename", filename),
+                            file_type=result.get("file_type", "documentation"),
+                            db=db,
+                        )
+                        summary_tasks.append(task)
+                    except Exception as exc:
+                        logger.warning("COO file summarization start error (non-fatal): %s", exc)
+
             results.append(result)
             if result.get("status") == "completed":
                 succeeded += 1
@@ -285,19 +303,20 @@ async def _run_project_files_upload_background(
             },
         )
 
-        # Trigger COO summarization pipeline (non-fatal, fire-and-forget)
-        try:
-            from app.services.summarization.pipeline import run_coo_summarization_pipeline
+        # Finalize COO briefing: await remaining summaries + generate aggregation
+        if summary_tasks:
+            try:
+                from app.services.summarization.pipeline import finalize_coo_briefing
 
-            asyncio.create_task(
-                run_coo_summarization_pipeline(
-                    project_id=project_id,
-                    file_results=results,
-                    db=db,
+                asyncio.create_task(
+                    finalize_coo_briefing(
+                        project_id=project_id,
+                        summary_tasks=summary_tasks,
+                        db=db,
+                    )
                 )
-            )
-        except Exception as exc:
-            logger.warning("COO summarization pipeline error (non-fatal): %s", exc)
+            except Exception as exc:
+                logger.warning("COO briefing finalization error (non-fatal): %s", exc)
 
     except asyncio.CancelledError:
         await jobs.update_one(
