@@ -68,6 +68,10 @@ class Settings(BaseSettings):
         default=120,
         description="Timeout in seconds for CLI AI calls",
     )
+    AI_SUMMARY_TIMEOUT: int = Field(
+        default=600,
+        description="Timeout in seconds for COO summarization CLI calls",
+    )
 
     # --- OpenRouter ---
     OPENROUTER_API_KEY: str = Field(

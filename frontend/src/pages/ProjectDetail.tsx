@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useProjectStore } from "@/stores/projectStore";
 import { ProjectFilesTab } from "@/components/project/ProjectFilesTab";
+import { COOBriefingTab } from "@/components/project/COOBriefingTab";
 import { cn } from "@/lib/utils";
 import {
   formatDate,
@@ -677,7 +678,7 @@ function ProjectDetailSkeleton() {
 /*  Project Detail / Dashboard Page                                    */
 /* ================================================================== */
 
-type TabId = "overview" | "files" | "custom";
+type TabId = "overview" | "files" | "coo-briefing" | "custom";
 
 export function ProjectDetail() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -812,6 +813,7 @@ export function ProjectDetail() {
           [
             { id: "overview" as TabId, label: "Overview", count: 0 },
             { id: "files" as TabId, label: "Files", count: projectFiles.length },
+            { id: "coo-briefing" as TabId, label: "COO Briefing", count: 0 },
             { id: "custom" as TabId, label: "Custom Dashboard", count: 0 },
           ] as const
         ).map((tab) => (
@@ -912,6 +914,11 @@ export function ProjectDetail() {
       {/* Files tab */}
       {activeTab === "files" && projectId && (
         <ProjectFilesTab projectId={projectId} />
+      )}
+
+      {/* COO Briefing tab */}
+      {activeTab === "coo-briefing" && projectId && (
+        <COOBriefingTab projectId={projectId} />
       )}
 
       {/* Custom Dashboard tab */}

@@ -479,3 +479,83 @@ export interface PeopleFilters {
   department?: string;
   project_id?: string;
 }
+
+// ===========================================================================
+// COO Briefings
+// ===========================================================================
+
+/** Per-file summary metadata from the COO pipeline. */
+export interface FileSummaryInfo {
+  summary_id: string;
+  file_id: string;
+  filename: string;
+  file_type: string;
+  status: string; // "completed" | "failed" | "processing"
+  summary_markdown: string | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** An item requiring COO attention. */
+export interface AttentionItem {
+  title: string;
+  severity: "red" | "amber" | "green";
+  details: string;
+}
+
+/** Overall project health assessment. */
+export interface ProjectHealthInfo {
+  status: "red" | "yellow" | "green";
+  score: number;
+  rationale: string;
+}
+
+/** Team member capacity assessment. */
+export interface TeamCapacityItem {
+  person: string;
+  status: "overloaded" | "balanced" | "underutilized";
+  details: string;
+}
+
+/** Upcoming deadline or milestone. */
+export interface DeadlineItem {
+  item: string;
+  date: string;
+  status: "on_track" | "at_risk" | "overdue";
+}
+
+/** A recent change or event. */
+export interface RecentChangeItem {
+  change: string;
+  impact: string;
+}
+
+/** Structured COO briefing data (5 sections). */
+export interface COOBriefing {
+  briefing_id: string;
+  project_id: string;
+  status: string; // "completed" | "failed" | "processing"
+  briefing: {
+    executive_summary: string;
+    attention_items: AttentionItem[];
+    project_health: ProjectHealthInfo | null;
+    team_capacity: TeamCapacityItem[];
+    upcoming_deadlines: DeadlineItem[];
+    recent_changes: RecentChangeItem[];
+  } | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Pipeline progress status. */
+export interface COOBriefingStatus {
+  project_id: string;
+  pipeline_status: "idle" | "processing" | "completed" | "failed";
+  summaries_total: number;
+  summaries_completed: number;
+  summaries_failed: number;
+  summaries_processing: number;
+  briefing_status: string | null;
+}

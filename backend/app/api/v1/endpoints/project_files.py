@@ -284,6 +284,21 @@ async def _run_project_files_upload_background(
                 }
             },
         )
+
+        # Trigger COO summarization pipeline (non-fatal, fire-and-forget)
+        try:
+            from app.services.summarization.pipeline import run_coo_summarization_pipeline
+
+            asyncio.create_task(
+                run_coo_summarization_pipeline(
+                    project_id=project_id,
+                    file_results=results,
+                    db=db,
+                )
+            )
+        except Exception as exc:
+            logger.warning("COO summarization pipeline error (non-fatal): %s", exc)
+
     except asyncio.CancelledError:
         await jobs.update_one(
             {"job_id": job_id, "project_id": project_id},

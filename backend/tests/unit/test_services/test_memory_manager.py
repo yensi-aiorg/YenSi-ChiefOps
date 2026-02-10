@@ -31,6 +31,7 @@ async def test_retrieve_rag_chunks_uses_project_scoped_context(monkeypatch: pyte
     settings = SimpleNamespace(
         CITEX_API_URL="http://citex.local",
         CITEX_API_KEY="test-key",
+        CITEX_PROJECT_ID="",
         CITEX_USER_ID="user1",
     )
     monkeypatch.setattr(manager, "get_settings", lambda: settings)

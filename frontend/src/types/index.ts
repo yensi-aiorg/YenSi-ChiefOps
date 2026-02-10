@@ -63,6 +63,14 @@ export type {
   AppSettings,
   PeopleFilters,
   ProjectFileInfo,
+  FileSummaryInfo,
+  AttentionItem,
+  ProjectHealthInfo,
+  TeamCapacityItem,
+  DeadlineItem,
+  RecentChangeItem,
+  COOBriefing,
+  COOBriefingStatus,
 } from "./models";
 
 // Widget and dashboard types and enums

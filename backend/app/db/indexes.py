@@ -276,4 +276,31 @@ async def create_indexes(db: AsyncIOMotorDatabase) -> None:  # type: ignore[type
         ]
     )
 
+    # ---- file_summaries (COO pipeline) ----
+    await db.file_summaries.create_indexes(
+        [
+            IndexModel(
+                [("project_id", ASCENDING), ("file_id", ASCENDING)],
+                unique=True,
+                name="uq_filesummary_project_file",
+            ),
+            IndexModel(
+                [("project_id", ASCENDING), ("status", ASCENDING)],
+                name="idx_filesummary_project_status",
+            ),
+            IndexModel([("created_at", DESCENDING)], name="idx_filesummary_created"),
+        ]
+    )
+
+    # ---- coo_briefings (COO pipeline) ----
+    await db.coo_briefings.create_indexes(
+        [
+            IndexModel(
+                [("project_id", ASCENDING), ("created_at", DESCENDING)],
+                name="idx_coobriefing_project_created",
+            ),
+            IndexModel([("status", ASCENDING)], name="idx_coobriefing_status"),
+        ]
+    )
+
     logger.info("MongoDB indexes created successfully")

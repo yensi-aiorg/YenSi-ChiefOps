@@ -13,6 +13,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.api.v1.endpoints.alerts import router as alerts_router
+from app.api.v1.endpoints.coo_briefings import router as coo_briefings_router
 from app.api.v1.endpoints.conversation import router as conversation_router
 from app.api.v1.endpoints.dashboards import router as dashboards_router
 from app.api.v1.endpoints.health import router as health_router
@@ -44,6 +45,9 @@ api_v1_router.include_router(projects_router)
 
 # Project files -- /api/v1/projects/{project_id}/files/*
 api_v1_router.include_router(project_files_router)
+
+# COO briefings -- /api/v1/projects/{project_id}/coo-briefing/*
+api_v1_router.include_router(coo_briefings_router)
 
 # Dashboards -- /api/v1/dashboards/*
 api_v1_router.include_router(dashboards_router)
