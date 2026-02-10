@@ -176,6 +176,13 @@ async def generate_coo_briefing(
         if len(combined) > MAX_COMBINED_CHARS:
             combined = combined[:MAX_COMBINED_CHARS] + "\n\n[...truncated]"
 
+        logger.info(
+            "COO briefing: aggregating %d summaries (%d chars) for project %s",
+            len(summaries),
+            len(combined),
+            project_id,
+        )
+
         user_prompt = (
             f"Project ID: {project_id}\n"
             f"Number of file summaries: {len(summaries)}\n\n"
@@ -195,6 +202,12 @@ async def generate_coo_briefing(
 
         response = await adapter.generate_structured(request)
         briefing_data = response.parse_json()
+
+        logger.info(
+            "COO briefing: completed for project %s (%.0fms)",
+            project_id,
+            response.latency_ms,
+        )
 
         doc["briefing"] = briefing_data
         doc["status"] = "completed"

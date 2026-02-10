@@ -114,6 +114,12 @@ def start_file_summarization(
             )
             return {"status": "failed", "file_id": file_id, "filename": filename}
 
+    logger.info(
+        "COO pipeline: fired summarization task for %s/%s (%s)",
+        project_id,
+        filename,
+        file_type,
+    )
     return asyncio.create_task(_summarize())
 
 

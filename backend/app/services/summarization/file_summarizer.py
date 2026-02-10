@@ -154,6 +154,13 @@ async def summarize_file(
             await db.file_summaries.insert_one(doc)
             return doc
 
+        logger.info(
+            "COO summarize: starting Claude CLI for %s (%s, %d chars)",
+            filename,
+            file_type,
+            len(truncated),
+        )
+
         system_prompt = _get_prompt_for_file_type(file_type)
         user_prompt = (
             f"File: {filename} (type: {file_type})\n\n"
@@ -170,6 +177,13 @@ async def summarize_file(
         )
 
         response = await adapter.generate(request)
+
+        logger.info(
+            "COO summarize: completed %s (%.0fms, %d bytes output)",
+            filename,
+            response.latency_ms,
+            len(response.content),
+        )
 
         doc["summary_markdown"] = response.content
         doc["status"] = "completed"
