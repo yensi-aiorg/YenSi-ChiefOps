@@ -151,6 +151,10 @@ async def generate_coo_briefing(
         "updated_at": now,
     }
 
+    # Insert the "processing" document immediately so the status endpoint
+    # always finds it — even if the rest of the pipeline fails.
+    await db.coo_briefings.insert_one(doc)
+
     try:
         # Fetch completed file summaries
         cursor = db.file_summaries.find(
@@ -160,9 +164,19 @@ async def generate_coo_briefing(
         summaries = await cursor.to_list(length=500)
 
         if not summaries:
+            try:
+                await db.coo_briefings.update_one(
+                    {"briefing_id": briefing_id},
+                    {"$set": {
+                        "status": "failed",
+                        "error_message": "No completed file summaries available to aggregate.",
+                        "updated_at": utc_now(),
+                    }},
+                )
+            except Exception as db_exc:
+                logger.warning("Failed to update briefing %s: %s", briefing_id, db_exc)
             doc["status"] = "failed"
             doc["error_message"] = "No completed file summaries available to aggregate."
-            await db.coo_briefings.insert_one(doc)
             return doc
 
         # Build combined text
@@ -203,6 +217,11 @@ async def generate_coo_briefing(
         response = await adapter.generate_structured(request)
         briefing_data = response.parse_json()
 
+        # Claude CLI wraps structured JSON in a response envelope —
+        # extract just the structured_output which matches our schema.
+        if isinstance(briefing_data, dict) and "structured_output" in briefing_data:
+            briefing_data = briefing_data["structured_output"]
+
         logger.info(
             "COO briefing: completed for project %s (%.0fms)",
             project_id,
@@ -212,6 +231,18 @@ async def generate_coo_briefing(
         doc["briefing"] = briefing_data
         doc["status"] = "completed"
         doc["updated_at"] = utc_now()
+
+        try:
+            await db.coo_briefings.update_one(
+                {"briefing_id": briefing_id},
+                {"$set": {
+                    "status": "completed",
+                    "briefing": briefing_data,
+                    "updated_at": doc["updated_at"],
+                }},
+            )
+        except Exception as db_exc:
+            logger.warning("Failed to update briefing %s: %s", briefing_id, db_exc)
 
     except Exception as exc:
         logger.warning(
@@ -223,5 +254,16 @@ async def generate_coo_briefing(
         doc["error_message"] = str(exc)[:500]
         doc["updated_at"] = utc_now()
 
-    await db.coo_briefings.insert_one(doc)
+        try:
+            await db.coo_briefings.update_one(
+                {"briefing_id": briefing_id},
+                {"$set": {
+                    "status": "failed",
+                    "error_message": doc["error_message"],
+                    "updated_at": doc["updated_at"],
+                }},
+            )
+        except Exception as db_exc:
+            logger.warning("Failed to update briefing %s: %s", briefing_id, db_exc)
+
     return doc

@@ -172,13 +172,117 @@ def _validate_extension(filename: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
+async def _process_one_file(
+    *,
+    project_id: str,
+    filename: str,
+    content: bytes,
+    db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
+    settings: object,
+) -> tuple[dict, asyncio.Task | None]:
+    """Validate and process a single file. Returns (result, optional_summary_task).
+
+    Runs independently so multiple files can be processed in parallel via
+    ``asyncio.gather``.
+    """
+    # --- quick validation (no I/O) ---
+    if not filename:
+        return (
+            {
+                "file_id": "",
+                "filename": "(unnamed)",
+                "file_type": "unknown",
+                "status": "failed",
+                "records_created": 0,
+                "citex_ingested": False,
+                "error_message": "File is missing a filename.",
+            },
+            None,
+        )
+
+    if not _validate_extension(filename):
+        return (
+            {
+                "file_id": "",
+                "filename": filename,
+                "file_type": "unknown",
+                "status": "failed",
+                "records_created": 0,
+                "citex_ingested": False,
+                "error_message": (
+                    "File type not allowed. Supported: "
+                    + ", ".join(sorted(ALLOWED_EXTENSIONS))
+                ),
+            },
+            None,
+        )
+
+    if len(content) == 0:
+        return (
+            {
+                "file_id": "",
+                "filename": filename,
+                "file_type": "unknown",
+                "status": "failed",
+                "records_created": 0,
+                "citex_ingested": False,
+                "error_message": "File is empty.",
+            },
+            None,
+        )
+
+    if len(content) > settings.upload_max_file_size_bytes:  # type: ignore[attr-defined]
+        return (
+            {
+                "file_id": "",
+                "filename": filename,
+                "file_type": "unknown",
+                "status": "failed",
+                "records_created": 0,
+                "citex_ingested": False,
+                "error_message": (
+                    f"File exceeds maximum size of {settings.UPLOAD_MAX_FILE_SIZE_MB} MB."  # type: ignore[attr-defined]
+                ),
+            },
+            None,
+        )
+
+    # --- actual processing (text extraction + semantic insights + Citex) ---
+    logger.info("Parallel upload: starting process_project_file for %s/%s", project_id, filename)
+    result = await process_project_file(
+        project_id=project_id,
+        filename=filename,
+        content=content,
+        db=db,
+    )
+    logger.info("Parallel upload: finished process_project_file for %s/%s → %s", project_id, filename, result.get("status"))
+
+    # Fire COO summarization immediately (runs concurrently)
+    summary_task: asyncio.Task | None = None
+    if result.get("status") == "completed" and result.get("file_id"):
+        try:
+            from app.services.summarization.pipeline import start_file_summarization
+
+            summary_task = start_file_summarization(
+                project_id=project_id,
+                file_id=result["file_id"],
+                filename=result.get("filename", filename),
+                file_type=result.get("file_type", "documentation"),
+                db=db,
+            )
+        except Exception as exc:
+            logger.warning("COO file summarization start error (non-fatal): %s", exc)
+
+    return (result, summary_task)
+
+
 async def _run_project_files_upload_background(
     *,
     job_id: str,
     project_id: str,
     files_payload: list[tuple[str, bytes]],
 ) -> None:
-    """Process uploaded files in background and update job status."""
+    """Process uploaded files **in parallel** and update job status."""
     db = get_database_sync()
     jobs = db["project_file_upload_jobs"]
     settings = get_settings()
@@ -195,98 +299,63 @@ async def _run_project_files_upload_background(
     results: list[dict] = []
     succeeded = 0
     failed = 0
-    summary_tasks: list[asyncio.Task] = []  # COO pipeline: per-file Claude CLI tasks
+    summary_tasks: list[asyncio.Task] = []
 
     try:
-        for filename, content in files_payload:
-            if not filename:
-                result = {
-                    "file_id": "",
-                    "filename": "(unnamed)",
-                    "file_type": "unknown",
-                    "status": "failed",
-                    "records_created": 0,
-                    "citex_ingested": False,
-                    "error_message": "File is missing a filename.",
-                }
-            elif not _validate_extension(filename):
-                result = {
-                    "file_id": "",
-                    "filename": filename,
-                    "file_type": "unknown",
-                    "status": "failed",
-                    "records_created": 0,
-                    "citex_ingested": False,
-                    "error_message": (
-                        "File type not allowed. Supported: "
-                        + ", ".join(sorted(ALLOWED_EXTENSIONS))
-                    ),
-                }
-            elif len(content) == 0:
-                result = {
-                    "file_id": "",
-                    "filename": filename,
-                    "file_type": "unknown",
-                    "status": "failed",
-                    "records_created": 0,
-                    "citex_ingested": False,
-                    "error_message": "File is empty.",
-                }
-            elif len(content) > settings.upload_max_file_size_bytes:
-                result = {
-                    "file_id": "",
-                    "filename": filename,
-                    "file_type": "unknown",
-                    "status": "failed",
-                    "records_created": 0,
-                    "citex_ingested": False,
-                    "error_message": (
-                        f"File exceeds maximum size of {settings.UPLOAD_MAX_FILE_SIZE_MB} MB."
-                    ),
-                }
-            else:
-                result = await process_project_file(
+        logger.info(
+            "Parallel upload: launching %d files concurrently for project %s",
+            len(files_payload),
+            project_id,
+        )
+
+        # --- process ALL files in parallel ---
+        outcomes = await asyncio.gather(
+            *[
+                _process_one_file(
                     project_id=project_id,
-                    filename=filename,
-                    content=content,
+                    filename=fn,
+                    content=ct,
                     db=db,
+                    settings=settings,
                 )
+                for fn, ct in files_payload
+            ],
+            return_exceptions=True,
+        )
 
-                # Immediately fire off Claude CLI summarization for this file
-                # (runs in parallel while the next file is being processed)
-                if result.get("status") == "completed" and result.get("file_id"):
-                    try:
-                        from app.services.summarization.pipeline import start_file_summarization
-
-                        task = start_file_summarization(
-                            project_id=project_id,
-                            file_id=result["file_id"],
-                            filename=result.get("filename", filename),
-                            file_type=result.get("file_type", "documentation"),
-                            db=db,
-                        )
-                        summary_tasks.append(task)
-                    except Exception as exc:
-                        logger.warning("COO file summarization start error (non-fatal): %s", exc)
-
-            results.append(result)
-            if result.get("status") == "completed":
-                succeeded += 1
-            elif result.get("status") == "failed":
+        # --- collect results ---
+        for i, outcome in enumerate(outcomes):
+            if isinstance(outcome, BaseException):
+                fn = files_payload[i][0] or "(unnamed)"
+                logger.warning("Parallel upload: file %s raised exception: %s", fn, outcome)
+                result = {
+                    "file_id": "",
+                    "filename": fn,
+                    "file_type": "unknown",
+                    "status": "failed",
+                    "records_created": 0,
+                    "citex_ingested": False,
+                    "error_message": str(outcome)[:500],
+                }
+                results.append(result)
                 failed += 1
+            else:
+                result, task = outcome
+                results.append(result)
+                if result.get("status") == "completed":
+                    succeeded += 1
+                elif result.get("status") == "failed":
+                    failed += 1
+                if task is not None:
+                    summary_tasks.append(task)
 
-            await jobs.update_one(
-                {"job_id": job_id, "project_id": project_id},
-                {
-                    "$set": {
-                        "files_processed": len(results),
-                        "files_succeeded": succeeded,
-                        "files_failed": failed,
-                        "results": results,
-                        "updated_at": utc_now(),
-                    }
-                },
-            )
+        logger.info(
+            "Parallel upload: all %d files done for project %s (succeeded=%d, failed=%d)",
+            len(files_payload),
+            project_id,
+            succeeded,
+            failed,
+        )
 
         await jobs.update_one(
             {"job_id": job_id, "project_id": project_id, "status": {"$ne": "cancelled"}},

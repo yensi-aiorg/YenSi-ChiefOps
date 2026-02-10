@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     )
 
     # --- Citex Integration ---
+    CITEX_ENABLED: bool = Field(
+        default=False,
+        description="Enable Citex RAG ingestion during file upload. Disable to speed up processing.",
+    )
     CITEX_API_URL: str = Field(
         default="http://localhost:20161",
         description="Base URL for the Citex extraction service",

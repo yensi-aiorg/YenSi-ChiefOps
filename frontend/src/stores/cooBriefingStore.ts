@@ -12,6 +12,7 @@ interface COOBriefingState {
   status: COOBriefingStatus | null;
   fileSummaries: FileSummaryInfo[];
   isLoading: boolean;
+  isStuck: boolean;
   error: string | null;
 }
 
@@ -19,6 +20,7 @@ interface COOBriefingActions {
   fetchBriefing: (projectId: string) => Promise<void>;
   fetchBriefingStatus: (projectId: string) => Promise<void>;
   fetchFileSummaries: (projectId: string) => Promise<void>;
+  regenerateBriefing: (projectId: string) => Promise<void>;
   startPolling: (projectId: string) => void;
   stopPolling: () => void;
   reset: () => void;
@@ -27,6 +29,8 @@ interface COOBriefingActions {
 type COOBriefingStore = COOBriefingState & COOBriefingActions;
 
 let pollInterval: ReturnType<typeof setInterval> | null = null;
+let pollCount = 0;
+const MAX_POLL_ATTEMPTS = 100; // 100 × 3s = 5 minutes
 
 // ---------------------------------------------------------------------------
 // Store
@@ -40,6 +44,7 @@ export const useCooBriefingStore = create<COOBriefingStore>()(
       status: null,
       fileSummaries: [],
       isLoading: false,
+      isStuck: false,
       error: null,
 
       // -- actions --
@@ -49,6 +54,10 @@ export const useCooBriefingStore = create<COOBriefingStore>()(
           const { data } = await api.get<COOBriefing>(
             `/v1/projects/${projectId}/coo-briefing`,
           );
+          // Normalize: CLI may return envelope with structured_output nested
+          if (data?.briefing && "structured_output" in (data.briefing as Record<string, unknown>)) {
+            data.briefing = (data.briefing as Record<string, unknown>).structured_output as COOBriefing["briefing"];
+          }
           set({ briefing: data, error: null }, false, "fetchBriefing/success");
         } catch (err) {
           // 404 is expected when no briefing exists yet
@@ -88,12 +97,27 @@ export const useCooBriefingStore = create<COOBriefingStore>()(
         }
       },
 
+      regenerateBriefing: async (projectId) => {
+        try {
+          await api.post(`/v1/projects/${projectId}/coo-briefing/regenerate`);
+          // Start polling to pick up the new briefing
+          get().startPolling(projectId);
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Failed to regenerate briefing";
+          set({ error: message }, false, "regenerateBriefing/error");
+        }
+      },
+
       startPolling: (projectId) => {
         const store = get();
         store.stopPolling();
 
+        // Reset timeout tracking
+        pollCount = 0;
+
         // Initial fetch
-        set({ isLoading: true }, false, "startPolling/init");
+        set({ isLoading: true, isStuck: false }, false, "startPolling/init");
         Promise.all([
           store.fetchBriefingStatus(projectId),
           store.fetchBriefing(projectId),
@@ -103,6 +127,15 @@ export const useCooBriefingStore = create<COOBriefingStore>()(
         });
 
         pollInterval = setInterval(async () => {
+          pollCount++;
+
+          // Timeout: stop polling and mark as stuck
+          if (pollCount >= MAX_POLL_ATTEMPTS) {
+            set({ isStuck: true }, false, "startPolling/stuck");
+            get().stopPolling();
+            return;
+          }
+
           const s = get();
           await s.fetchBriefingStatus(projectId);
 
@@ -139,6 +172,7 @@ export const useCooBriefingStore = create<COOBriefingStore>()(
             status: null,
             fileSummaries: [],
             isLoading: false,
+            isStuck: false,
             error: null,
           },
           false,

@@ -1,11 +1,14 @@
-"""Read-only endpoints for COO briefings and file summaries.
+"""Endpoints for COO briefings and file summaries.
 
 Serves the frontend COO Briefing tab with pipeline status,
-individual file summaries, and the aggregated briefing.
+individual file summaries, the aggregated briefing, and a
+regenerate trigger.
 """
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
@@ -16,6 +19,8 @@ from app.database import get_database
 
 if TYPE_CHECKING:
     from motor.motor_asyncio import AsyncIOMotorDatabase
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects/{project_id}", tags=["coo-briefings"])
 
@@ -220,4 +225,52 @@ async def get_coo_briefing_status(
         summaries_failed=failed,
         summaries_processing=processing,
         briefing_status=briefing_status,
+    )
+
+
+class RegenerateBriefingResponse(BaseModel):
+    project_id: str = Field(..., description="Project identifier.")
+    status: str = Field(..., description="Regeneration status: started or error.")
+    message: str = Field(..., description="Human-readable status message.")
+
+
+@router.post(
+    "/coo-briefing/regenerate",
+    response_model=RegenerateBriefingResponse,
+    status_code=202,
+    summary="Regenerate COO briefing",
+    description="Re-run the COO briefing aggregation using existing file summaries. "
+    "Does NOT re-upload or re-summarize files.",
+)
+async def regenerate_coo_briefing(
+    project_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
+) -> RegenerateBriefingResponse:
+    # Check that we have completed summaries to aggregate
+    completed_count = await db.file_summaries.count_documents(
+        {"project_id": project_id, "status": "completed"}
+    )
+    if completed_count == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="No completed file summaries to aggregate. Upload files first.",
+        )
+
+    # Fire the aggregation as a background task
+    async def _run_aggregation() -> None:
+        try:
+            from app.services.summarization.coo_aggregator import generate_coo_briefing
+
+            logger.info("COO regenerate: starting for project %s (%d summaries)", project_id, completed_count)
+            result = await generate_coo_briefing(project_id, db)
+            logger.info("COO regenerate: finished for project %s → %s", project_id, result.get("status"))
+        except Exception as exc:
+            logger.warning("COO regenerate failed for project %s: %s", project_id, exc)
+
+    asyncio.create_task(_run_aggregation())
+
+    return RegenerateBriefingResponse(
+        project_id=project_id,
+        status="started",
+        message=f"Regenerating COO briefing from {completed_count} file summaries.",
     )

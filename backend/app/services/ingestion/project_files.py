@@ -126,8 +126,9 @@ async def process_project_file(
             semantic_summary_text = str(semantic_result.get("summary_text", "")).strip()
             await generate_project_snapshot(project_id=project_id, db=db, force=True)
 
-        # Attempt Citex ingestion
-        if text_content and text_content.strip():
+        # Attempt Citex ingestion (skipped when CITEX_ENABLED=False)
+        settings = get_settings()
+        if settings.CITEX_ENABLED and text_content and text_content.strip():
             # Preserve raw source bytes for formats Citex parses by structure/containers.
             passthrough_upload_exts = {".json", ".xlsx", ".pdf", ".docx"}
             upload_bytes: bytes | None = content if ext in passthrough_upload_exts else None
@@ -140,7 +141,6 @@ async def process_project_file(
                 content_type=_get_content_type(ext) if upload_bytes is not None else None,
             )
             if result["citex_ingested"] and text_document_id:
-                settings = get_settings()
                 await _record_citex_ingestion_state(
                     db=db,
                     project_id=project_id,
@@ -186,6 +186,8 @@ async def process_project_file(
                         filename,
                         summary_filename,
                     )
+        elif not settings.CITEX_ENABLED:
+            logger.info("Citex ingestion skipped for %s (CITEX_ENABLED=False)", filename)
 
         # Store file metadata
         file_doc: dict[str, Any] = {
