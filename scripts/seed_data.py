@@ -8,7 +8,7 @@ multiple times -- existing data is cleared before seeding.
 
 Usage:
     python scripts/seed_data.py
-    python scripts/seed_data.py --mongo-url mongodb://localhost:27017 --db chiefops
+    python scripts/seed_data.py --mongo-url mongodb://localhost:23102 --db chiefops
 """
 
 from __future__ import annotations
@@ -473,8 +473,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Seed ChiefOps database with sample data.")
     parser.add_argument(
         "--mongo-url",
-        default="mongodb://localhost:27017",
-        help="MongoDB connection URI (default: mongodb://localhost:27017)",
+        default="mongodb://localhost:23102",
+        help="MongoDB connection URI (default: mongodb://localhost:23102)",
     )
     parser.add_argument(
         "--db",

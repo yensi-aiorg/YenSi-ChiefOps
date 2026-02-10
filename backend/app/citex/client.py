@@ -15,12 +15,6 @@ from typing import Any
 
 import httpx
 
-from app.citex.models import (
-    CitexIngestRequest,
-    CitexQueryRequest,
-    CitexQueryResponse,
-)
-
 logger = logging.getLogger(__name__)
 
 _MAX_RETRIES = 3
@@ -38,7 +32,7 @@ class CitexClient:
 
     Usage::
 
-        client = CitexClient("http://localhost:23100")
+        client = CitexClient("http://localhost:20161")
         ok = await client.ping()
         result = await client.ingest_document("proj-1", "text ...", {}, "doc.txt")
         chunks = await client.query("proj-1", "How is the project going?")
@@ -58,7 +52,6 @@ class CitexClient:
             base_url=self._base_url,
             timeout=httpx.Timeout(_DEFAULT_TIMEOUT),
         )
-        self._api_variant: str | None = None  # "new" | "legacy" | "unknown"
         self._api_key = (api_key or "").strip()
         self._default_user_id = user_id.strip() or "default_user"
         self._default_scope_id = scope_id.strip() or "default_scope"
@@ -91,28 +84,6 @@ class CitexClient:
         if include_api_key and self._api_key:
             headers["X-Citex-API-Key"] = self._api_key
         return headers
-
-    async def _get_api_variant(self) -> str:
-        """Detect Citex API variant from OpenAPI paths and cache the result."""
-        if self._api_variant is not None:
-            return self._api_variant
-
-        response = await self._request_with_retry("GET", "/openapi.json")
-        if response is None:
-            self._api_variant = "unknown"
-            return self._api_variant
-
-        try:
-            paths = response.json().get("paths", {})
-            if "/api/ingest" in paths and "/api/retrieval/query" in paths:
-                self._api_variant = "new"
-            elif "/api/v1/documents" in paths and "/api/v1/query" in paths:
-                self._api_variant = "legacy"
-            else:
-                self._api_variant = "unknown"
-        except Exception:
-            self._api_variant = "unknown"
-        return self._api_variant
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -156,6 +127,13 @@ class CitexClient:
                 last_exc = exc
                 if isinstance(exc, httpx.HTTPStatusError):
                     status_code = exc.response.status_code
+                    response_detail = ""
+                    try:
+                        payload = exc.response.json()
+                        detail = payload.get("detail") if isinstance(payload, dict) else ""
+                        response_detail = str(detail or "")
+                    except Exception:
+                        response_detail = ""
                     # Do not retry deterministic client errors.
                     if status_code in {400, 401, 403, 404, 409, 422}:
                         logger.warning(
@@ -164,6 +142,15 @@ class CitexClient:
                             path,
                             status_code,
                             exc,
+                        )
+                        break
+                    # Some Citex routes currently return 500 for deterministic validation errors.
+                    if status_code == 500 and "Project not found" in response_detail:
+                        logger.warning(
+                            "Citex request %s %s returned deterministic 500 (%s); not retrying",
+                            method,
+                            path,
+                            response_detail,
                         )
                         break
                 wait = _BACKOFF_BASE * (2**attempt)
@@ -266,96 +253,63 @@ class CitexClient:
         """
         resolved_user_id = self._resolve_user_id(user_id)
         resolved_scope_id = self._resolve_scope_id(scope_id)
-        variant = await self._get_api_variant()
 
-        if variant in {"new", "unknown"}:
-            # New API: upload as multipart to /api/ingest with explicit context.
-            form_data = {
-                "project_id": project_id,
-                "user_id": resolved_user_id,
-                "scope_id": resolved_scope_id,
-            }
-            if metadata:
-                tags = [
-                    f"{k}:{v}"
-                    for k, v in metadata.items()
-                    if isinstance(v, str) and v
-                ]
-                if tags:
-                    form_data["tags"] = json.dumps(tags[:20])
+        form_data = {
+            "project_id": project_id,
+            "user_id": resolved_user_id,
+            "scope_id": resolved_scope_id,
+        }
+        if metadata:
+            tags = [
+                f"{k}:{v}"
+                for k, v in metadata.items()
+                if isinstance(v, str) and v
+            ]
+            if tags:
+                form_data["tags"] = json.dumps(tags[:20])
 
-            response = await self._request_with_retry(
-                "POST",
-                "/api/ingest",
-                data=form_data,
-                files={"file": (filename, content.encode("utf-8"), "text/plain")},
-                headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
-            )
-            if response is not None:
-                body = response.json()
-                job = body.get("job") if isinstance(body, dict) else None
-                job_id = str(job.get("jobId", "")) if isinstance(job, dict) else ""
-                if job_id:
-                    polled = await self._poll_job_status(
-                        job_id=job_id,
-                        user_id=resolved_user_id,
-                        scope_id=resolved_scope_id,
-                    )
-                    if polled and str(polled.get("status", "")).lower() == "failed":
-                        logger.error(
-                            "Citex ingestion job failed: project=%s filename=%s job=%s",
-                            project_id,
-                            filename,
-                            job_id,
-                        )
-                        return {}
-                    logger.info(
-                        "Document queued in Citex ingest API: project=%s filename=%s jobId=%s",
+        response = await self._request_with_retry(
+            "POST",
+            "/api/ingest",
+            data=form_data,
+            files={"file": (filename, content.encode("utf-8"), "text/plain")},
+            headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
+        )
+        if response is not None:
+            body = response.json()
+            job = body.get("job") if isinstance(body, dict) else None
+            job_id = str(job.get("jobId", "")) if isinstance(job, dict) else ""
+            if job_id:
+                polled = await self._poll_job_status(
+                    job_id=job_id,
+                    user_id=resolved_user_id,
+                    scope_id=resolved_scope_id,
+                )
+                if polled and str(polled.get("status", "")).lower() == "failed":
+                    logger.error(
+                        "Citex ingestion job failed: project=%s filename=%s job=%s",
                         project_id,
                         filename,
                         job_id,
                     )
-                    return {
-                        "job": polled or job,
-                        "jobId": job_id,
-                    }
-
+                    return {}
                 logger.info(
-                    "Document queued in Citex ingest API: project=%s filename=%s",
+                    "Document queued in Citex ingest API: project=%s filename=%s jobId=%s",
                     project_id,
                     filename,
+                    job_id,
                 )
-                return body
+                return {
+                    "job": polled or job,
+                    "jobId": job_id,
+                }
 
-            if variant == "new":
-                logger.error("New Citex ingest API failed for %s", filename)
-                return {}
-
-        if variant in {"legacy", "unknown"}:
-            # Legacy API: /api/v1/documents
-            request = CitexIngestRequest(
-                project_id=project_id,
-                content=content,
-                metadata={
-                    **metadata,
-                    "user_id": resolved_user_id,
-                    "scope_id": resolved_scope_id,
-                },
-                filename=filename,
+            logger.info(
+                "Document queued in Citex ingest API: project=%s filename=%s",
+                project_id,
+                filename,
             )
-            response = await self._request_with_retry(
-                "POST",
-                "/api/v1/documents",
-                json_body=request.model_dump(),
-                headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
-            )
-            if response is not None:
-                logger.info(
-                    "Document ingested into Citex (legacy API): project=%s filename=%s",
-                    project_id,
-                    filename,
-                )
-                return response.json()
+            return body
 
         logger.error(
             "Failed to ingest document into Citex: project=%s filename=%s",
@@ -390,96 +344,67 @@ class CitexClient:
         """
         resolved_user_id = self._resolve_user_id(user_id)
         resolved_scope_id = self._resolve_scope_id(scope_id)
-
-        variant = await self._get_api_variant()
-        if variant in {"new", "unknown"}:
-            normalized: list[dict[str, Any]] = []
-
-            query_payload: dict[str, Any] = {
-                "project_id": project_id,
-                "query": query_text,
-                "top_k": top_k,
-                "score_threshold": 0.0,
+        query_payload: dict[str, Any] = {
+            "project_id": project_id,
+            "query": query_text,
+            "top_k": top_k,
+            "score_threshold": 0.0,
+            "user_id": resolved_user_id,
+            "scope_id": resolved_scope_id,
+        }
+        if filters:
+            query_payload["filters"] = {
+                **filters,
                 "user_id": resolved_user_id,
                 "scope_id": resolved_scope_id,
             }
-            if filters:
-                query_payload["filters"] = {
-                    **filters,
-                    "user_id": resolved_user_id,
-                    "scope_id": resolved_scope_id,
-                }
 
-            response = await self._request_with_retry(
-                "POST",
-                "/api/retrieval/query",
-                json_body=query_payload,
-                headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
-            )
-            if response is not None:
-                data = response.json()
-                for item in data.get("results", []):
-                    if not isinstance(item, dict):
-                        continue
-                    metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
-                    content = (
-                        item.get("content")
-                        or item.get("text")
-                        or item.get("chunk_text")
-                        or item.get("snippet")
-                        or ""
-                    )
-                    normalized.append(
-                        {
-                            "chunk_id": item.get("chunk_id")
-                            or item.get("chunkId")
-                            or item.get("id")
-                            or item.get("doc_id")
-                            or item.get("docId")
-                            or "",
-                            "content": str(content),
-                            "score": float(item.get("score") or item.get("fused_score") or 0.0),
-                            "metadata": metadata,
-                            "source": item.get("source")
+        response = await self._request_with_retry(
+            "POST",
+            "/api/retrieval/query",
+            json_body=query_payload,
+            headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
+        )
+        if response is not None:
+            normalized: list[dict[str, Any]] = []
+            data = response.json()
+            for item in data.get("results", []):
+                if not isinstance(item, dict):
+                    continue
+                metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+                content = (
+                    item.get("content")
+                    or item.get("text")
+                    or item.get("chunk_text")
+                    or item.get("snippet")
+                    or ""
+                )
+                normalized.append(
+                    {
+                        "chunk_id": item.get("chunk_id")
+                        or item.get("chunkId")
+                        or item.get("id")
+                        or item.get("doc_id")
+                        or item.get("docId")
+                        or "",
+                        "content": str(content),
+                        "score": float(item.get("score") or item.get("fused_score") or 0.0),
+                        "metadata": metadata,
+                        "source": (
+                            item.get("source")
                             or item.get("file_name")
                             or item.get("fileName")
-                            or metadata.get("source", ""),
-                        }
-                    )
-
-            if normalized:
-                logger.debug(
-                    "Citex query returned %d chunks for project=%s (new API)",
-                    len(normalized),
-                    project_id,
+                            or metadata.get("source", "")
+                        ),
+                    }
                 )
-                return normalized
-            if variant == "new":
-                return []
 
-        if variant in {"legacy", "unknown"}:
-            # Legacy API: /api/v1/query
-            request = CitexQueryRequest(
-                project_id=project_id,
-                query=query_text,
-                filters=filters,
-                top_k=top_k,
+            logger.debug(
+                "Citex query returned %d chunks for project=%s",
+                len(normalized),
+                project_id,
             )
-            response = await self._request_with_retry(
-                "POST",
-                "/api/v1/query",
-                json_body=request.model_dump(),
-                headers=self._build_headers(user_id=resolved_user_id, scope_id=resolved_scope_id),
-            )
-            if response is not None:
-                data = response.json()
-                parsed = CitexQueryResponse(**data)
-                logger.debug(
-                    "Citex query returned %d chunks for project=%s (legacy API)",
-                    len(parsed.chunks),
-                    project_id,
-                )
-                return [chunk.model_dump() for chunk in parsed.chunks]
+            return normalized
 
         logger.warning(
             "Citex query failed; returning empty results for project=%s",
@@ -504,17 +429,6 @@ class CitexClient:
         )
         if response is not None:
             logger.info("Deleted Citex project data for project=%s", project_id)
-            return True
-
-        # Legacy fallback.
-        response = await self._request_with_retry(
-            "DELETE",
-            "/api/v1/documents",
-            params={"project_id": project_id},
-            headers=self._build_headers(),
-        )
-        if response is not None:
-            logger.info("Deleted Citex documents for project=%s (legacy)", project_id)
             return True
 
         logger.error("Failed to delete Citex documents for project=%s", project_id)

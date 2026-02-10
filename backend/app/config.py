@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # --- MongoDB ---
     MONGO_URL: str = Field(
-        default="mongodb://localhost:27017",
+        default="mongodb://localhost:23102",
         description="MongoDB connection URI",
     )
     MONGO_DB_NAME: str = Field(
@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 
     # --- Redis ---
     REDIS_URL: str = Field(
-        default="redis://localhost:6379/0",
+        default="redis://localhost:23103/0",
         description="Redis connection URI",
     )
 
@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     CITEX_API_KEY: str = Field(
         default="",
         description="Project API key for authenticated Citex endpoints",
+    )
+    CITEX_PROJECT_ID: str = Field(
+        default="",
+        description="Citex project_id bound to CITEX_API_KEY (optional; auto-derived from key when omitted)",
     )
     CITEX_USER_ID: str = Field(
         default="chiefops_system",

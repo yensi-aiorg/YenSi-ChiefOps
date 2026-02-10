@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 import httpx
 
 from app.citex.client import CitexClient
+from app.citex.project_scope import derive_citex_project_id
 from app.config import get_settings
 from app.services.memory.assembler import assemble_context
 from app.services.memory.compactor import check_compaction_needed, compact
@@ -130,6 +131,11 @@ async def _retrieve_rag_chunks(
     if not resolved_project_id:
         logger.debug("Missing project_id; skipping Citex retrieval to avoid cross-project context")
         return []
+    citex_project_id = derive_citex_project_id(
+        configured_project_id=settings.CITEX_PROJECT_ID,
+        api_key=settings.CITEX_API_KEY,
+        fallback_project_id=resolved_project_id,
+    )
 
     citex_client = CitexClient(
         citex_url,
@@ -139,7 +145,7 @@ async def _retrieve_rag_chunks(
     )
     try:
         results = await citex_client.query(
-            project_id=resolved_project_id,
+            project_id=citex_project_id,
             query_text=query,
             top_k=5,
         )

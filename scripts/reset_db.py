@@ -8,7 +8,7 @@ Prompts for confirmation before proceeding unless --force is specified.
 
 Usage:
     python scripts/reset_db.py
-    python scripts/reset_db.py --mongo-url mongodb://localhost:27017 --db chiefops
+    python scripts/reset_db.py --mongo-url mongodb://localhost:23102 --db chiefops
     python scripts/reset_db.py --force
 """
 
@@ -102,8 +102,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--mongo-url",
-        default="mongodb://localhost:27017",
-        help="MongoDB connection URI (default: mongodb://localhost:27017)",
+        default="mongodb://localhost:23102",
+        help="MongoDB connection URI (default: mongodb://localhost:23102)",
     )
     parser.add_argument(
         "--db",

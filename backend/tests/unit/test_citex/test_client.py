@@ -41,11 +41,7 @@ async def test_query_new_api_sends_required_context(monkeypatch: pytest.MonkeyPa
             }
         )
 
-    async def _fake_variant() -> str:
-        return "new"
-
     monkeypatch.setattr(client, "_request_with_retry", _fake_request)
-    monkeypatch.setattr(client, "_get_api_variant", _fake_variant)
 
     chunks = await client.query(project_id="alpha", query_text="status", top_k=3)
 
@@ -81,14 +77,10 @@ async def test_ingest_new_api_posts_ingest_with_context(monkeypatch: pytest.Monk
         calls.append((method, path, kwargs))
         return _DummyResponse({"job": {"jobId": "job-123", "status": "queued"}})
 
-    async def _fake_variant() -> str:
-        return "new"
-
     async def _fake_poll(**kwargs):
         return {"jobId": kwargs["job_id"], "status": "completed"}
 
     monkeypatch.setattr(client, "_request_with_retry", _fake_request)
-    monkeypatch.setattr(client, "_get_api_variant", _fake_variant)
     monkeypatch.setattr(client, "_poll_job_status", _fake_poll)
 
     result = await client.ingest_document(

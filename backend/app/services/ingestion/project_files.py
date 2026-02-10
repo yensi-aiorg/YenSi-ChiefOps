@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from app.citex.client import CitexClient
+from app.citex.project_scope import derive_citex_project_id
 from app.config import get_settings
 from app.models.base import generate_uuid, utc_now
 from app.services.ingestion.drive import (
@@ -246,20 +247,41 @@ async def _process_slack_json(
         Tuple of (extracted_text, records_created).
     """
     text = content.decode("utf-8")
-    data = json.loads(text)
+    payload = json.loads(text)
 
-    if not isinstance(data, list):
-        # Might be a single-object export; wrap it
-        data = [data]
+    if isinstance(payload, list):
+        messages = payload
+    elif isinstance(payload, dict):
+        candidates = (
+            payload.get("messages"),
+            payload.get("data"),
+            payload.get("items"),
+        )
+        messages = next((c for c in candidates if isinstance(c, list)), [payload])
+    else:
+        messages = []
 
     lines: list[str] = []
     msg_count = 0
-    for msg in data:
+    for msg in messages:
         if not isinstance(msg, dict):
             continue
-        user = msg.get("user") or msg.get("username") or "unknown"
-        ts = msg.get("ts") or msg.get("timestamp") or ""
-        msg_text = msg.get("text", "")
+        user = msg.get("user") or msg.get("username") or msg.get("author") or "unknown"
+        ts = msg.get("ts") or msg.get("timestamp") or msg.get("time") or ""
+
+        msg_text = str(msg.get("text") or "").strip()
+        if not msg_text and isinstance(msg.get("blocks"), list):
+            block_texts: list[str] = []
+            for block in msg["blocks"]:
+                if not isinstance(block, dict):
+                    continue
+                text_obj = block.get("text")
+                if isinstance(text_obj, dict):
+                    value = str(text_obj.get("text") or "").strip()
+                    if value:
+                        block_texts.append(value)
+            msg_text = " ".join(block_texts).strip()
+
         if msg_text:
             lines.append(f"[{ts}] {user}: {msg_text}")
             msg_count += 1
@@ -366,6 +388,17 @@ async def _process_jira_xlsx(
             f"{task_key}: [{task_doc['status']}] {task_doc['summary']} "
             f"(assignee={task_doc['assignee']}, priority={task_doc['priority']})"
         )
+
+    # Fallback for non-Jira spreadsheets: preserve usable row text for indexing.
+    if not text_lines:
+        fallback_lines: list[str] = []
+        for row in rows[1:]:
+            values = [v.strip() for v in row if isinstance(v, str) and v.strip()]
+            if not values:
+                continue
+            fallback_lines.append(" | ".join(values[:12]))
+        if fallback_lines:
+            return "\n".join(fallback_lines), len(fallback_lines)
 
     full_text = "\n".join(text_lines)
     return full_text, records_created
@@ -485,6 +518,11 @@ async def _ingest_to_citex(
 ) -> bool:
     """Attempt to ingest content into Citex. Returns True on success."""
     settings = get_settings()
+    citex_project_id = derive_citex_project_id(
+        configured_project_id=settings.CITEX_PROJECT_ID,
+        api_key=settings.CITEX_API_KEY,
+        fallback_project_id=project_id,
+    )
     client = CitexClient(
         settings.CITEX_API_URL,
         api_key=settings.CITEX_API_KEY,
@@ -503,7 +541,7 @@ async def _ingest_to_citex(
             "upload_type": "project_file",
         }
         response = await client.ingest_document(
-            project_id=project_id,
+            project_id=citex_project_id,
             content=content,
             metadata=metadata,
             filename=filename,

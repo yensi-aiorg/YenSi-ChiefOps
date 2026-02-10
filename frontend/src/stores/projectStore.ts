@@ -22,6 +22,14 @@ interface ProjectState {
   projectFiles: ProjectFileInfo[];
   isUploadingFiles: boolean;
   uploadError: string | null;
+  isSubmittingNote: boolean;
+  noteError: string | null;
+  lastNoteResult: {
+    status: string;
+    document_id?: string | null;
+    insights_created: number;
+    error_message?: string | null;
+  } | null;
 }
 
 interface ProjectActions {
@@ -56,6 +64,20 @@ interface ProjectActions {
 
   /** Delete a file from a project. */
   deleteProjectFile: (projectId: string, fileId: string) => Promise<void>;
+
+  /** Submit a free-form project note/transcript. */
+  submitProjectNote: (
+    projectId: string,
+    payload: { title: string; content: string },
+  ) => Promise<{
+    status: string;
+    document_id?: string | null;
+    insights_created: number;
+    error_message?: string | null;
+  }>;
+
+  /** Clear note submission status/error. */
+  clearNoteStatus: () => void;
 }
 
 type ProjectStore = ProjectState & ProjectActions;
@@ -78,6 +100,9 @@ export const useProjectStore = create<ProjectStore>()(
       projectFiles: [],
       isUploadingFiles: false,
       uploadError: null,
+      isSubmittingNote: false,
+      noteError: null,
+      lastNoteResult: null,
 
       // -- actions --
 
@@ -335,6 +360,54 @@ export const useProjectStore = create<ProjectStore>()(
           );
           throw err;
         }
+      },
+
+      submitProjectNote: async (projectId, payload) => {
+        set(
+          { isSubmittingNote: true, noteError: null, lastNoteResult: null },
+          false,
+          "submitProjectNote/start",
+        );
+        try {
+          const { data } = await api.post<{
+            status: string;
+            document_id?: string | null;
+            insights_created: number;
+            error_message?: string | null;
+          }>(`/v1/projects/${projectId}/files/notes`, payload);
+
+          const responseError =
+            data.status === "failed"
+              ? data.error_message ?? "Failed to process note"
+              : null;
+          set(
+            {
+              isSubmittingNote: false,
+              lastNoteResult: data,
+              noteError: responseError,
+            },
+            false,
+            "submitProjectNote/success",
+          );
+          return data;
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Failed to submit note";
+          set(
+            { isSubmittingNote: false, noteError: message },
+            false,
+            "submitProjectNote/error",
+          );
+          throw err;
+        }
+      },
+
+      clearNoteStatus: () => {
+        set(
+          { noteError: null, lastNoteResult: null },
+          false,
+          "clearNoteStatus",
+        );
       },
     }),
     { name: "ProjectStore" },

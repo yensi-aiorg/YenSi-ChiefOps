@@ -8,6 +8,7 @@ FastAPI test clients, and sample data objects.
 from __future__ import annotations
 
 import asyncio
+import os
 from datetime import datetime, timezone
 from typing import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
@@ -47,8 +48,9 @@ async def test_db() -> AsyncGenerator[AsyncIOMotorDatabase, None]:
     database name per test to prevent cross-contamination.
     """
     db_name = f"chiefops_test_{generate_uuid()[:8]}"
+    mongo_url = os.getenv("TEST_MONGO_URL") or os.getenv("MONGO_URL") or "mongodb://localhost:23102"
     client: AsyncIOMotorClient = AsyncIOMotorClient(  # type: ignore[type-arg]
-        "mongodb://localhost:27017",
+        mongo_url,
         serverSelectionTimeoutMS=3000,
     )
 

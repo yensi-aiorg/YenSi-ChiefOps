@@ -12,6 +12,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from app.citex.client import CitexClient
+from app.citex.project_scope import derive_citex_project_id
 from app.config import get_settings
 from app.models.base import utc_now
 from app.services.ingestion.hasher import compute_hash
@@ -83,7 +84,8 @@ async def _load_project_documents(
 
 async def _ingest_group(
     *,
-    project_id: str,
+    chiefops_project_id: str,
+    citex_project_id: str,
     group_name: str,
     docs: list[dict[str, Any]],
     db: AsyncIOMotorDatabase,  # type: ignore[type-arg]
@@ -109,7 +111,7 @@ async def _ingest_group(
         filename = str(doc.get("title") or doc.get("filename") or document_id)
 
         state_key = {
-            "project_id": project_id,
+            "project_id": chiefops_project_id,
             "source_group": group_name,
             "document_id": document_id,
         }
@@ -133,7 +135,7 @@ async def _ingest_group(
         }
 
         response = await citex_client.ingest_document(
-            project_id=project_id,
+            project_id=citex_project_id,
             content=content,
             metadata=metadata,
             filename=filename,
@@ -145,7 +147,8 @@ async def _ingest_group(
                 state_key,
                 {
                     "$set": {
-                        "project_id": project_id,
+                        "project_id": chiefops_project_id,
+                        "citex_project_id": citex_project_id,
                         "source_group": group_name,
                         "source": source,
                         "source_ref": source_ref,
@@ -168,7 +171,19 @@ async def _ingest_group(
                     {
                         "$set": {
                             "indexed_in_citex": True,
+                            "citex_project_id": citex_project_id,
                             "citex_last_ingested_at": utc_now(),
+                            "updated_at": utc_now(),
+                        }
+                    },
+                )
+            # Keep project_files Citex icon in sync for file-based sources.
+            if source in {"documentation", "jira_xlsx", "slack_json", "ui_note"} and source_ref:
+                await db.project_files.update_many(
+                    {"project_id": chiefops_project_id, "filename": source_ref},
+                    {
+                        "$set": {
+                            "citex_ingested": True,
                             "updated_at": utc_now(),
                         }
                     },
@@ -182,7 +197,8 @@ async def _ingest_group(
             state_key,
             {
                 "$set": {
-                    "project_id": project_id,
+                    "project_id": chiefops_project_id,
+                    "citex_project_id": citex_project_id,
                     "source_group": group_name,
                     "source": source,
                     "source_ref": source_ref,
@@ -259,6 +275,11 @@ async def sync_project_to_citex(
         user_id=settings.CITEX_USER_ID,
         scope_id=f"project:{project_id}",
     )
+    citex_project_id = derive_citex_project_id(
+        configured_project_id=settings.CITEX_PROJECT_ID,
+        api_key=settings.CITEX_API_KEY,
+        fallback_project_id=project_id,
+    )
     groups: list[dict[str, Any]] = []
     errors: list[str] = []
 
@@ -268,6 +289,7 @@ async def sync_project_to_citex(
             summary = {
                 "status": "citex_unavailable",
                 "citex_available": False,
+                "citex_project_id": citex_project_id,
                 "groups": [
                     {"group": "jira", "total": len(jira_docs), "ingested": 0, "skipped": 0, "failed": 0},
                     {"group": "slack", "total": len(slack_docs), "ingested": 0, "skipped": 0, "failed": 0},
@@ -285,7 +307,8 @@ async def sync_project_to_citex(
         # Required order: Jira -> Slack -> Docs.
         groups.append(
             await _ingest_group(
-                project_id=project_id,
+                chiefops_project_id=project_id,
+                citex_project_id=citex_project_id,
                 group_name="jira",
                 docs=jira_docs,
                 db=db,
@@ -294,7 +317,8 @@ async def sync_project_to_citex(
         )
         groups.append(
             await _ingest_group(
-                project_id=project_id,
+                chiefops_project_id=project_id,
+                citex_project_id=citex_project_id,
                 group_name="slack",
                 docs=slack_docs,
                 db=db,
@@ -303,7 +327,8 @@ async def sync_project_to_citex(
         )
         groups.append(
             await _ingest_group(
-                project_id=project_id,
+                chiefops_project_id=project_id,
+                citex_project_id=citex_project_id,
                 group_name="docs",
                 docs=doc_files,
                 db=db,
@@ -319,6 +344,7 @@ async def sync_project_to_citex(
         summary = {
             "status": status,
             "citex_available": True,
+            "citex_project_id": citex_project_id,
             "groups": groups,
             "errors": errors,
             "synced_at": utc_now(),
@@ -366,6 +392,11 @@ async def get_project_citex_context(
         user_id=settings.CITEX_USER_ID,
         scope_id=f"project:{project_id}",
     )
+    citex_project_id = derive_citex_project_id(
+        configured_project_id=settings.CITEX_PROJECT_ID,
+        api_key=settings.CITEX_API_KEY,
+        fallback_project_id=project_id,
+    )
 
     queries = [
         "Summarize project scope, client goals, technical architecture, and key constraints.",
@@ -386,7 +417,7 @@ async def get_project_citex_context(
         dedup: dict[str, dict[str, Any]] = {}
         for query in queries:
             chunks = await citex_client.query(
-                project_id=project_id,
+                project_id=citex_project_id,
                 query_text=query,
                 top_k=top_k_per_query,
             )

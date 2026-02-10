@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   FileText,
   FileSpreadsheet,
@@ -12,6 +12,7 @@ import {
   CloudOff,
   Cloud,
   Upload,
+  NotebookPen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DropZone } from "@/components/ingestion/DropZone";
@@ -202,11 +203,18 @@ interface ProjectFilesTabProps {
 }
 
 export function ProjectFilesTab({ projectId }: ProjectFilesTabProps) {
+  const [noteTitle, setNoteTitle] = useState("Project Note");
+  const [noteContent, setNoteContent] = useState("");
   const {
     projectFiles,
     isUploadingFiles,
     uploadError,
+    isSubmittingNote,
+    noteError,
+    lastNoteResult,
     uploadProjectFiles,
+    submitProjectNote,
+    clearNoteStatus,
     fetchProjectFiles,
     deleteProjectFile,
   } = useProjectStore();
@@ -223,6 +231,19 @@ export function ProjectFilesTab({ projectId }: ProjectFilesTabProps) {
     }
   };
 
+  const handleSubmitNote = async () => {
+    if (!noteContent.trim()) return;
+    try {
+      await submitProjectNote(projectId, {
+        title: noteTitle.trim() || "Project Note",
+        content: noteContent.trim(),
+      });
+      setNoteContent("");
+    } catch {
+      // Error is set in store
+    }
+  };
+
   const handleDelete = async (fileId: string) => {
     try {
       await deleteProjectFile(projectId, fileId);
@@ -233,6 +254,86 @@ export function ProjectFilesTab({ projectId }: ProjectFilesTabProps) {
 
   return (
     <div className="space-y-6">
+      {/* Context note section */}
+      <div className="card space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+            <NotebookPen className="h-4 w-4 text-teal-500" />
+            Add Context Note
+          </h3>
+          {isSubmittingNote && (
+            <div className="flex items-center gap-2 text-xs text-teal-600 dark:text-teal-400">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Processing...
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Paste meeting transcripts, face-to-face updates, direction changes,
+          or other narrative context for AI semantic analysis.
+        </p>
+
+        <div className="space-y-3">
+          <input
+            type="text"
+            value={noteTitle}
+            onChange={(e) => {
+              setNoteTitle(e.target.value);
+              if (noteError || lastNoteResult) clearNoteStatus();
+            }}
+            maxLength={300}
+            placeholder="Note title (e.g. Weekly COO Meeting)"
+            className="input w-full"
+          />
+
+          <textarea
+            value={noteContent}
+            onChange={(e) => {
+              setNoteContent(e.target.value);
+              if (noteError || lastNoteResult) clearNoteStatus();
+            }}
+            maxLength={100000}
+            rows={8}
+            placeholder="Paste your transcript or operational notes here..."
+            className="input w-full resize-y"
+          />
+
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-400 dark:text-slate-500">
+              {noteContent.length.toLocaleString()} / 100,000 characters
+            </span>
+            <button
+              onClick={handleSubmitNote}
+              disabled={isSubmittingNote || !noteContent.trim()}
+              className="btn-primary"
+            >
+              {isSubmittingNote ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Note"
+              )}
+            </button>
+          </div>
+        </div>
+
+        {lastNoteResult?.status === "completed" && (
+          <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+            Note processed. {lastNoteResult.insights_created} insight
+            {lastNoteResult.insights_created === 1 ? "" : "s"} extracted.
+          </div>
+        )}
+
+        {noteError && (
+          <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+            {noteError}
+          </div>
+        )}
+      </div>
+
       {/* Upload section */}
       <div className="card space-y-4">
         <div className="flex items-center justify-between">
