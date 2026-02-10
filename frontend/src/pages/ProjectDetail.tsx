@@ -19,6 +19,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useProjectStore } from "@/stores/projectStore";
+import { useChatStore } from "@/stores/chatStore";
 import { ProjectFilesTab } from "@/components/project/ProjectFilesTab";
 import { COOBriefingTab } from "@/components/project/COOBriefingTab";
 import { cn } from "@/lib/utils";
@@ -703,6 +704,17 @@ export function ProjectDetail() {
       fetchProjectFiles(projectId);
     }
   }, [projectId, fetchProjectDetail, fetchProjectFiles]);
+
+  // Scope chat to this project while on this page
+  useEffect(() => {
+    if (projectId) {
+      useChatStore.getState().setActiveProject(projectId);
+      useChatStore.getState().fetchHistory(projectId);
+    }
+    return () => {
+      useChatStore.getState().setActiveProject(null);
+    };
+  }, [projectId]);
 
   const handleAnalyze = async () => {
     if (!projectId || analyzing) return;

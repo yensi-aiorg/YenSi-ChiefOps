@@ -88,7 +88,12 @@ def _get_collection(db: AsyncIOMotorDatabase):  # type: ignore[type-arg]
     return db["conversation_messages"]
 
 
-async def _stream_response(content: str, message_id: str, project_id: str | None):
+async def _stream_response(
+    content: str,
+    message_id: str,
+    project_id: str | None,
+    metadata: dict | None = None,
+):
     """Generate SSE events from the AI response.
 
     Falls back to a single-chunk stream if the conversation service
@@ -110,12 +115,14 @@ async def _stream_response(content: str, message_id: str, project_id: str | None
         yield f"data: {json.dumps(event_data)}\n\n"
 
     # Final event with complete message
-    done_data = {
+    done_data: dict = {
         "type": "done",
         "message_id": message_id,
         "content": accumulated,
         "project_id": project_id,
     }
+    if metadata:
+        done_data["metadata"] = metadata
     yield f"data: {json.dumps(done_data)}\n\n"
 
 
@@ -200,7 +207,7 @@ async def send_message(
     )
 
     return StreamingResponse(
-        _stream_response(response_content, assistant_message_id, body.project_id),
+        _stream_response(response_content, assistant_message_id, body.project_id, response_metadata),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

@@ -175,6 +175,14 @@ export const useChatStore = create<ChatStore>()(
                   false,
                   "sendMessage/done",
                 );
+
+                // Refresh briefing if the AI updated it
+                if (data.metadata?.briefing_updated && resolvedProjectId) {
+                  import("@/stores/cooBriefingStore").then(({ useCooBriefingStore }) => {
+                    useCooBriefingStore.getState().fetchBriefing(resolvedProjectId!);
+                  });
+                }
+
                 eventSource.close();
                 return;
               }

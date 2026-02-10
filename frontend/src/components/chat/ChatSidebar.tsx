@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { X, MessageSquare, FolderKanban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/stores/chatStore";
+import { useProjectStore } from "@/stores/projectStore";
 import { ChatInput } from "./ChatInput";
 import { ChatMessage } from "./ChatMessage";
 import { StreamingResponse } from "./StreamingResponse";
@@ -24,6 +25,16 @@ export function ChatSidebar({ open, onClose }: ChatSidebarProps) {
     sendMessage,
     clearError,
   } = useChatStore();
+
+  const { selectedProject, projects } = useProjectStore();
+
+  // Resolve project name from ID
+  const activeProjectName = activeProjectId
+    ? (selectedProject?.project_id === activeProjectId
+        ? selectedProject.name
+        : projects.find((p) => p.project_id === activeProjectId)?.name)
+      ?? activeProjectId
+    : null;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(messages.length);
@@ -95,7 +106,7 @@ export function ChatSidebar({ open, onClose }: ChatSidebarProps) {
         <div className="flex items-center gap-2 border-b border-slate-100 bg-teal-50/50 px-4 py-2 dark:border-slate-700/50 dark:bg-teal-900/10">
           <FolderKanban className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
           <span className="text-2xs font-medium text-teal-700 dark:text-teal-300">
-            Scoped to project: {activeProjectId}
+            Scoped to project: {activeProjectName}
           </span>
         </div>
       )}

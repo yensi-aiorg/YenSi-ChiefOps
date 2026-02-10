@@ -348,3 +348,80 @@ async def _store_turn(
         "created_at": utc_now(),
     }
     await db.conversation_turns.insert_one(turn_doc)
+
+
+class ConversationService:
+    """Non-streaming conversation handler for the REST endpoint.
+
+    Generates a full response via the AI adapter (non-streaming),
+    stores conversation turns, appends to the project transcript,
+    and checks for briefing update requests.
+    """
+
+    def __init__(self, db: AsyncIOMotorDatabase) -> None:  # type: ignore[type-arg]
+        self.db = db
+
+    async def generate_response(
+        self,
+        message: str,
+        project_id: str | None = None,
+    ) -> dict[str, Any]:
+        from app.ai.adapter import AIRequest
+        from app.ai.factory import get_adapter
+
+        adapter = get_adapter()
+
+        # Assemble project context (now includes file summaries + briefing)
+        context = await get_context(
+            project_id or "", message, self.db, adapter
+        )
+
+        # Build prompt
+        prompt = _build_prompt(message, context)
+
+        # Generate via adapter (non-streaming)
+        request = AIRequest(
+            system_prompt=SYSTEM_PROMPT,
+            user_prompt=prompt,
+        )
+        response = await adapter.generate(request)
+
+        # Store turns
+        resolved_project_id = project_id or ""
+        user_turn_number = await _get_next_turn_number(resolved_project_id, self.db)
+        await _store_turn(
+            project_id=resolved_project_id,
+            turn_number=user_turn_number,
+            role="user",
+            content=message,
+            db=self.db,
+        )
+        assistant_turn_number = await _get_next_turn_number(resolved_project_id, self.db)
+        await _store_turn(
+            project_id=resolved_project_id,
+            turn_number=assistant_turn_number,
+            role="assistant",
+            content=response.content,
+            db=self.db,
+        )
+
+        # Post-turn: fact extraction + compaction
+        combined = f"User: {message}\n\nAssistant: {response.content}"
+        await process_turn(combined, resolved_project_id, self.db, adapter)
+
+        # Append to project transcript
+        metadata: dict[str, Any] | None = None
+        if project_id:
+            from app.services.conversation.project_context import (
+                append_to_transcript,
+                check_and_apply_briefing_update,
+            )
+
+            await append_to_transcript(project_id, message, response.content, self.db)
+
+            # Check if briefing update was requested
+            metadata = await check_and_apply_briefing_update(
+                message, response.content, project_id, self.db, adapter
+            )
+
+        return {"content": response.content, "metadata": metadata}

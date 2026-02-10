@@ -326,3 +326,37 @@ async def export_coo_briefing_pdf(
             "Content-Disposition": f'attachment; filename="{safe_name}"',
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Conversation transcript
+# ---------------------------------------------------------------------------
+
+
+class ConversationTranscriptResponse(BaseModel):
+    project_id: str = Field(..., description="Project identifier.")
+    content_markdown: str = Field(..., description="Full conversation transcript in markdown.")
+    turn_count: int = Field(default=0, description="Number of conversation exchanges.")
+    updated_at: datetime = Field(..., description="Last update timestamp.")
+
+
+@router.get(
+    "/conversation-transcript",
+    response_model=ConversationTranscriptResponse,
+    summary="Get project conversation transcript",
+    description="Retrieve the full markdown conversation transcript for a project.",
+)
+async def get_conversation_transcript(
+    project_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_database),  # type: ignore[type-arg]
+) -> ConversationTranscriptResponse:
+    doc = await db.project_transcripts.find_one(
+        {"project_id": project_id},
+        {"_id": 0, "turns": 0},
+    )
+    if doc is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No conversation transcript found for project '{project_id}'.",
+        )
+    return ConversationTranscriptResponse(**doc)
