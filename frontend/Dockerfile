@@ -5,21 +5,23 @@
 # =============================================================================
 
 # -- Stage 1: Build ----------------------------------------------------------
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
+RUN corepack enable
 
 WORKDIR /app
+ENV PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true
 
 # Copy package files first for better layer caching
-COPY package.json package-lock.json* ./
+COPY package.json pnpm-lock.yaml ./
 
 # Install all dependencies (including devDependencies for build)
-RUN npm ci --no-audit --no-fund
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # -- Stage 2: Serve with nginx -----------------------------------------------
 FROM nginx:alpine AS production

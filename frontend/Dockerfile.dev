@@ -3,15 +3,17 @@
 # Runs Vite dev server with HMR support
 # =============================================================================
 
-FROM node:20-alpine
+FROM node:22-alpine
+RUN corepack enable
 
 WORKDIR /app
+ENV PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true
 
 # Copy package files
-COPY package.json package-lock.json* ./
+COPY package.json pnpm-lock.yaml ./
 
 # Install all dependencies
-RUN npm ci --no-audit --no-fund
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -20,4 +22,4 @@ COPY . .
 EXPOSE 23100
 
 # Start Vite dev server
-CMD ["npm", "run", "dev"]
+CMD ["pnpm", "run", "dev"]
